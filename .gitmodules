@@ -1,0 +1,3 @@
+[submodule "vendor/Promise"]
+	path = vendor/Promise
+	url = https://github.com/cleversource/roblox-lua-promise
