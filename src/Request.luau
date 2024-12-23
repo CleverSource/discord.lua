@@ -45,7 +45,7 @@ local HTTP_MULTIPLE_CHOICES = 300
 local API_VERSION = 10
 local BASE_URL = `https://discord.com/api/v{API_VERSION}`
 
--- Bucket
+-- Request
 local Request = {}
 
 export type Request = {
@@ -55,15 +55,15 @@ export type Request = {
     ratelimits: { [string]: OrderedBucket },
     readyQueue: { () -> nil },
     userAgent: string,
-    client: any,
+    authorization: any,
 
-    new: (client: any, options: RequestOptions?) -> Request,
+    new: (authorization: string, options: RequestOptions?) -> Request,
     globalUnblock: (self: Request) -> nil,
     request: (self: Request, method: Net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent?, _route: string?, short: boolean?) -> Promise,
     getRatelimitBucketIdFromUrl: (self: Request, url: string, method: Net.HttpMethod) -> string
 } & typeof(Request)
 
-function Request.new(client: any, options: RequestOptions?): Request
+function Request.new(authorization: any, options: RequestOptions?): Request
     local self = setmetatable({} :: Request, {
         __index = Request
     })
@@ -74,7 +74,7 @@ function Request.new(client: any, options: RequestOptions?): Request
         ratelimiterOffset = options and options.ratelimiterOffset or 0,
         requestTimeout = options and options.requestTimeout or 15000
     }
-    self.client = client
+    self.authorization = authorization
     self.userAgent = "DiscordBot (https://github.com/cleversource/discord.lua, 0.0.1)"
     self.ratelimits = {}
     self.latencyRef = {
@@ -113,7 +113,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
             }
             
             if auth then
-                headers.Authorization = self.client.token
+                headers.Authorization = self.authorization
             end
 
             if body and body.reason then

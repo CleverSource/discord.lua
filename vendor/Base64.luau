@@ -56,14 +56,14 @@ function b64.decode(hash)
 	for i = 1, len, 4 do
 		local c0, c1, c2, c3 = string.byte(hash, i, i + 3)
 
-        -- NOTE(CleverSource): This is changed from metatablecat's original code to handle padding and invalid characters correctly
-        if not c0 or not c1 then break end
-        local v0 = INDEX[c0]
-        local v1 = INDEX[c1]
-        local v2 = c2 and INDEX[c2] or nil
-        local v3 = c3 and INDEX[c3] or nil
+		-- NOTE(CleverSource): This is changed from metatablecat's original code to handle padding and invalid characters correctly
+		if not c0 or not c1 then break end
+		local v0 = INDEX[c0]
+		local v1 = INDEX[c1]
+		local v2 = c2 and INDEX[c2] or nil
+		local v3 = c3 and INDEX[c3] or nil
 
-        if not v0 or not v1 then break end
+		if not v0 or not v1 then break end
 
 		local b = 
 			bit32.lshift(v0, 18)
@@ -72,12 +72,12 @@ function b64.decode(hash)
 			+ (v3 or 0)
 
 		output[index] = STRING_FAST[bit32.extract(b, 16, 8)]
-        if c2 ~= 61 then
-		    output[index + 1] = STRING_FAST[bit32.extract(b, 8, 8)]
-        end
-        if c3 ~= 61 then
-		    output[index + 2] = STRING_FAST[bit32.band(b, 0xFF)]
-        end
+		if c2 ~= 61 then
+			output[index + 1] = STRING_FAST[bit32.extract(b, 8, 8)]
+		end
+		if c3 ~= 61 then
+			output[index + 2] = STRING_FAST[bit32.band(b, 0xFF)]
+		end
 		index += 3
 	end
 
