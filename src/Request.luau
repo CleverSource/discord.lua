@@ -113,7 +113,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
             }
             
             if auth then
-                headers.Authorization = self.authorization
+                headers.authorization = self.authorization
             end
 
             if body and body.reason then
@@ -134,7 +134,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                         method = method,
                         url = `{BASE_URL}{url}`,
                         headers = headers,
-                        query = Net.jsonEncode(body)
+                        query = body
                     })
                 else
                     return Net.request({
@@ -211,7 +211,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
 
             self.ratelimits[route].remaining = response.headers[HEADER_RATELIMIT_REMAINING] == nil and 1 or tonumber(response.headers[HEADER_RATELIMIT_REMAINING]) or 0
 
-            local retryAfter = (tonumber(response.headers[HEADER_RATELIMIT_RESET_AFTER] or response.headers[HEADER_RETRY_AFTER]) :: number) * 1000
+            local retryAfter = (tonumber(response.headers[HEADER_RATELIMIT_RESET_AFTER] or response.headers[HEADER_RETRY_AFTER]) :: number) or 0 * 1000
             if retryAfter >= 0 then
                 if response.headers[HEADER_RATELIMIT_GLOBAL] then
                     self.globalBlock = true
