@@ -8,6 +8,9 @@ local PromiseType = require("@vendor/Promise/types/Promise")
 local Promise = require("@vendor/Promise/lib") :: PromiseType.Promise
 type Promise = PromiseType.AnyPromise
 
+-- FormData
+local FormData = require("FormData")
+
 -- Types
 local LatencyRef = require("types/LatencyRef")
 type LatencyRef = LatencyRef.LatencyRef
@@ -121,14 +124,46 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                 body.reason = nil      
             end
 
+            local bodyObject = ""
+
             if file then
-                error("TODO, support files")
-            elseif body then
+                local data = FormData.new()
+                headers["content-type"] = `multipart/form-data; boundary={data.boundary}`
+
+                if typeof(file[1]) == "table" then
+                    for index, fileData in file do
+                        if not fileData.file then
+                            return
+                        end
+
+                        data:attach(`files[{index - 1}]`, fileData.file, fileData.name)
+                    end
+                elseif file.file then
+                    -- TODO: special case for stickers
+                    data:attach("files[0]", file.file, file.name)
+                else
+                    error("Invalid file object")
+                end
+
+                if body then
+                    body.payload_json.file = nil
+                    for key, value in body do
+                        data:attach(key, value)
+                    end
+                end
+
+                data:attach("test", "asd?")
+
+                for _, value in data:finish() do
+                    bodyObject ..= buffer.tostring(value)
+                end
+            else
                 headers["content-type"] = "application/json"
+                bodyObject = Net.jsonEncode(body)
             end
 
             local latency = DateTime.now().unixTimestampMillis
-            local success, response = pcall(function() 
+            local success, response = pcall(function()
                 if method == "GET" or method == "DELETE" then
                     return Net.request({
                         method = method,
@@ -141,7 +176,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                         method = method,
                         url = `{BASE_URL}{url}`,
                         headers = headers,
-                        body = Net.jsonEncode(body)
+                        body = bodyObject
                     })
                 end
             end)
