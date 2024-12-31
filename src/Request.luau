@@ -152,8 +152,6 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                     end
                 end
 
-                data:attach("test", "asd?")
-
                 for _, value in data:finish() do
                     bodyObject ..= buffer.tostring(value)
                 end
