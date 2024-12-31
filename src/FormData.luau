@@ -1,5 +1,4 @@
 -- Lune
-local Regex = require("@lune/regex")
 local Serde = require("@lune/serde")
 
 -- Constants
@@ -20,7 +19,6 @@ local FormData = {}
 export type FormData = {
     boundary: "DiscordLua",
     buffers: { buffer },
-    fileRegex: Regex.Regex,
 
     new: () -> FormData,
     attach: (self: FormData, fieldName: string, data: any, filename: string) -> nil,
