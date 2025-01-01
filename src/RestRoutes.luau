@@ -14,7 +14,8 @@ export type RestRoutes = {
         pin: (channelId: string, messageId: string) -> string,
         pins: (channelId: string) -> string,
         webhooks: (channelId: string) -> string,
-        channel: (channelId: string) -> string
+        channel: (channelId: string) -> string,
+        follow: (channelId: string) -> string
     }
 }
 
@@ -75,6 +76,9 @@ return {
         end,
         channel = function(channelId)
             return `/channels/{channelId}`
+        end,
+        follow = function(channelId)
+            return `/channels/{channelId}/followers`
         end
     }
 } :: RestRoutes

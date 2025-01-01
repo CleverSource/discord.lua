@@ -29,6 +29,9 @@ type DiscordChannel = any
 type DiscordAllowedMentions = Discord.DiscordAllowedMentions
 type DiscordSnowflake = Discord.DiscordSnowflake
 type DiscordPartialAttachment = Discord.DiscordPartialAttachment
+type DiscordForumTag = Discord.DiscordForumTag
+type DiscordDefaultReactionEmoji = Discord.DiscordDefaultReactionEmoji
+type DiscordFollowChannel = Discord.DiscordFollowChannel
 
 type AllowedMentions = {
     everyone: boolean?,
@@ -40,11 +43,11 @@ type AllowedMentions = {
 -- Internal Option Types
 type CreateWebhookOptions = {
     name: string,
-    avatar: string?
+    avatar: string | nil?
 }
 type EditWebhookOptions = {
     name: string?,
-    avatar: string?,
+    avatar: string | nil?,
     channelId: DiscordSnowflake?
 }
 type EditWebhookMessageOptions = {
@@ -73,6 +76,32 @@ type ExecuteWebhookOptions = {
 type AddDmRecipientOptions = {
     accessToken: string,
     nick: string?
+}
+type EditChannelOptions = {
+    name: string?,
+    icon: string?,
+    type: number?,
+    position: number | nil?,
+    topic: string | nil?,
+    nsfw: boolean | nil?,
+    rateLimitPerUser: number | nil?,
+    bitrate: number | nil?,
+    userLimit: number | nil?,
+    parentId: string | nil?,
+    rtcRegion: string | nil?,
+    videoQualityMode: number?,
+    defaultAutoArchiveDuration: number?,
+    flags: number?,
+    availableTags: { DiscordForumTag }?,
+    defaultReactionEmoji: DiscordDefaultReactionEmoji?,
+    defaultThreadRateLimitPerUser: number?,
+    defaultSortOrder: number | nil?,
+    defaultFormLayout: number?,
+    archived: boolean?,
+    autoArchiveDuration: number?,
+    locked: boolean?,
+    invitable: boolean?,
+    appliedTags: { string }?
 }
 
 -- RestClient
@@ -115,7 +144,10 @@ export type RestClient = {
     getPinnedMessages: (self: RestClient, channelId: DiscordSnowflake) -> { DiscordMessage },
     getChannelWebhooks: (self: RestClient, channelId: DiscordSnowflake) -> { DiscordWebook },
     createWebhook: (self: RestClient, channelId: DiscordSnowflake, options: CreateWebhookOptions, reason: string?) -> DiscordWebook,
-    getChannel: (self: RestClient, channelId: DiscordSnowflake) -> DiscordChannel
+    getChannel: (self: RestClient, channelId: DiscordSnowflake) -> DiscordChannel,
+    editChannel: (self: RestClient, channelId: DiscordSnowflake, options: EditChannelOptions, reason: string?) -> DiscordChannel,
+    deleteChannel: (self: RestClient, channelId: DiscordSnowflake, reason: string?) -> nil,
+    followAnnouncement: (self: RestClient, sourceChannelId: DiscordSnowflake, targetChannelId: DiscordSnowflake, reason: string?) -> DiscordFollowChannel
 } & typeof(RestClient)
 
 export type RestClientOptions = {
@@ -217,28 +249,18 @@ function RestClient.deleteWebhookMessage(self: RestClient, webhookId: DiscordSno
 end
 
 function RestClient.editWebhook(self: RestClient, webhookId: DiscordSnowflake, options: EditWebhookOptions, reason: string?): DiscordWebook
-    local promise = self.Request:request("PATCH", RestRoutes.webhooks.id(webhookId), true, {
-        name = options.name,
-        avatar = options.avatar,
-        channel_id = options.channelId,
-        reason = reason
-    })
+    local promise = self.Request:request("PATCH", RestRoutes.webhooks.id(webhookId), true, options)
     return self:processResponse(promise)
 end
 
 function RestClient.editWebhookWithToken(self: RestClient, webhookId: DiscordSnowflake, token: string, options: EditWebhookOptions): DiscordWebook
-    local promise = self.Request:request("PATCH", RestRoutes.webhooks.webhook(webhookId, token), false, {
-        name = options.name,
-        avatar = options.avatar,
-        channel_id = options.channelId
-    })
+    local promise = self.Request:request("PATCH", RestRoutes.webhooks.webhook(webhookId, token), false, options)
     return self:processResponse(promise)
 end
 
 function RestClient.editWebhookMessage(self: RestClient, webhookId: DiscordSnowflake, token: string, messageId: string, options: EditWebhookMessageOptions): DiscordMessage
     if options.allowedMentions then
-        (options :: any).allowed_mentions = self:formatAllowedMentions(options.allowedMentions)
-        options.allowedMentions = nil
+        (options :: any).allowedMentions = self:formatAllowedMentions(options.allowedMentions)
     end
 
     -- TODO: better design for requests with files
@@ -252,11 +274,8 @@ end
 
 function RestClient.executeWebhook(self: RestClient, webhookId: DiscordSnowflake, token: string, options: ExecuteWebhookOptions): DiscordMessage | nil
     if options.allowedMentions then
-        (options :: any).allowed_mentions = self:formatAllowedMentions(options.allowedMentions)
-        options.allowedMentions = nil
+        (options :: any).allowedMentions = self:formatAllowedMentions(options.allowedMentions)
     end
-    (options :: any).avatar_url = options.avatarUrl
-    options.avatarUrl = nil
 
     local promise = self.Request:request("POST", RestRoutes.webhooks.webhook(webhookId, token, options), false, options.file and {
         payload_json = options
@@ -374,6 +393,27 @@ function RestClient.getChannel(self: RestClient, channelId: DiscordSnowflake): D
     
     -- TODO: convert to DiscordChannel
     return self:processResponse(promise)
+end
+
+function RestClient.editChannel(self: RestClient, channelId: DiscordSnowflake, options: EditChannelOptions, reason: string?): DiscordChannel
+    (options :: any).reason = reason
+    local promise = self.Request:request("PATCH", RestRoutes.channels.channel(channelId), true, options)
+
+    -- TODO: convert to DiscordChannel
+    return self:processResponse(promise)
+end
+
+function RestClient.deleteChannel(self: RestClient, channelId: DiscordSnowflake, reason: string?)
+    self:processResponse(self.Request:request("DELETE", RestRoutes.channels.channel(channelId), true, {
+        reason = reason
+    }))
+end
+
+function RestClient.followAnnouncement(self: RestClient, sourceChannelId: DiscordSnowflake, targetChannelId: DiscordSnowflake, reason: string?): DiscordFollowChannel
+    return self:processResponse(self.Request:request("POST", RestRoutes.channels.follow(sourceChannelId), true, {
+        webhookChannelId = targetChannelId,
+        reason = reason
+    }))
 end
 
 return RestClient

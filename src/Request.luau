@@ -11,6 +11,9 @@ type Promise = PromiseType.AnyPromise
 -- FormData
 local FormData = require("FormData")
 
+-- Utils
+local camelCaseToSnakeCase = require("utils/camelCaseToSnakeCase")
+
 -- Types
 local LatencyRef = require("types/LatencyRef")
 type LatencyRef = LatencyRef.LatencyRef
@@ -119,9 +122,18 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                 headers.authorization = self.authorization
             end
 
-            if body and body.reason then
-                headers[HEADER_AUDIT_LOG_REASON] = Net.urlEncode(body.reason)
-                body.reason = nil      
+            if body then
+                if body.reason then
+                    headers[HEADER_AUDIT_LOG_REASON] = Net.urlEncode(body.reason)
+                    body.reason = nil      
+                end
+
+                for key, value in body do
+                    if key:match("%u") then
+                        body[key] = nil
+                        body[camelCaseToSnakeCase(key)] = value
+                    end
+                end
             end
 
             local bodyObject = ""

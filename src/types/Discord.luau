@@ -29,4 +29,22 @@ export type DiscordPartialAttachment = {
     id: string | number
 }
 
+export type DiscordForumTag = {
+    id: string,
+    name: string,
+    moderated: boolean,
+    emoji_id: string,
+    emoji_name: string | nil
+}
+
+export type DiscordDefaultReactionEmoji = {
+    emoji_id: string,
+    emoji_name: string | nil
+}
+
+export type DiscordFollowChannel = {
+    channel_id: string,
+    webhook_id: string
+}
+
 return {}
