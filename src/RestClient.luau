@@ -1,5 +1,9 @@
+-- Lune
+local DateTime = require("@lune/datetime")
+
 -- Utils
 local getApplicationIdFromToken = require("utils/getApplicationIdFromToken")
+local urlToBase64 = require("utils/urlToBase64")
 
 -- Promise
 local PromiseType = require("@vendor/Promise/types/Promise")
@@ -21,6 +25,7 @@ local Discord = require("types/Discord")
 type DiscordGetGatewayBot = any
 type DiscordWebook = Discord.DiscordWebhook
 type DiscordMessage = any
+type DiscordChannel = any
 type DiscordAllowedMentions = Discord.DiscordAllowedMentions
 type DiscordSnowflake = Discord.DiscordSnowflake
 type DiscordPartialAttachment = Discord.DiscordPartialAttachment
@@ -33,6 +38,10 @@ type AllowedMentions = {
 }
 
 -- Internal Option Types
+type CreateWebhookOptions = {
+    name: string,
+    avatar: string?
+}
 type EditWebhookOptions = {
     name: string?,
     avatar: string?,
@@ -60,6 +69,10 @@ type ExecuteWebhookOptions = {
     tts: boolean?,
     username: string?,
     wait: boolean?
+}
+type AddDmRecipientOptions = {
+    accessToken: string,
+    nick: string?
 }
 
 -- RestClient
@@ -90,7 +103,19 @@ export type RestClient = {
     editWebhookWithToken: (self: RestClient, webhookId: DiscordSnowflake, token: string, options: EditWebhookOptions) -> DiscordWebook,
     editWebhookMessage: (self: RestClient, webhookId: DiscordSnowflake, token: string, messageId: string, options: EditWebhookMessageOptions) -> DiscordMessage,
     
-    executeWebhook: (self: RestClient, webhookId: DiscordSnowflake, token: string, options: ExecuteWebhookOptions) -> DiscordMessage | nil
+    executeWebhook: (self: RestClient, webhookId: DiscordSnowflake, token: string, options: ExecuteWebhookOptions) -> DiscordMessage | nil,
+
+    -- Channels
+    deleteMessages: (self: RestClient, channelId: DiscordSnowflake, messageIds: { DiscordSnowflake }, reason: string?) -> nil,
+    getDmChannel: (self: RestClient, userId: DiscordSnowflake) -> DiscordChannel,
+    addDmRecipient: (self: RestClient, channelId: DiscordSnowflake, userId: DiscordSnowflake, options: AddDmRecipientOptions) -> nil,
+    removeDmRecipient: (self: RestClient, channelId: DiscordSnowflake, userId: DiscordSnowflake) -> nil,
+    pinMessage: (self: RestClient, channelId: DiscordSnowflake, messageId: DiscordSnowflake, reason: string?) -> nil,
+    unpinMessage: (self: RestClient, channelId: DiscordSnowflake, messageId: DiscordSnowflake, reason: string?) -> nil,
+    getPinnedMessages: (self: RestClient, channelId: DiscordSnowflake) -> { DiscordMessage },
+    getChannelWebhooks: (self: RestClient, channelId: DiscordSnowflake) -> { DiscordWebook },
+    createWebhook: (self: RestClient, channelId: DiscordSnowflake, options: CreateWebhookOptions, reason: string?) -> DiscordWebook,
+    getChannel: (self: RestClient, channelId: DiscordSnowflake) -> DiscordChannel
 } & typeof(RestClient)
 
 export type RestClientOptions = {
@@ -115,6 +140,8 @@ function RestClient.processResponse(self: RestClient, promise: Promise): any
     local success, result = promise:await()
     if success then
         return result
+    else
+        print(result)
     end
     return nil
 end
@@ -242,6 +269,111 @@ function RestClient.executeWebhook(self: RestClient, webhookId: DiscordSnowflake
     else
         return nil
     end
+end
+
+-- Channels
+function RestClient.deleteMessages(self: RestClient, channelId: DiscordSnowflake, messageIds: { DiscordSnowflake }, reason: string?)
+    if #messageIds == 0 then
+        return
+    end
+    if #messageIds == 1 then
+        -- TODO: delete single message
+        return
+    end
+
+    local oldestAllowedSnowflake = (DateTime.now().unixTimestampMillis - 1421280000000) * 4194304
+    local invalidMessage = false
+
+    for _, messageId in messageIds do
+        if tonumber(messageId) < oldestAllowedSnowflake then
+            invalidMessage = messageId
+            break
+        end
+    end
+
+    if invalidMessage then
+        error(`Message {invalidMessage} is more than 2 weeks old.`)
+    end
+
+    local MAX_MESSAGES = 100
+    if #messageIds > MAX_MESSAGES then
+        local shift = table.move(messageIds, MAX_MESSAGES + 1, #messageIds, 1, {})
+        local splice = table.move(messageIds, 1, MAX_MESSAGES, 1, {})
+
+        self.Request:request("POST", RestRoutes.channels.bulk(channelId), true, {
+            messages = splice,
+            reason = reason
+        }):andThen(function()
+            self:deleteMessages(channelId, shift, reason)
+        end)
+        return
+    end
+    self:processResponse(self.Request:request("POST", RestRoutes.channels.bulk(channelId), true, {
+        messages = messageIds,
+        reason = reason
+    }))
+end
+
+function RestClient.getDmChannel(self: RestClient, userId: DiscordSnowflake): DiscordChannel
+    local promise = self.Request:request("POST", RestRoutes.channels.dm(), true, {
+        recipient_id = userId
+    })
+    
+    -- TODO: convert to DiscordChannel
+    return self:processResponse(promise)
+end
+
+function RestClient.addDmRecipient(self: RestClient, channelId: DiscordSnowflake, userId: DiscordSnowflake, options: AddDmRecipientOptions)
+    (options :: any).access_token = options.accessToken
+    self:processResponse(self.Request:request("PUT", RestRoutes.channels.dmRecipient(channelId, userId), true, options))
+end
+
+function RestClient.removeDmRecipient(self: RestClient, channelId: DiscordSnowflake, userId: DiscordSnowflake)
+    self:processResponse(self.Request:request("DELETE", RestRoutes.channels.dmRecipient(channelId, userId), true))
+end
+
+function RestClient.pinMessage(self: RestClient, channelId: DiscordSnowflake, messageId: DiscordSnowflake, reason: string?)
+    self:processResponse(self.Request:request("PUT", RestRoutes.channels.pin(channelId, messageId), true, {
+        reason = reason
+    }))
+end
+
+function RestClient.unpinMessage(self: RestClient, channelId: DiscordSnowflake, messageId: DiscordSnowflake, reason: string?)
+    self:processResponse(self.Request:request("DELETE", RestRoutes.channels.pin(channelId, messageId), true, {
+        reason = reason
+    }))
+end
+
+function RestClient.getPinnedMessages(self: RestClient, channelId: DiscordSnowflake): { DiscordMessage }
+    local promise = self.Request:request("GET", RestRoutes.channels.pins(channelId), true)
+
+    -- TODO: convert to array of DiscordMessage
+    return self:processResponse(promise)
+end
+
+function RestClient.getChannelWebhooks(self: RestClient, channelId: DiscordSnowflake): { DiscordWebook }
+    local promise = self.Request:request("GET", RestRoutes.channels.webhooks(channelId), true)
+
+    -- TODO: convert to array of DiscordWebhook
+    return self:processResponse(promise)
+end
+
+function RestClient.createWebhook(self: RestClient, channelId: DiscordSnowflake, options: CreateWebhookOptions, reason: string?): DiscordWebook
+    local promise = self.Request:request("POST", RestRoutes.channels.webhooks(channelId), true, {
+        name = options.name,
+        avatar = options.avatar and urlToBase64(options.avatar) or nil,
+        reason = reason
+    })
+    
+    -- TODO: convert to DiscordWebhook
+    return self:processResponse(promise)
+end
+
+function RestClient.getChannel(self: RestClient, channelId: DiscordSnowflake): DiscordChannel
+    local promise = self.Request:request("GET", RestRoutes.channels.channel(channelId), true)
+    
+    -- TODO: convert to DiscordChannel
+    return self:processResponse(promise)
 end
 
 return RestClient

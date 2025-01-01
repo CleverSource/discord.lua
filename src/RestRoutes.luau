@@ -5,6 +5,16 @@ export type RestRoutes = {
         id: (webhookId: string) -> string,
         webhook: (webhookId: string, token: string, options: { wait: boolean?, threadId: string? }?) -> string,
         message: (webhookId: string, token: string, messageId: string, options: { threadId: string? }?) -> string
+    },
+
+    channels: {
+        bulk: (channelId: string) -> string,
+        dm: () -> string,
+        dmRecipient: (channelId: string, userId: string) -> string,
+        pin: (channelId: string, messageId: string) -> string,
+        pins: (channelId: string) -> string,
+        webhooks: (channelId: string) -> string,
+        channel: (channelId: string) -> string
     }
 }
 
@@ -41,6 +51,30 @@ return {
             end
 
             return url
+        end
+    },
+
+    channels = {
+        bulk = function(channelId)
+            return `/channels/{channelId}/messages/bulk-delete`
+        end,
+        dm = function()
+            return "/users/@me/channels" 
+        end,
+        dmRecipient = function(channelId, userId)
+            return `/channels/{channelId}/recipients/{userId}`
+        end,
+        pin = function(channelId, messageId)
+            return `/channels/{channelId}/pins/{messageId}`
+        end,
+        pins = function(channelId)
+            return `/channels/{channelId}/pins`
+        end,
+        webhooks = function(channelId)
+            return `/channels/{channelId}/webhooks`
+        end,
+        channel = function(channelId)
+            return `/channels/{channelId}`
         end
     }
 } :: RestRoutes

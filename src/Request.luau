@@ -265,7 +265,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
             if response.statusCode ~= HTTP_TOO_MANY_REQUESTS then
                 -- TODO: better debug logging
                 local content = if typeof(body) == "table" then body.content else ""
-                print(`{content}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
+                print(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
             end
 
             if response.statusCode >= HTTP_MULTIPLE_CHOICES then
@@ -278,7 +278,7 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                     local content = if typeof(body) == "table" then body.content else ""
                     print(`{response.headers[HEADER_RATELIMIT_GLOBAL] and "Global" or "Unexpected"} 429`)
                     print(responseBody)
-                    print(`{content}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left) | Scope {response.headers[HEADER_RATELIMIT_SCOPE]}`)
+                    print(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left) | Scope {response.headers[HEADER_RATELIMIT_SCOPE]}`)
                     
                     if delay then
                         Task.delay(delay / 1000, function() 
