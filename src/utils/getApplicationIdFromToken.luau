@@ -1,5 +1,8 @@
-local Base64 = require("@vendor/Base64")
+local Base64 = require("@vendor/Base64/Base64")
+local padBase64String = require("padBase64String")
 
 return function(token: string): string
-    return Base64.decode(token:split(".")[1])
+    local paddedToken = padBase64String(token:split(".")[1])
+    local applicationIdBuffer = Base64.decode(buffer.fromstring(paddedToken))
+    return buffer.tostring(applicationIdBuffer)
 end

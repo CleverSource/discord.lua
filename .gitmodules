@@ -1,3 +1,6 @@
 [submodule "vendor/Promise"]
 	path = vendor/Promise
 	url = https://github.com/cleversource/roblox-lua-promise
+[submodule "vendor/Base64"]
+	path = vendor/Base64
+	url = https://github.com/Reselim/Base64
