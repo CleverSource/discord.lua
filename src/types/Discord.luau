@@ -10,7 +10,7 @@ export type DiscordAllowedMentions = {
 
 export type DiscordWebhook = {
     id: DiscordSnowflake,
-    type: number, -- TODO
+    type: number,
     guild_id: DiscordSnowflake | nil?,
     channel_id: DiscordSnowflake | nil?,
     user: any?, -- TODO
@@ -45,6 +45,19 @@ export type DiscordDefaultReactionEmoji = {
 export type DiscordFollowChannel = {
     channel_id: string,
     webhook_id: string
+}
+
+export type DiscordSessionStartLimit = {
+    total: number,
+    remaining: number,
+    reset_after: number,
+    max_concurrency: number
+}
+
+export type DiscordGetGatewayBot = {
+    url: string,
+    shards: number,
+    session_start_limit: DiscordSessionStartLimit
 }
 
 return {}

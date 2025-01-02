@@ -128,11 +128,26 @@ function Request.request(self: Request, method: Net.HttpMethod, url: string, aut
                     body.reason = nil      
                 end
 
-                for key, value in body do
-                    if key:match("%u") then
-                        body[key] = nil
-                        body[camelCaseToSnakeCase(key)] = value
+                -- TODO: this might need to support recursion?
+                local function camelize(body)
+                    for key, value in body do
+                        if typeof(value) == "table" then
+                            camelize(value)
+                        end
+                        if typeof(key) == "string" then
+                            if key:match("%u") then
+                                body[key] = nil
+                                body[camelCaseToSnakeCase(key)] = value
+                            end
+                        end
                     end
+                end
+                camelize(body)
+
+                if file then
+                    body = {
+                        payload_json = body
+                    }
                 end
             end
 

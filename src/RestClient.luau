@@ -22,7 +22,7 @@ local RestRoutes = require("RestRoutes")
 local Discord = require("types/Discord")
 
 -- TODO: some of these are placeholders until the types are implemented
-type DiscordGetGatewayBot = any
+type DiscordGetGatewayBot = Discord.DiscordGetGatewayBot
 type DiscordWebook = Discord.DiscordWebhook
 type DiscordMessage = any
 type DiscordChannel = any
@@ -103,6 +103,21 @@ type EditChannelOptions = {
     invitable: boolean?,
     appliedTags: { string }?
 }
+type CreateForumThreadOptions = {
+    name: string,
+    autoArchiveDuration: number,
+    rateLimitPerUser: number | nil?,
+    message: {
+        content: string?,
+        embeds: { any }?, -- TODO
+        allowedMentions: AllowedMentions?,
+        components: { any }?, -- TODO
+        stickerIds: { DiscordSnowflake }?,
+        flags: number?
+    },
+    appliedTags: { string }?,
+    file: FileContent | { FileContent }?
+}
 
 -- RestClient
 local RestClient = {}
@@ -147,7 +162,8 @@ export type RestClient = {
     getChannel: (self: RestClient, channelId: DiscordSnowflake) -> DiscordChannel,
     editChannel: (self: RestClient, channelId: DiscordSnowflake, options: EditChannelOptions, reason: string?) -> DiscordChannel,
     deleteChannel: (self: RestClient, channelId: DiscordSnowflake, reason: string?) -> nil,
-    followAnnouncement: (self: RestClient, sourceChannelId: DiscordSnowflake, targetChannelId: DiscordSnowflake, reason: string?) -> DiscordFollowChannel
+    followAnnouncement: (self: RestClient, sourceChannelId: DiscordSnowflake, targetChannelId: DiscordSnowflake, reason: string?) -> DiscordFollowChannel,
+    createForumThread: (self: RestClient, channelId: DiscordSnowflake, options: CreateForumThreadOptions, reason: string?) -> DiscordChannel
 } & typeof(RestClient)
 
 export type RestClientOptions = {
@@ -264,9 +280,7 @@ function RestClient.editWebhookMessage(self: RestClient, webhookId: DiscordSnowf
     end
 
     -- TODO: better design for requests with files
-    local promise = self.Request:request("PATCH", RestRoutes.webhooks.message(webhookId, token, messageId), false, options.file and {
-        payload_json = options
-    } or options, options.file :: FileContent)
+    local promise = self.Request:request("PATCH", RestRoutes.webhooks.message(webhookId, token, messageId), false, options, options.file :: FileContent)
 
     -- TODO: convert to DiscordMessage
     return self:processResponse(promise)
@@ -277,9 +291,7 @@ function RestClient.executeWebhook(self: RestClient, webhookId: DiscordSnowflake
         (options :: any).allowedMentions = self:formatAllowedMentions(options.allowedMentions)
     end
 
-    local promise = self.Request:request("POST", RestRoutes.webhooks.webhook(webhookId, token, options), false, options.file and {
-        payload_json = options
-    } or options, options.file :: FileContent)
+    local promise = self.Request:request("POST", RestRoutes.webhooks.webhook(webhookId, token, options), false, options, options.file :: FileContent)
     
     -- TODO: convert to DiscordMessage
     local response = self:processResponse(promise)
@@ -414,6 +426,16 @@ function RestClient.followAnnouncement(self: RestClient, sourceChannelId: Discor
         webhookChannelId = targetChannelId,
         reason = reason
     }))
+end
+
+function RestClient.createForumThread(self: RestClient, channelId: DiscordSnowflake, options: CreateForumThreadOptions, reason: string?): DiscordChannel
+    (options :: any).reason = reason
+    if options.message and options.message.allowedMentions then
+        (options :: any).message.allowedMentions = self:formatAllowedMentions((options :: any).message.allowedMentions)
+    end
+    local promise = self.Request:request("POST", RestRoutes.channels.forum(channelId), true, options, options.file :: FileContent)
+
+    return self:processResponse(promise)
 end
 
 return RestClient
