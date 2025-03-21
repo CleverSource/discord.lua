@@ -1,5 +1,7 @@
-local Request = require("rest/Request")
+local RequestHandler = require("rest/RequestHandler")
 local Routes = require("rest/Routes")
+local GatewayHandler = require("gateway/GatewayHandler")
+local Constants = require("Constants")
 
 local ExtendedUser = require("structures/ExtendedUser")
 
@@ -13,8 +15,11 @@ function Client.new(options)
         __index = Client
     })
 
-    self.token = options.token
-    self.Request = Request.new(self.token, options.restOptions)
+    self.token = "Bot " .. options.token
+    self.request = RequestHandler.new(options.token, options.restOptions)
+    self.gateway = GatewayHandler.new({
+        token = options.token
+    })
 
     return self
 end
@@ -31,22 +36,22 @@ local function processPromise(promise)
 end
 
 function Client:getGateway()
-    local res = self.Request:request("GET", Routes.gateway())
+    local res = self.request:createRequest("GET", Routes.gateway())
     return processPromise(res)
 end
 
 function Client:getBotGateway()
-    local res = self.Request:request("GET", Routes.gatewayBot(), true)
+    local res = self.request:createRequest("GET", Routes.gatewayBot(), true)
     return processPromise(res)
 end
 
 function Client:getSelf()
-    local res = processPromise(self.Request:request("GET", Routes.user("@me"), true))
+    local res = processPromise(self.request:createRequest("GET", Routes.user("@me"), true))
     return ExtendedUser.new(res)
 end
 
 function Client:editSelf(options)
-    local res = processPromise(self.Request:request("PATCH", Routes.user("@me"), true, options))
+    local res = processPromise(self.request:createRequest("PATCH", Routes.user("@me"), true, options))
     return ExtendedUser.new(res)
 end
 

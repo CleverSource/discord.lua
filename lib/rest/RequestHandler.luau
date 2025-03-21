@@ -32,11 +32,11 @@ local function camelCaseToSnakeCase(str)
     end):gsub("^_", "")
 end
 
-local Request = {}
+local RequestHandler = {}
 
-function Request.new(authorization, options)
+function RequestHandler.new(authorization, options)
     local self = setmetatable({}, {
-        __index = Request
+        __index = RequestHandler
     })
 
     self.options = {
@@ -61,7 +61,7 @@ function Request.new(authorization, options)
     return self
 end
 
-function Request:globalUnblock()
+function RequestHandler:globalUnblock()
     self.globalBlock = false
     while #self.readyQueue > 0 do
         local callback = table.remove(self.readyQueue, 1)
@@ -71,7 +71,7 @@ function Request:globalUnblock()
     end
 end
 
-function Request:request(method, url, auth, body, file, _route, short)
+function RequestHandler:createRequest(method, url, auth, body, file, _route, short)
     local route = _route or self:getRatelimitBucketIdFromUrl(url, method)
  
     return Promise.new(function(resolve, reject)
@@ -289,18 +289,18 @@ function Request:request(method, url, auth, body, file, _route, short)
                     if delay then
                         task.delay(delay / 1000, function() 
                             callback()
-                            self:request(method, url, auth, body, file, route, true)
+                            self:createRequest(method, url, auth, body, file, route, true)
                         end)
                         return
                     else
                         callback()
-                        self:request(method, url, auth, body, file, route, true)
+                        self:createRequest(method, url, auth, body, file, route, true)
                         return
                     end
                 elseif response.statusCode == 502 and attempts < 4 then
                     attempts += 1
                     task.delay((math.random() * 1900 + 100) / 1000, function() 
-                        self:request(method, url, auth, body, file, route, true)
+                        self:createRequest(method, url, auth, body, file, route, true)
                     end)
                     callback()
                     return
@@ -339,8 +339,8 @@ function Request:request(method, url, auth, body, file, _route, short)
     end)
 end
 
-function Request:getRatelimitBucketIdFromUrl(url, method)
+function RequestHandler:getRatelimitBucketIdFromUrl(url, method)
     return method .. " " .. url
 end
 
-return Request
+return RequestHandler
