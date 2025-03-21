@@ -1,7 +1,6 @@
 local RequestHandler = require("rest/RequestHandler")
 local Routes = require("rest/Routes")
 local GatewayHandler = require("gateway/GatewayHandler")
-local Constants = require("Constants")
 
 local ExtendedUser = require("structures/ExtendedUser")
 
@@ -14,11 +13,24 @@ function Client.new(options)
     local self = setmetatable({}, {
         __index = Client
     })
+    
+    local restOptions = options.restOptions or {
+        preferSnakeCase = options.preferSnakeCase or false
+    }
 
     self.token = "Bot " .. options.token
-    self.request = RequestHandler.new(options.token, options.restOptions)
+
+    self.request = RequestHandler.new(self.token, restOptions)
     self.gateway = GatewayHandler.new({
-        token = options.token
+        token = options.token,
+        events = {
+            message = function(shard, packet)
+                print(shard)
+                print(packet)
+            end
+        },
+        connectionOptions = self:getBotGateway(),
+        preferSnakeCase = options.preferSnakeCase or false
     })
 
     return self
@@ -53,6 +65,10 @@ end
 function Client:editSelf(options)
     local res = processPromise(self.request:createRequest("PATCH", Routes.user("@me"), true, options))
     return ExtendedUser.new(res)
+end
+
+function Client:connect()
+    self.gateway:spawnShards()
 end
 
 return Client

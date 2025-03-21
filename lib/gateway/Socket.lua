@@ -41,7 +41,7 @@ function Socket:_startListening()
         end
 
         self.isOpen = false
-        if self.socket and self.socket.closeCode then
+        if self.socket then
             self.OnClose:Fire(self.socket.closeCode)
         end
     end)
@@ -64,7 +64,7 @@ end
 
 function Socket:close(code)
     if self.socket and self.socket.closeCode == nil then
-        self.socket:close(code)
+        self.socket.close(code)
         self.isOpen = false
     end
 end

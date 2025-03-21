@@ -4,6 +4,8 @@ local task = require("@lune/task")
 
 local Promise = require("../vendor/Promise")
 
+local camelize = require("../util/Camelize")
+local snakize = require("../util/Snakize")
 local FormData = require("../util/FormData")
 local OrderedBucket = require("../util/OrderedBucket")
 
@@ -26,12 +28,6 @@ local STICKERS_ROUTE = "/stickers"
 local API_VERSION = 10
 local BASE_URL = "https://discord.com/api/v" .. API_VERSION
 
-local function camelCaseToSnakeCase(str)
-    return str:gsub("%u", function(c) 
-        return "_" .. c:lower()
-    end):gsub("^_", "")
-end
-
 local RequestHandler = {}
 
 function RequestHandler.new(authorization, options)
@@ -45,6 +41,7 @@ function RequestHandler.new(authorization, options)
         ratelimiterOffset = options and options.ratelimiterOffset or 0,
         requestTimeout = options and options.requestTimeout or 15000
     }
+    self.preferSnakeCase = options and options.preferSnakeCase or false
     self.authorization = authorization
     self.userAgent = "DiscordBot (https://github.com/cleversource/discord.lua, 0.0.1)"
     self.ratelimits = {}
@@ -93,21 +90,7 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
                     body.reason = nil
                 end
 
-                -- TODO: efficiency? 
-                local function snakize(body)
-                    for key, value in body do
-                        if typeof(value) == "table" then
-                            snakize(value)
-                        end
-                        if typeof(key) == "string" then
-                            if key:match("%u") then
-                                body[key] = nil
-                                body[camelCaseToSnakeCase(key)] = value
-                            end
-                        end
-                    end
-                end
-                snakize(body)
+                body = snakize(body)
 
                 if file then
                     body = {
@@ -320,7 +303,11 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
             end
 
             callback()
-            resolve(responseBody)
+            if self.preferSnakeCase then
+                resolve(responseBody)
+            else
+                resolve(camelize(responseBody))
+            end
         end
 
         if self.globalBlock and auth then

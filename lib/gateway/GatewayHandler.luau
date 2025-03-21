@@ -1,6 +1,7 @@
 local process = require("@lune/process")
 
 local Shard = require("Shard")
+local Constants = require("../Constants")
 
 local Promise = require("../vendor/Promise")
 
@@ -11,31 +12,43 @@ function GatewayHandler.new(options)
         __index = GatewayHandler
     })
 
-    self.sessionStartLimit = {
-        maxConcurrency = 1
+    local connectionOptions = options.connectionOptions or {
+        url = Constants.DefaultGateway,
+        shards = 1,
+        sessionStartLimit = {
+            maxConcurrency = 1,
+            remaining = 1000,
+            total = 1000,
+            resetAfter = 1000 * 60 * 60 * 24
+        }
     }
 
+    self.events = options.events or {}
     self.token = options.token
 
-    self.url = "wss://gateway.discord.gg"
-    self.version = 10
-    self.compress = false
+    self.preferSnakeCase = options.preferSnakeCase or false
+
+    self.url = options.url or connectionOptions.url
+    self.version = options.version or Constants.GatewayVersion
+    self.compress = options.compress or false
     self.properties = {
         os = process.os,
         browser = "DiscordLua",
         device = "DiscordLua"
     }
-    self.intents = 0
+    self.intents = options.intents or 0
+
+    self.sessionStartLimit = connectionOptions.sessionStartLimit
+
+    self.totalShards = options.totalShards or connectionOptions.shards
+    self.lastShardId = options.lastShardId or (self.totalShards - 1)
+    self.firstShardId = options.firstShardId or 0
+
+    self.totalWorkers = options.totalWorkers or 4
+    self.shardsPerWorker = options.shardsPerWorker or 25
 
     self.buckets = {}
     self.shards = {}
-
-    self.totalShards = 1
-    self.lastShardId = self.totalShards - 1
-    self.firstShardId = 0
-
-    self.totalWorkers = 4
-    self.shardsPerWorker = 25
 
     return self
 end
@@ -105,8 +118,18 @@ function GatewayHandler:identify(shardId)
                 properties = self.properties,
                 intents = self.intents,
                 totalShards = self.totalShards
-            }
+            },
+            events = self.events
         })
+
+        if self.preferSnakeCase then
+            shard.forwardToClient = function(shardSelf, packet)
+                if shardSelf.events.message then
+                    shardSelf.events.message(shardSelf, packet)
+                end
+            end
+        end
+
         self.shards[tostring(shardId)] = shard
     end
 
@@ -135,6 +158,31 @@ function GatewayHandler:spawnShards()
     Promise.All(promises):Await()
     
     print("[Gateway] All shards spawned")
+end
+
+function GatewayHandler:shutdown(code)
+    for _, shard in pairs(self.shards) do
+        shard:close(code)
+    end
+end
+
+function GatewayHandler:sendPayload(shardId, payload)
+    local shard = self.shards[tostring(shardId)]
+    if not shard then
+        error(`Shard (id: {shardId}) not found`)
+    end
+    shard:send(payload)
+end
+
+function GatewayHandler:kill(shardId)
+    local shard = self.shards[tostring(shardId)]
+    if not shard then
+        error(`[Gateway] A kill for Shard #{shardId} was requested, but the shard was not found`)
+    end
+
+    print(`[Gateway] Killing Shard #{shardId}`)
+    self.shards[tostring(shardId)] = nil
+    shard:shutdown()
 end
 
 return GatewayHandler

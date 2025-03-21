@@ -8,12 +8,11 @@ local SHARD_STATE_OFFLINE = "offline"
 
 local task = require("@lune/task")
 local net = require("@lune/net")
-local datetime = require("@lune/datetime")
 
+local camelize = require("../util/Camelize")
 local Socket = require("Socket")
 local Constants = require("../Constants")
 
-local Signal = require("../vendor/Signal")
 local Promise = require("../vendor/Promise")
 
 local Shard = {}
@@ -26,12 +25,15 @@ function Shard.new(options)
     self.id = options.id
     self.connection = options.connection
     
+    self.goingOffline = false
     self.heart = {
         acknowledged = false,
         interval = 45000
     }
     self.resolvers = {}
+    self.offlineSendQueue = {}
 
+    -- Functional events
     self.events = options.events or {}
     
     return self
@@ -41,12 +43,23 @@ function Shard:isOpen()
     return self.socket and self.socket.isOpen or false
 end
 
+function Shard:checkOffline(highPriority)
+    if self:isOpen() then return { Await = function() end } end
+
+    return Promise.new(function(resolve)
+        if highPriority then
+            table.insert(self.offlineSendQueue, 1, resolve)
+        else
+            table.insert(self.offlineSendQueue, resolve)
+        end
+    end)
+end
+
 function Shard:gatewayConfig()
     return self.connection
 end
 
 function Shard:connectionUrl()
-    -- TODO: resuming
     return self.resumeGatewayUrl or self:gatewayConfig().url
 end
 
@@ -55,29 +68,101 @@ function Shard:handleError(err)
 end
 
 function Shard:handleClose(code)
-    print(code)
+    self.socket = nil
+    self:stopHeartbeating()
+
+    print(`[Shard] Shard #{self.id} closed with code {code}`)
+    
+    if self.resolveAfterClose then
+        self.resolveAfterClose()
+    end
+
+    -- Cases where a resume is not allowed
+    if code == Constants.ShardCloseCodes.TestingFinished then
+        self.state = SHARD_STATE_OFFLINE
+        if self.events.disconnected then
+            self.events.disconnected(self)
+        end
+
+        return
+    elseif code == Constants.ShardCloseCodes.Shutdown or code == Constants.ShardCloseCodes.ReIdentifying or code == Constants.ShardCloseCodes.Resharded or code == Constants.ShardCloseCodes.ResumeClosingOldConnection then
+        self.state = SHARD_STATE_DISCONNECTED
+        if self.events.disconnected then
+            self.events.disconnected(self)
+        end
+
+        return
+    elseif 
+        code == Constants.GatewayCloseCodes.AuthenticationFailed 
+        or code == Constants.GatewayCloseCodes.InvalidShard 
+        or code == Constants.GatewayCloseCodes.ShardingRequired 
+        or code == Constants.GatewayCloseCodes.InvalidApiVersion 
+        or code == Constants.GatewayCloseCodes.InvalidIntents 
+        or code == Constants.GatewayCloseCodes.DisallowedIntents then
+        self.state = SHARD_STATE_OFFLINE
+        if self.events.disconnected then
+            self.events.disconnected(self)
+        end
+
+        error(`[Shard] Shard #{self.id} closed and will not reconnect. Code: {code}`)
+    elseif code == Constants.GatewayCloseCodes.NotAuthenticated or code == Constants.GatewayCloseCodes.InvalidSeq or code == Constants.GatewayCloseCodes.SessionTimedOut then
+        print(`[Shard] Shard #{self.id} closed requiring re-identify`)
+        self.state = SHARD_STATE_IDENTIFYING
+        if self.events.disconnected then
+            self.events.disconnected(self)
+        end
+
+        self:identify():Await()
+        return
+    end
+
+    if code == Constants.GatewayCloseCodes.NormalClosure or code == Constants.GatewayCloseCodes.GoingAway then
+        if self.goingOffline then
+            self.state = SHARD_STATE_DISCONNECTED
+            if self.events.disconnected then
+                self.events.disconnected(self)
+            end
+
+            self.goingOffline = false
+            return
+        end
+    end
+
+    -- Attempt resume
+    print(`[Shard] Shard #{self.id} closed with code {code}. Attempting to resume!`)
+    self.state = self.state == SHARD_STATE_RESUMING and SHARD_STATE_IDENTIFYING or SHARD_STATE_RESUMING
+    if self.events.disconnected then
+        self.events.disconnected(self)
+    end
+
+    if self.state == SHARD_STATE_RESUMING then
+        self:resume():Await()
+    else
+        self:identify():Await()
+    end
 end
 
 function Shard:handleMessage(msg)
+    -- TODO: compression
+
     local data = net.jsonDecode(msg)
     self:handleDiscordPacket(data)
 end
 
 function Shard:handleDiscordPacket(packet)
-    self.heart.lastAck = datetime.now().unixTimestampMillis
     self.heart.acknowledged = true
 
-    if packet.op == Constants.GatewayOpCodes.HEARTBEAT then
+    if packet.op == Constants.GatewayOpCodes.Heartbeat then
         if not self:isOpen() then return end
 
-        self.heart.lastBeat = datetime.now().unixTimestampMillis
-
         self.socket:send(net.jsonEncode({
-            op = Constants.GatewayOpCodes.HEARTBEAT,
+            op = Constants.GatewayOpCodes.Heartbeat,
             d = self.previousSequenceNumber
         }))
-        -- TODO: heartbeat event
-    elseif packet.op == Constants.GatewayOpCodes.HELLO then
+        if self.events.heartbeat then
+            self.events.heartbeat(self)
+        end
+    elseif packet.op == Constants.GatewayOpCodes.Hello then
         local interval = packet.d.heartbeat_interval
         print(`[Shard] Shard #{self.id} received Hello`)
         self:startHeartbeating(interval)
@@ -86,11 +171,59 @@ function Shard:handleDiscordPacket(packet)
             -- TODO: bucket stuff
         end
 
-        -- TODO: hello event
+        if self.events.hello then
+            self.events.hello(self)
+        end
+    elseif packet.op == Constants.GatewayOpCodes.HeartbeatACK then
+        if self.events.heartbeatAck then
+            self.events.heartbeatAck(self)
+        end
+    elseif packet.op == Constants.GatewayOpCodes.Reconnect then
+        print(`[Shard] Received a Reconnect for Shard #{self.id}`)
+        if self.events.requestedReconnect then
+            self.events.requestedReconnect(self)
+        end
+
+        self:resume():Await()
+    elseif packet.op == Constants.GatewayOpCodes.InvalidSession then
+        local resumable = not (not packet.d)
+        print(`[Shard] Received Invalid Session for Shard #{self.id} with resumable as {resumable}`)
+
+        if self.events.invalidSession then
+            self.events.invalidSession(self, resumable)
+        end
+
+        task.wait(math.floor((math.random() * 5) + 1))
+
+        if self.resolvers["INVALID_SESSION"] then
+            self.resolvers["INVALID_SESSION"]()
+            self.resolvers["INVALID_SESSION"] = nil
+        end
+
+        if resumable then
+            self:resume():Await()
+        else
+            self:identify():Await()
+        end
     end
 
     if packet.t == "RESUMED" then
-    
+        self.state = SHARD_STATE_CONNECTED
+        if self.events.resumed then
+            self.events.resumed(self)
+        end
+
+        print(`[Shard] Shard #{self.id} received RESUMED`)
+
+        for _, resolve in ipairs(self.offlineSendQueue) do
+            resolve()
+        end
+        table.clear(self.offlineSendQueue)
+
+        if self.resolvers["RESUMED"] then
+            self.resolvers["RESUMED"]()
+            self.resolvers["RESUMED"] = nil
+        end
     elseif packet.t == "READY" then
         local payload = packet.d
         self.resumeGatewayUrl = payload.resume_gateway_url
@@ -100,7 +233,10 @@ function Shard:handleDiscordPacket(packet)
 
         print(`[Shard] Shard #{self.id} received READY`)
 
-        -- TODO: offline queue
+        for _, resolve in ipairs(self.offlineSendQueue) do
+            resolve()
+        end
+        table.clear(self.offlineSendQueue)
 
         if self.resolvers["READY"] then
             self.resolvers["READY"]()
@@ -116,7 +252,38 @@ function Shard:handleDiscordPacket(packet)
 end
 
 function Shard:forwardToClient(packet)
-    print(packet)
+    if self.events.message then
+        self.events.message(self, camelize(packet))
+    end
+end
+
+function Shard:close(code)
+    print(`[Shard] Request for Shard #{self.id} to close the socket with code {code}`)
+
+    if not self.socket.isOpen then
+        print(`[Shard] Shard #{self.id} is not open, but attempted to close`)
+        return
+    end
+
+    self.goingOffline = code == Constants.GatewayCloseCodes.NormalClosure or code == Constants.GatewayCloseCodes.GoingAway
+
+    local promise = Promise.new(function(resolve) 
+        self.resolveAfterClose = resolve
+    end)
+
+    self.socket:close(code)
+
+    print(`[Shard] Waiting for Shard #{self.id} to close the socket with code {code}`)
+
+    promise:Await()
+
+    print(`[Shard] Shard #{self.id} closed the socket with code {code}`)
+    self.resolveAfterClose = nil
+end
+
+function Shard:shutdown()
+    self:close(Constants.ShardCloseCodes.Shutdown)
+    self.state = SHARD_STATE_OFFLINE
 end
 
 function Shard:connect()
@@ -124,13 +291,17 @@ function Shard:connect()
         self.state = SHARD_STATE_CONNECTING
     end
 
-    -- TODO: connecting event
+    if self.events.connecting then
+        self.events.connecting(self)
+    end
 
     local url = self:connectionUrl()
     if url:sub(#url) ~= "/" then
         url = url .. "/"
     end
     url = `{url}?v={self:gatewayConfig().version}&encoding=json`
+
+    print(`[Shard] Connecting to {url}`)
 
     local socket = Socket.new(url, false)
     self.socket = socket
@@ -151,7 +322,9 @@ function Shard:connect()
                 self.state = SHARD_STATE_UNIDENTIFIED
             end
 
-            -- TODO: connected event
+            if self.events.connected then
+                self.events.connected(self)
+            end
 
             resolve()
         end)
@@ -182,11 +355,10 @@ function Shard:startHeartbeating(interval)
         print(`[Shard] Heartbeating on Shard #{self.id}. Previous sequence number: {self.previousSequenceNumber}`)
     
         self.socket:send(net.jsonEncode({
-            op = Constants.GatewayOpCodes.HEARTBEAT,
+            op = Constants.GatewayOpCodes.Heartbeat,
             d = self.previousSequenceNumber
         }))
 
-        self.heart.lastBeat = datetime.now().unixTimestampMillis
         self.heart.acknowledged = false
 
         self.heart.spawnId = task.spawn(function() 
@@ -194,27 +366,28 @@ function Shard:startHeartbeating(interval)
                 task.wait(self.heart.interval / 1000)
 
                 if not self:isOpen() then
-                    print(`[Shard] Shard #{self.id} is not open, but attempted heartbeat?`)
+                    print(`[Shard] Shard #{self.id} is not open, but attempted heartbeat`)
                     return
                 end
     
                 if not self.heart.acknowledged then
                     print(`[Shard] Heartbeat not acknowledged for Shard #{self.id}. Closing`)
-                    -- TODO: close connection
+                    self:close(Constants.ShardCloseCodes.ZombieConnection)
                     return
                 end
     
                 print(`[Shard] Heartbeating on Shard #{self.id}. Previous sequence number: {self.previousSequenceNumber}`)
             
                 self.socket:send(net.jsonEncode({
-                    op = Constants.GatewayOpCodes.HEARTBEAT,
+                    op = Constants.GatewayOpCodes.Heartbeat,
                     d = self.previousSequenceNumber
                 }))
     
-                self.heart.lastBeat = datetime.now().unixTimestampMillis
                 self.heart.acknowledged = false
     
-                -- TODO: heartbeat event
+                if self.events.heartbeat then
+                    self.events.heartbeat(self)
+                end
                 beat()
             end
             beat()
@@ -233,23 +406,32 @@ function Shard:stopHeartbeating()
 end
 
 function Shard:send(message, highPriority)
-    -- TODO: check offline stuff?
+    self:checkOffline():Await()
+
+    -- TODO: bucket stuff
+
+    -- self:checkOffline():Await()
 
     self.socket:send(net.jsonEncode(message))
 end
 
 function Shard:identify()
-    -- TODO: old connections
+    if self:isOpen() then
+        print(`[Shard] Identifying open Shard #{self.id}, closing the connection`)
+        self:close(Constants.ShardCloseCodes.ReIdentifying)
+    end
 
     self.state = SHARD_STATE_IDENTIFYING
-    -- TODO: identifying event
+    if self.events.identifying then
+        self.events.identifying(self)
+    end
 
     if not self:isOpen() then
         self:connect():Await()
     end
 
     self:send({
-        op = Constants.GatewayOpCodes.IDENTIFY,
+        op = Constants.GatewayOpCodes.Identify,
         d = {
             token = `Bot {self:gatewayConfig().token}`,
             compress = self:gatewayConfig().compress,
@@ -264,12 +446,54 @@ function Shard:identify()
 
     return Promise.new(function(resolve)
         self.resolvers["READY"] = function() 
-            -- TODO: identified event
-            -- TODO: shard is ready
+            if self.events.identified then
+                self.events.identified(self)
+            end
             resolve()
         end
         self.resolvers["INVALID_SESSION"] = function() 
             self.resolvers["READY"] = nil
+            resolve()
+        end
+    end)
+end
+
+function Shard:resume()
+    print(`[Shard] Resuming Shard #{self.id}`)
+
+    if self:isOpen() then
+        print(`[Shard] Resuming open Shard #{self.id}, closing the connection`)
+        self:close(Constants.ShardCloseCodes.ResumeClosingOldConnection)
+    end
+
+    if not self.sessionId then
+        print(`[Shard] Trying to resume Shard #{self.id} without a session id. Identifying the shard instead`)
+
+        self:identify():Await()
+        return
+    end
+
+    self.state = SHARD_STATE_RESUMING
+
+    self:connect():Await()
+
+    print(`[Shard] Resuming Shard #{self.id} connected. Session id: {self.sessionId} | Sequence: {self.previousSequenceNumber}`)
+
+    self:send({
+        op = Constants.GatewayOpCodes.Resume,
+        d = {
+            token = `Bot {self:gatewayConfig().token}`,
+            session_id = self.sessionId,
+            seq = self.previousSequenceNumber or 0
+        }
+    })
+
+    return Promise.new(function(resolve) 
+        self.resolvers["RESUMED"] = function() 
+            resolve()
+        end
+        self.resolvers["INVALID_SESSION"] = function() 
+            self.resolvers["RESUMED"] = nil
             resolve()
         end
     end)
