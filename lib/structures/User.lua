@@ -9,13 +9,13 @@ local User = Base:extend {
     end,
     update = function(self, data)
         self.avatar = data.avatar
-        self.avatarDecorationData = data.avatar_decoration_data
+        self.avatarDecorationData = data.avatarDecorationData or data.avatar_decoration_data
         self.username = data.username
         self.discriminator = data.discriminator
-        self.publicFlags = data.public_flags
+        self.publicFlags = data.publicFlags or data.public_flags
         self.banner = data.banner
-        self.accentColor = data.accent_color
-        self.globalName = data.global_name
+        self.accentColor = data.accentColor or data.accent_color
+        self.globalName = data.globalName or data.global_name
     end,
     defaultAvatar = function(self)
         if self.discriminator == "0" then

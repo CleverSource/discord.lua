@@ -6,15 +6,15 @@ local Attachment = Base:extend {
         self.filename = data.filename
         self.size = data.size
         self.url = data.url
-        self.proxyUrl = data.proxy_url
-        self.durationSecs = data.duration_secs
+        self.proxyUrl = data.proxyUrl or data.proxy_url
+        self.durationSecs = data.durationSecs or data.duration_secs
         self.waveform = data.waveform
         self:update(data)
     end,
     update = function(self, data)
         self.title = data.title
         self.description = data.description
-        self.contentType = data.content_type
+        self.contentType = data.contentType or data.content_type
         self.height = data.height
         self.width = data.width
         self.ephemeral = data.ephemeral

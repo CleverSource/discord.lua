@@ -10,15 +10,15 @@ local AutoModerationRule = Base:extend {
                 metadata = action.metadata
             })
         end
-        self.creatorId = data.creator_id
+        self.creatorId = data.creatorId or data.creator_id
         self.enabled = data.enabled
-        self.eventType = data.event_type
-        self.exemptRoles = data.exempt_roles
-        self.exemptChannels = data.exempt_channels
-        self.guildId = data.guild_id
+        self.eventType = data.eventType or data.event_type
+        self.exemptRoles = data.exemptRoles or data.exempt_roles
+        self.exemptChannels = data.exemptChannels or data.exempt_channels
+        self.guildId = data.guildId or data.guild_id
         self.name = data.name
-        self.triggerMetadata = data.trigger_metadata
-        self.triggerType = data.trigger_type
+        self.triggerMetadata = data.triggerMetadata or data.trigger_metadata
+        self.triggerType = data.triggerType or data.trigger_type
     end,
 }
 
