@@ -38,6 +38,7 @@ function Client.new(options)
         logger = logger
     }
 
+    self.logger = logger
     self.request = RequestHandler.new(restOptions)
     self.gateway = GatewayHandler.new(gatewayOptions)
 
@@ -81,6 +82,7 @@ function Client:connect()
     end
 
     self.gateway:spawnShards()
+    self.logger:print("[Bot] Connected successfully")
 end
 
 return Client

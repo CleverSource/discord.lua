@@ -3,10 +3,13 @@ local net = require("@lune/net")
 
 local camelize = require("../util/Camelize")
 local Socket = require("Socket")
+type Socket = Socket.Socket
 local Constants = require("../Constants")
 local Logger = require("../log/Logger")
+type Logger = Logger.Logger
 
 local Promise = require("../vendor/Promise")
+type Promise = Promise.Promise
 
 local SHARD_STATE_IDENTIFYING = "identifying"
 local SHARD_STATE_RESUMING = "resuming"
@@ -18,8 +21,89 @@ local SHARD_STATE_OFFLINE = "offline"
 
 local Shard = {}
 
-function Shard.new(options)
-    local self = setmetatable({}, {
+export type ShardProperties = {
+    os: string,
+    browser: string,
+    device: string,
+}
+
+export type ShardConnection = {
+    url: string,
+    version: number,
+    token: string,
+    compress: boolean,
+    properties: ShardProperties,
+    intents: number,
+    totalShards: number
+}
+
+export type Events = {
+    disconnected: ((Shard) -> nil)?,
+    heartbeat: ((Shard) -> nil)?,
+    hello: ((Shard) -> nil)?,
+    heartbeatAck: ((Shard) -> nil)?,
+    requestedReconnect: ((Shard) -> nil)?,
+    invalidSession: ((Shard, boolean) -> nil)?,
+    resumed: ((Shard) -> nil)?,
+    message: ((Shard, any) -> nil)?,
+    connected: ((Shard) -> nil)?,
+    connecting: ((Shard) -> nil)?,
+    identifying: ((Shard) -> nil)?,
+    identified: ((Shard) -> nil)?
+}
+
+export type ShardOptions = {
+    logger: Logger?,
+    id: number,
+    connection: ShardConnection,
+    events: Events?
+}
+
+export type Shard = {
+    logger: Logger,
+    id: number,
+    connection: ShardConnection,
+    goingOffline: boolean,
+    heart: {
+        acknowledged: boolean,
+        interval: number,
+        spawnId: thread,
+        delayId: thread
+    },
+    resolvers: {
+        [string]: () -> nil
+    },
+    offlineSendQueue: { () -> nil },
+    events: Events,
+    socket: Socket,
+    resumeGatewayUrl: string,
+    sessionId: string,
+    previousSequenceNumber: number,
+    state: "identifying" | "resuming" | "connecting" | "unidentified" | "connected" | "disconnected" | "offline",
+    resolveAfterClose: (() -> nil)?,
+
+    new: (options: ShardOptions) -> Shard,
+    isOpen: (self: Shard) -> boolean,
+    checkOffline: (self: Shard, highPriority: boolean?) -> Promise,
+    gatewayConfig: (self: Shard) -> ShardConnection,
+    connectionUrl: (self: Shard) -> string,
+    handleError: (self: Shard, err: any) -> nil,
+    handleClose: (self: Shard, code: number?) -> nil,
+    handleMessage: (self: Shard, msg: any) -> nil,
+    handleDiscordPacket: (self: Shard, packet: any) -> nil,
+    forwardToClient: (self: Shard, packet: any) -> nil,
+    close: (self: Shard, code: number) -> nil,
+    shutdown: (self: Shard) -> nil,
+    connect: (self: Shard) -> Promise,
+    startHeartbeating: (self: Shard, interval: number) -> nil,
+    stopHeartbeating: (self: Shard) -> nil,
+    send: (self: Shard, message: any, highPriority: boolean?) -> nil,
+    identify: (self: Shard) -> Promise,
+    resume: (self: Shard) -> Promise
+}
+
+function Shard.new(options: ShardOptions): Shard
+    local self = setmetatable({} :: Shard, {
         __index = Shard
     })
 
@@ -42,11 +126,11 @@ function Shard.new(options)
     return self
 end
 
-function Shard:isOpen()
+function Shard.isOpen(self: Shard): boolean
     return self.socket and self.socket.isOpen or false
 end
 
-function Shard:checkOffline(highPriority)
+function Shard.checkOffline(self: Shard, highPriority: boolean?): Promise
     if self:isOpen() then return { Await = function() end } end
 
     return Promise.new(function(resolve)
@@ -58,23 +142,23 @@ function Shard:checkOffline(highPriority)
     end)
 end
 
-function Shard:gatewayConfig()
+function Shard.gatewayConfig(self: Shard): ShardConnection
     return self.connection
 end
 
-function Shard:connectionUrl()
+function Shard.connectionUrl(self: Shard): string
     return self.resumeGatewayUrl or self:gatewayConfig().url
 end
 
-function Shard:handleError(err)
+function Shard.handleError(self: Shard, err: any)
     self.logger:error(`[Shard] There was an error connecting Shard #{self.id}.`, err)
 end
 
-function Shard:handleClose(code)
-    self.socket = nil
+function Shard.handleClose(self: Shard, code: number?)
+    self.socket = nil :: any
     self:stopHeartbeating()
 
-    self.error:debug(`[Shard] Shard #{self.id} closed with code {code}`)
+    self.logger:debug(`[Shard] Shard #{self.id} closed with code {code}`)
     
     if self.resolveAfterClose then
         self.resolveAfterClose()
@@ -107,7 +191,8 @@ function Shard:handleClose(code)
             self.events.disconnected(self)
         end
 
-        error(`[Shard] Shard #{self.id} closed and will not reconnect. Code: {code}`)
+        self.logger:error(`[Shard] Shard #{self.id} closed and will not reconnect. Code: {code}`)
+        return
     elseif code == Constants.GatewayCloseCodes.NotAuthenticated or code == Constants.GatewayCloseCodes.InvalidSeq or code == Constants.GatewayCloseCodes.SessionTimedOut then
         self.logger:debug(`[Shard] Shard #{self.id} closed requiring re-identify`)
         self.state = SHARD_STATE_IDENTIFYING
@@ -145,14 +230,14 @@ function Shard:handleClose(code)
     end
 end
 
-function Shard:handleMessage(msg)
+function Shard.handleMessage(self: Shard, msg: any)
     -- TODO: compression
 
     local data = net.jsonDecode(msg)
     self:handleDiscordPacket(data)
 end
 
-function Shard:handleDiscordPacket(packet)
+function Shard.handleDiscordPacket(self: Shard, packet: any)
     self.heart.acknowledged = true
 
     if packet.op == Constants.GatewayOpCodes.Heartbeat then
@@ -254,13 +339,13 @@ function Shard:handleDiscordPacket(packet)
     self:forwardToClient(packet)
 end
 
-function Shard:forwardToClient(packet)
+function Shard.forwardToClient(self: Shard, packet: any)
     if self.events.message then
         self.events.message(self, camelize(packet))
     end
 end
 
-function Shard:close(code)
+function Shard.close(self: Shard, code: number)
     self.logger:debug(`[Shard] Request for Shard #{self.id} to close the socket with code {code}`)
 
     if not self.socket.isOpen then
@@ -284,12 +369,12 @@ function Shard:close(code)
     self.resolveAfterClose = nil
 end
 
-function Shard:shutdown()
+function Shard.shutdown(self: Shard)
     self:close(Constants.ShardCloseCodes.Shutdown)
     self.state = SHARD_STATE_OFFLINE
 end
 
-function Shard:connect()
+function Shard.connect(self: Shard): Promise
     if self.state ~= SHARD_STATE_IDENTIFYING and self.state ~= SHARD_STATE_RESUMING then
         self.state = SHARD_STATE_CONNECTING
     end
@@ -336,7 +421,7 @@ function Shard:connect()
     end)
 end
 
-function Shard:startHeartbeating(interval)
+function Shard.startHeartbeating(self: Shard, interval: number)
     self.logger:debug(`[Shard] Start heatbeating on Shard #{self.id}`)
     self:stopHeartbeating()
 
@@ -398,7 +483,7 @@ function Shard:startHeartbeating(interval)
     end)
 end
 
-function Shard:stopHeartbeating()
+function Shard.stopHeartbeating(self: Shard)
     if self.heart.spawnId then
         task.cancel(self.heart.spawnId)
     end
@@ -408,7 +493,7 @@ function Shard:stopHeartbeating()
     end
 end
 
-function Shard:send(message, highPriority)
+function Shard.send(self: Shard, message: any, highPriority: boolean?)
     self:checkOffline():Await()
 
     -- TODO: bucket stuff
@@ -418,7 +503,7 @@ function Shard:send(message, highPriority)
     self.socket:send(net.jsonEncode(message))
 end
 
-function Shard:identify()
+function Shard.identify(self: Shard): Promise
     if self:isOpen() then
         self.logger:debug(`[Shard] Identifying open Shard #{self.id}, closing the connection`)
         self:close(Constants.ShardCloseCodes.ReIdentifying)
@@ -461,7 +546,7 @@ function Shard:identify()
     end)
 end
 
-function Shard:resume()
+function Shard.resume(self: Shard): Promise
     self.logger:debug(`[Shard] Resuming Shard #{self.id}`)
 
     if self:isOpen() then

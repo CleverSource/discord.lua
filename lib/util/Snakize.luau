@@ -1,11 +1,11 @@
 
-local function camelCaseToSnakeCase(str)
-    return str:gsub("(%u)", function(c) 
+local function camelCaseToSnakeCase(str: string): string
+    return str:gsub("(%u)", function(c: string): string 
         return "_" .. c:lower()
     end):gsub("^_", "")
 end
 
-local function snakize(body)
+local function snakize(body: { [string]: any }): { [string]: any }
     local newBody = {}
     
     for key, value in body do

@@ -28,6 +28,7 @@ local HEADER_RETRY_AFTER = "retry-after"
 
 local HTTP_TOO_MANY_REQUESTS = 429
 local HTTP_MULTIPLE_CHOICES = 300
+local HTTP_BAD_GATEWAY = 502
 
 local STICKERS_ROUTE = "/stickers"
 
@@ -55,7 +56,7 @@ export type RequestHandler = {
     options: RequestHandlerOptions,
     logger: Logger,
     preferSnakeCase: boolean,
-    authorization: string,
+    authorization: string?,
     userAgent: string,
     ratelimits: { [string]: OrderedBucket },
     latencyRef: LatencyRef,
@@ -330,7 +331,7 @@ function RequestHandler.createRequest(self: RequestHandler, method: net.HttpMeth
                         self:createRequest(method, url, auth, body, file, route, true)
                         return
                     end
-                elseif response.statusCode == 502 and attempts < 4 then
+                elseif response.statusCode == HTTP_BAD_GATEWAY and attempts < 4 then
                     attempts += 1
                     task.delay((math.random() * 1900 + 100) / 1000, function() 
                         self:createRequest(method, url, auth, body, file, route, true)

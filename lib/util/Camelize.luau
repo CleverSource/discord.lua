@@ -1,10 +1,10 @@
-local function snakeCaseToCamelCase(str)
-    return str:gsub("_(%l)", function(c)
+local function snakeCaseToCamelCase(str: string): string
+    return str:gsub("_(%l)", function(c: string): string
         return c:upper()
     end)
 end
 
-local function camelize(body)
+local function camelize(body: { [string]: any }): { [string]: any }
     local newBody = {}
     
     for key, value in body do

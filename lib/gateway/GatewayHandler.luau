@@ -1,19 +1,86 @@
 local process = require("@lune/process")
 
 local Shard = require("Shard")
+type Shard = Shard.Shard
+type ShardEvents = Shard.Events
+type ShardProperties = Shard.ShardProperties
 local Constants = require("../Constants")
 local Logger = require("../log/Logger")
+type Logger = Logger.Logger
 
 local Promise = require("../vendor/Promise")
+type Promise = Promise.Promise
 
 local GatewayHandler = {}
 
-function GatewayHandler.new(options)
-    local self = setmetatable({}, {
+export type SessionStartLimit = {
+    maxConcurrency: number,
+    remaining: number,
+    total: number,
+    resetAfter: number
+}
+
+export type ConnectionOptions = {
+    url: string,
+    shards: number,
+    sessionStartLimit: SessionStartLimit
+}
+
+export type GatewayHandlerOptions = {
+    logger: Logger?,
+    events: ShardEvents?,
+    token: string?,
+    preferSnakeCase: boolean?,
+    url: string?,
+    version: number?,
+    compress: boolean?,
+    intents: number?,
+    connection: ConnectionOptions?,
+    totalShards: number?,
+    lastShardId: number?,
+    firstShardId: number?,
+    totalWorkers: number?,
+    shardsPerWorker: number?
+}
+
+export type GatewayHandler = {
+    defaultConnection: boolean,
+    logger: Logger,
+    token: string?,
+    preferSnakeCase: boolean,
+    url: string,
+    version: number,
+    compress: boolean,
+    intents: number,
+    sessionStartLimit: SessionStartLimit,
+    totalShards: number,
+    lastShardId: number,
+    firstShardId: number,
+    totalWorkers: number,
+    shardsPerWorker: number,
+    buckets: {}, -- TODO
+    shards: { [string]: Shard },
+    properties: ShardProperties,
+    events: ShardEvents,
+
+    new: (options: GatewayHandlerOptions) -> GatewayHandler,
+    updateConnectionOptions: (self: GatewayHandler, newOptions: ConnectionOptions) -> nil,
+    calculateWorkerId: (self: GatewayHandler, shardId: number) -> number,
+    prepareBuckets: (self: GatewayHandler) -> nil,
+    identify: (self: GatewayHandler, shardId: number) -> Promise,
+    tellWorkerToIdentify: (self: GatewayHandler, workerId: number, shardId: number, bucketId: string) -> Promise,
+    spawnShards: (self: GatewayHandler) -> nil,
+    shutdown: (self: GatewayHandler, code: number) -> nil,
+    sendPayload: (self: GatewayHandler, shardId: number, payload: any) -> nil,
+    kill: (self: GatewayHandler, shardId: number) -> nil
+} & typeof(GatewayHandler)
+
+function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
+    local self = setmetatable({} :: GatewayHandler, {
         __index = GatewayHandler
     })
 
-    options = options or {}
+    options = options or {} :: GatewayHandlerOptions
 
     self.defaultConnection = true
 
@@ -57,7 +124,7 @@ function GatewayHandler.new(options)
     return self
 end
 
-function GatewayHandler:updateConnectionOptions(newOptions)
+function GatewayHandler.updateConnectionOptions(self: GatewayHandler, newOptions: ConnectionOptions)
     if not newOptions then return end
 
     if newOptions.url then
@@ -76,13 +143,13 @@ function GatewayHandler:updateConnectionOptions(newOptions)
     self.defaultConnection = false
 end
 
-function GatewayHandler:calculateWorkerId(shardId)
+function GatewayHandler.calculateWorkerId(self: GatewayHandler, shardId: number): number
     local workerId = math.min(math.floor(shardId / self.shardsPerWorker), self.totalWorkers - 1)
     self.logger:debug(`[Gateway] Calculating workerId: Shard: {shardId} -> Worker: {workerId} -> Per Worker {self.shardsPerWorker} -> Total: {self.totalWorkers}`)
     return workerId
 end
 
-function GatewayHandler:prepareBuckets()
+function GatewayHandler.prepareBuckets(self: GatewayHandler)
     for i = 0, self.sessionStartLimit.maxConcurrency - 1 do
         self.buckets[tostring(i)] = {
             workers = {},
@@ -126,7 +193,7 @@ function GatewayHandler:prepareBuckets()
     end
 end
 
-function GatewayHandler:identify(shardId)
+function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
     local shard = self.shards[tostring(shardId)]
     self.logger:debug(`[Gateway] Identifying {shard and "existing" or "new"} shard ({shardId})`)
 
@@ -163,12 +230,12 @@ function GatewayHandler:identify(shardId)
     return shard:identify()
 end
 
-function GatewayHandler:tellWorkerToIdentify(workerId, shardId, bucketId)
+function GatewayHandler.tellWorkerToIdentify(self: GatewayHandler, workerId: number, shardId: number, bucketId: string): Promise
     self.logger:debug(`[Gateway] Telling worker to identify ({workerId}, {shardId}, {bucketId})`)
     return self:identify(shardId)
 end
 
-function GatewayHandler:spawnShards()
+function GatewayHandler.spawnShards(self: GatewayHandler)
     if self.defaultConnection then
         self.logger:warn("[Gateway] Using default connection options. It is recommended you fetch the gateway URL and session start limit from Discord.")
     end
@@ -188,13 +255,13 @@ function GatewayHandler:spawnShards()
     self.logger:debug("[Gateway] All shards spawned")
 end
 
-function GatewayHandler:shutdown(code)
+function GatewayHandler.shutdown(self: GatewayHandler, code: number)
     for _, shard in pairs(self.shards) do
         shard:close(code)
     end
 end
 
-function GatewayHandler:sendPayload(shardId, payload)
+function GatewayHandler.sendPayload(self: GatewayHandler, shardId: number, payload: any)
     local shard = self.shards[tostring(shardId)]
     if not shard then
         error(`Shard (id: {shardId}) not found`)
@@ -202,7 +269,7 @@ function GatewayHandler:sendPayload(shardId, payload)
     shard:send(payload)
 end
 
-function GatewayHandler:kill(shardId)
+function GatewayHandler.kill(self: GatewayHandler, shardId: number)
     local shard = self.shards[tostring(shardId)]
     if not shard then
         error(`[Gateway] A kill for Shard #{shardId} was requested, but the shard was not found`)

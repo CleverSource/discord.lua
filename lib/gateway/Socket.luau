@@ -2,11 +2,28 @@ local net = require("@lune/net")
 local task = require("@lune/task")
 
 local Signal = require("../vendor/Signal")
+type Signal<T> = Signal.Signal<T>
 
 local Socket = {}
 
-function Socket.new(url, listenImmediately)
-    local self = setmetatable({}, {
+export type Socket = {
+    socket: net.WebSocket?,
+    isOpen: boolean,
+    
+    OnOpen: Signal<nil>,
+    OnMessage: Signal<string>,
+    OnClose: Signal<number>,
+    OnError: Signal<string>,
+
+    new: (url: string, listenImmediately: boolean?) -> Socket,
+    _startListening: (self: Socket) -> nil,
+    send: (self: Socket, message: any) -> nil,
+    connect: (self: Socket) -> nil,
+    close: (self: Socket, code: number?) -> nil
+} & typeof(Socket)
+
+function Socket.new(url: string, listenImmediately: boolean?): Socket
+    local self = setmetatable({} :: Socket, {
         __index = Socket
     })
 
@@ -26,7 +43,7 @@ function Socket.new(url, listenImmediately)
     return self
 end
 
-function Socket:_startListening()
+function Socket._startListening(self: Socket)
     task.spawn(function()
         self.OnOpen:Fire()
 
@@ -42,12 +59,12 @@ function Socket:_startListening()
 
         self.isOpen = false
         if self.socket then
-            self.OnClose:Fire(self.socket.closeCode)
+            self.OnClose:Fire(self.socket.closeCode :: number)
         end
     end)
 end
 
-function Socket:send(message)
+function Socket.send(self: Socket, message: any)
     if self.socket and self.socket.closeCode == nil then
         local success, err = pcall(self.socket.send, message)
         if not success then
@@ -58,11 +75,11 @@ function Socket:send(message)
     end
 end
 
-function Socket:connect()
+function Socket.connect(self: Socket)
     self:_startListening()
 end
 
-function Socket:close(code)
+function Socket.close(self: Socket, code: number?)
     if self.socket and self.socket.closeCode == nil then
         self.socket.close(code)
         self.isOpen = false
