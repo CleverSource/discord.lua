@@ -61,10 +61,10 @@ export type RequestHandler = {
     ratelimits: { [string]: OrderedBucket },
     latencyRef: LatencyRef,
     globalBlock: boolean,
-    readyQueue: { () -> nil },
+    readyQueue: { () -> () },
 
     new: (options: RequestHandlerOptions) -> RequestHandler,
-    globalUnblock: (self: RequestHandler) -> nil,
+    globalUnblock: (self: RequestHandler) -> (),
     createRequest: (
         self: RequestHandler,
         method: net.HttpMethod,

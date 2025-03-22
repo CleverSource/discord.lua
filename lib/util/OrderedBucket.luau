@@ -21,8 +21,8 @@ export type OrderedBucket = {
     _queue: {},
 
     new: (limit: number, latencyRef: LatencyRef?) -> OrderedBucket,
-    check: (self: OrderedBucket, override: boolean?) -> nil,
-    queue: (self: OrderedBucket, func: () -> any, short: boolean?) -> nil
+    check: (self: OrderedBucket, override: boolean?) -> (),
+    queue: (self: OrderedBucket, func: () -> any, short: boolean?) -> ()
 } & typeof(OrderedBucket)
 
 function OrderedBucket.new(limit: number, latencyRef: LatencyRef?): OrderedBucket

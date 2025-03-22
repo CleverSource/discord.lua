@@ -64,15 +64,15 @@ export type GatewayHandler = {
     events: ShardEvents,
 
     new: (options: GatewayHandlerOptions) -> GatewayHandler,
-    updateConnectionOptions: (self: GatewayHandler, newOptions: ConnectionOptions) -> nil,
+    updateConnectionOptions: (self: GatewayHandler, newOptions: ConnectionOptions) -> (),
     calculateWorkerId: (self: GatewayHandler, shardId: number) -> number,
-    prepareBuckets: (self: GatewayHandler) -> nil,
+    prepareBuckets: (self: GatewayHandler) -> (),
     identify: (self: GatewayHandler, shardId: number) -> Promise,
     tellWorkerToIdentify: (self: GatewayHandler, workerId: number, shardId: number, bucketId: string) -> Promise,
-    spawnShards: (self: GatewayHandler) -> nil,
-    shutdown: (self: GatewayHandler, code: number) -> nil,
-    sendPayload: (self: GatewayHandler, shardId: number, payload: any) -> nil,
-    kill: (self: GatewayHandler, shardId: number) -> nil
+    spawnShards: (self: GatewayHandler) -> (),
+    shutdown: (self: GatewayHandler, code: number) -> (),
+    sendPayload: (self: GatewayHandler, shardId: number, payload: any) -> (),
+    kill: (self: GatewayHandler, shardId: number) -> ()
 } & typeof(GatewayHandler)
 
 function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler

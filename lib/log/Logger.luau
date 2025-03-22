@@ -4,10 +4,10 @@ export type Logger = {
     _debug: boolean,
 
     new: (debug: boolean?) -> Logger,
-    debug: (message: string, ...any) -> nil,
-    print: (message: string, ...any) -> nil,
-    warn: (message: string, ...any) -> nil,
-    error: (message: string, ...any) -> nil,
+    debug: (message: string, ...any) -> (),
+    print: (message: string, ...any) -> (),
+    warn: (message: string, ...any) -> (),
+    error: (message: string, ...any) -> (),
 } & typeof(Logger)
 
 local colors = {

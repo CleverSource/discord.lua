@@ -16,10 +16,10 @@ export type Socket = {
     OnError: Signal<string>,
 
     new: (url: string, listenImmediately: boolean?) -> Socket,
-    _startListening: (self: Socket) -> nil,
-    send: (self: Socket, message: any) -> nil,
-    connect: (self: Socket) -> nil,
-    close: (self: Socket, code: number?) -> nil
+    _startListening: (self: Socket) -> (),
+    send: (self: Socket, message: any) -> (),
+    connect: (self: Socket) -> (),
+    close: (self: Socket, code: number?) -> ()
 } & typeof(Socket)
 
 function Socket.new(url: string, listenImmediately: boolean?): Socket

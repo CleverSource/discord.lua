@@ -18,7 +18,7 @@ export type FormData = {
     data: { string },
 
     new: () -> FormData,
-    attach: (self: FormData, fieldName: string, data: string, filename: string) -> nil,
+    attach: (self: FormData, fieldName: string, data: string, filename: string) -> (),
     finish: (self: FormData) -> { string }
 } & typeof(FormData)
 

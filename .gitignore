@@ -1,1 +1,5 @@
+# VS Code
+.vscode/
+
+# Test code
 test.luau
