@@ -5,8 +5,9 @@ local Signal = require("../vendor/Signal")
 type Signal<T> = Signal.Signal<T>
 
 local Socket = {}
+Socket.__index = Socket
 
-export type Socket = {
+export type Socket = typeof(setmetatable({} :: {
     socket: net.WebSocket?,
     isOpen: boolean,
     
@@ -14,18 +15,10 @@ export type Socket = {
     OnMessage: Signal<string>,
     OnClose: Signal<number>,
     OnError: Signal<string>,
-
-    new: (url: string, listenImmediately: boolean?) -> Socket,
-    _startListening: (self: Socket) -> (),
-    send: (self: Socket, message: any) -> (),
-    connect: (self: Socket) -> (),
-    close: (self: Socket, code: number?) -> ()
-} & typeof(Socket)
+}, Socket))
 
 function Socket.new(url: string, listenImmediately: boolean?): Socket
-    local self = setmetatable({} :: Socket, {
-        __index = Socket
-    })
+    local self = setmetatable({}, Socket) :: Socket
 
     self.socket = net.socket(url)
     self.isOpen = true

@@ -12,20 +12,15 @@ local VALID_EXTENSIONS = {
 }
 
 local FormData = {}
+FormData.__index = FormData
 
-export type FormData = {
+export type FormData = typeof(setmetatable({} :: {
     boundary: "DiscordLua",
     data: { string },
-
-    new: () -> FormData,
-    attach: (self: FormData, fieldName: string, data: string, filename: string) -> (),
-    finish: (self: FormData) -> { string }
-} & typeof(FormData)
+}, FormData))
 
 function FormData.new(): FormData
-    local self = setmetatable({} :: FormData, {
-        __index = FormData
-    })
+    local self = setmetatable({}, FormData) :: FormData
 
     self.boundary = "DiscordLua"
     self.data = {}

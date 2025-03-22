@@ -36,6 +36,7 @@ local API_VERSION = 10
 local BASE_URL = "https://discord.com/api/v" .. API_VERSION
 
 local RequestHandler = {}
+RequestHandler.__index = RequestHandler
 
 export type RequestHandlerOptions = {
     disableLatencyCompensation: boolean?,
@@ -52,7 +53,7 @@ export type FileContent = {
     name: string
 }
 
-export type RequestHandler = {
+export type RequestHandler = typeof(setmetatable({} :: {
     options: RequestHandlerOptions,
     logger: Logger,
     preferSnakeCase: boolean,
@@ -61,27 +62,11 @@ export type RequestHandler = {
     ratelimits: { [string]: OrderedBucket },
     latencyRef: LatencyRef,
     globalBlock: boolean,
-    readyQueue: { () -> () },
-
-    new: (options: RequestHandlerOptions) -> RequestHandler,
-    globalUnblock: (self: RequestHandler) -> (),
-    createRequest: (
-        self: RequestHandler,
-        method: net.HttpMethod,
-        url: string,
-        auth: boolean?,
-        body: { [string]: any }?,
-        file: FileContent?,
-        _route: string?,
-        short: boolean?
-    ) -> Promise,
-    getRatelimitBucketIdFromUrl: (self: RequestHandler, url: string, method: net.HttpMethod) -> string
-} & typeof(RequestHandler)
+    readyQueue: { () -> () }
+}, RequestHandler))
 
 function RequestHandler.new(options: RequestHandlerOptions): RequestHandler
-    local self = setmetatable({} :: RequestHandler, {
-        __index = RequestHandler
-    })
+    local self = setmetatable({}, RequestHandler) :: RequestHandler
 
     options = options or {}
 

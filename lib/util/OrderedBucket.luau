@@ -2,6 +2,7 @@ local task = require("@lune/task")
 local datetime = require("@lune/datetime")
 
 local OrderedBucket = {}
+OrderedBucket.__index = OrderedBucket
 
 export type LatencyRef = {
     latency: number,
@@ -11,7 +12,7 @@ export type LatencyRef = {
     lastTimeOffsetCheck: number
 }
 
-export type OrderedBucket = {
+export type OrderedBucket = typeof(setmetatable({} :: {
     latencyRef: LatencyRef,
     limit: number,
     processing: boolean | thread,
@@ -19,16 +20,10 @@ export type OrderedBucket = {
     reset: number,
 
     _queue: {},
-
-    new: (limit: number, latencyRef: LatencyRef?) -> OrderedBucket,
-    check: (self: OrderedBucket, override: boolean?) -> (),
-    queue: (self: OrderedBucket, func: () -> any, short: boolean?) -> ()
-} & typeof(OrderedBucket)
+}, OrderedBucket))
 
 function OrderedBucket.new(limit: number, latencyRef: LatencyRef?): OrderedBucket
-    local self = setmetatable({} :: OrderedBucket, {
-        __index = OrderedBucket
-    })
+    local self = setmetatable({}, OrderedBucket) :: OrderedBucket
 
     if not latencyRef then
         latencyRef = { latency = 0 } :: any

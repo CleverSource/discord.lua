@@ -1,14 +1,9 @@
 local Logger = {}
+Logger.__index = Logger
 
-export type Logger = {
+export type Logger = typeof(setmetatable({} :: {
     _debug: boolean,
-
-    new: (debug: boolean?) -> Logger,
-    debug: (message: string, ...any) -> (),
-    print: (message: string, ...any) -> (),
-    warn: (message: string, ...any) -> (),
-    error: (message: string, ...any) -> (),
-} & typeof(Logger)
+}, Logger))
 
 local colors = {
     reset = "\27[0m",
@@ -19,9 +14,7 @@ local colors = {
 }
 
 function Logger.new(debug: boolean?): Logger
-    local self = setmetatable({} :: Logger, {
-        __index = Logger
-    })
+    local self = setmetatable({}, Logger) :: Logger
 
     self._debug = debug or false
 

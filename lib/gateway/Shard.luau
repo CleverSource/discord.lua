@@ -20,6 +20,7 @@ local SHARD_STATE_DISCONNECTED = "disconnected"
 local SHARD_STATE_OFFLINE = "offline"
 
 local Shard = {}
+Shard.__index = Shard
 
 export type ShardProperties = {
     os: string,
@@ -59,7 +60,7 @@ export type ShardOptions = {
     events: Events?
 }
 
-export type Shard = {
+export type Shard = typeof(setmetatable({} :: {
     logger: Logger,
     id: number,
     connection: ShardConnection,
@@ -81,31 +82,10 @@ export type Shard = {
     previousSequenceNumber: number,
     state: "identifying" | "resuming" | "connecting" | "unidentified" | "connected" | "disconnected" | "offline",
     resolveAfterClose: (() -> ())?,
-
-    new: (options: ShardOptions) -> Shard,
-    isOpen: (self: Shard) -> boolean,
-    checkOffline: (self: Shard, highPriority: boolean?) -> Promise,
-    gatewayConfig: (self: Shard) -> ShardConnection,
-    connectionUrl: (self: Shard) -> string,
-    handleError: (self: Shard, err: any) -> (),
-    handleClose: (self: Shard, code: number?) -> (),
-    handleMessage: (self: Shard, msg: any) -> (),
-    handleDiscordPacket: (self: Shard, packet: any) -> (),
-    forwardToClient: (self: Shard, packet: any) -> (),
-    close: (self: Shard, code: number) -> (),
-    shutdown: (self: Shard) -> (),
-    connect: (self: Shard) -> Promise,
-    startHeartbeating: (self: Shard, interval: number) -> (),
-    stopHeartbeating: (self: Shard) -> (),
-    send: (self: Shard, message: any, highPriority: boolean?) -> (),
-    identify: (self: Shard) -> Promise,
-    resume: (self: Shard) -> Promise
-}
+}, Shard))
 
 function Shard.new(options: ShardOptions): Shard
-    local self = setmetatable({} :: Shard, {
-        __index = Shard
-    })
+    local self = setmetatable({}, Shard) :: Shard
 
     self.logger = options.logger or Logger.new()
 

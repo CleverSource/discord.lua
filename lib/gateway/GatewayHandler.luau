@@ -12,6 +12,7 @@ local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
 local GatewayHandler = {}
+GatewayHandler.__index = GatewayHandler
 
 export type SessionStartLimit = {
     maxConcurrency: number,
@@ -43,7 +44,7 @@ export type GatewayHandlerOptions = {
     shardsPerWorker: number?
 }
 
-export type GatewayHandler = {
+export type GatewayHandler = typeof(setmetatable({} :: {
     defaultConnection: boolean,
     logger: Logger,
     token: string?,
@@ -62,23 +63,10 @@ export type GatewayHandler = {
     shards: { [string]: Shard },
     properties: ShardProperties,
     events: ShardEvents,
-
-    new: (options: GatewayHandlerOptions) -> GatewayHandler,
-    updateConnectionOptions: (self: GatewayHandler, newOptions: ConnectionOptions) -> (),
-    calculateWorkerId: (self: GatewayHandler, shardId: number) -> number,
-    prepareBuckets: (self: GatewayHandler) -> (),
-    identify: (self: GatewayHandler, shardId: number) -> Promise,
-    tellWorkerToIdentify: (self: GatewayHandler, workerId: number, shardId: number, bucketId: string) -> Promise,
-    spawnShards: (self: GatewayHandler) -> (),
-    shutdown: (self: GatewayHandler, code: number) -> (),
-    sendPayload: (self: GatewayHandler, shardId: number, payload: any) -> (),
-    kill: (self: GatewayHandler, shardId: number) -> ()
-} & typeof(GatewayHandler)
+}, GatewayHandler))
 
 function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
-    local self = setmetatable({} :: GatewayHandler, {
-        __index = GatewayHandler
-    })
+    local self = setmetatable({}, GatewayHandler) :: GatewayHandler
 
     options = options or {} :: GatewayHandlerOptions
 
