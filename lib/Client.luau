@@ -7,6 +7,8 @@ local ExtendedUser = require("structures/ExtendedUser")
 local PROMISE_SUCCESS = "Resolved"
 local PROMISE_FAIL = "Rejected"
 
+local Logger = require("log/Logger")
+
 local Client = {}
 
 function Client.new(options)
@@ -14,24 +16,30 @@ function Client.new(options)
         __index = Client
     })
     
+    self.token = options.token
+
+    local logger = Logger.new(options.debug or false)
+
+    local preferSnakeCase = options.preferSnakeCase or false
     local restOptions = options.restOptions or {
-        preferSnakeCase = options.preferSnakeCase or false
+        token = options.token,
+        preferSnakeCase = preferSnakeCase,
+        logger = logger
     }
-
-    self.token = "Bot " .. options.token
-
-    self.request = RequestHandler.new(self.token, restOptions)
-    self.gateway = GatewayHandler.new({
+    local gatewayOptions = options.gatewayOptions or {
         token = options.token,
         events = {
             message = function(shard, packet)
-                print(shard)
-                print(packet)
+                -- print(shard)
+                -- print(packet)
             end
         },
-        connectionOptions = self:getBotGateway(),
-        preferSnakeCase = options.preferSnakeCase or false
-    })
+        preferSnakeCase = preferSnakeCase,
+        logger = logger
+    }
+
+    self.request = RequestHandler.new(restOptions)
+    self.gateway = GatewayHandler.new(gatewayOptions)
 
     return self
 end
@@ -68,6 +76,10 @@ function Client:editSelf(options)
 end
 
 function Client:connect()
+    if self.gateway.defaultConnection then
+        self.gateway:updateConnectionOptions(self:getBotGateway())
+    end
+
     self.gateway:spawnShards()
 end
 

@@ -3,13 +3,35 @@ local datetime = require("@lune/datetime")
 
 local OrderedBucket = {}
 
-function OrderedBucket.new(limit, latencyRef)
-    local self = setmetatable({}, {
+export type LatencyRef = {
+    latency: number,
+    raw: { number },
+    timeOffset: number,
+    timeOffsets: { number },
+    lastTimeOffsetCheck: number
+}
+
+export type OrderedBucket = {
+    latencyRef: LatencyRef,
+    limit: number,
+    processing: boolean | thread,
+    remaining: number,
+    reset: number,
+
+    _queue: {},
+
+    new: (limit: number, latencyRef: LatencyRef?) -> OrderedBucket,
+    check: (self: OrderedBucket, override: boolean?) -> nil,
+    queue: (self: OrderedBucket, func: () -> any, short: boolean?) -> nil
+} & typeof(OrderedBucket)
+
+function OrderedBucket.new(limit: number, latencyRef: LatencyRef?): OrderedBucket
+    local self = setmetatable({} :: OrderedBucket, {
         __index = OrderedBucket
     })
 
     if not latencyRef then
-        latencyRef = { latency = 0 }
+        latencyRef = { latency = 0 } :: any
     end
 
     self.limit = limit
@@ -22,10 +44,10 @@ function OrderedBucket.new(limit, latencyRef)
     return self
 end
 
-function OrderedBucket:check(override)
+function OrderedBucket.check(self: OrderedBucket, override: boolean?)
     if #self._queue == 0 then
         if self.processing then
-            task.cancel(self.processing)
+            task.cancel(self.processing :: thread)
             self.processing = false
         end
         return
@@ -63,7 +85,7 @@ function OrderedBucket:check(override)
     end)
 end
 
-function OrderedBucket:queue(func, short)
+function OrderedBucket.queue(self: OrderedBucket, func: () -> any, short: boolean?)
     if short then
         table.insert(self._queue, 1, func)
     else

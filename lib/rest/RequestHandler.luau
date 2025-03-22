@@ -3,11 +3,17 @@ local datetime = require("@lune/datetime")
 local task = require("@lune/task")
 
 local Promise = require("../vendor/Promise")
+type Promise = Promise.Promise
 
 local camelize = require("../util/Camelize")
 local snakize = require("../util/Snakize")
 local FormData = require("../util/FormData")
 local OrderedBucket = require("../util/OrderedBucket")
+type OrderedBucket = OrderedBucket.OrderedBucket
+type LatencyRef = OrderedBucket.LatencyRef
+
+local Logger = require("../log/Logger")
+type Logger = Logger.Logger
 
 local HEADER_AUDIT_LOG_REASON = "x-audit-log-reason"
 
@@ -30,19 +36,66 @@ local BASE_URL = "https://discord.com/api/v" .. API_VERSION
 
 local RequestHandler = {}
 
-function RequestHandler.new(authorization, options)
-    local self = setmetatable({}, {
+export type RequestHandlerOptions = {
+    disableLatencyCompensation: boolean?,
+    latencyThreshold: number?,
+    ratelimiterOffset: number?,
+    requestTimeout: number?,
+    logger: Logger?,
+    preferSnakeCase: boolean?,
+    token: string?
+}
+
+export type FileContent = {
+    file: string,
+    name: string
+}
+
+export type RequestHandler = {
+    options: RequestHandlerOptions,
+    logger: Logger,
+    preferSnakeCase: boolean,
+    authorization: string,
+    userAgent: string,
+    ratelimits: { [string]: OrderedBucket },
+    latencyRef: LatencyRef,
+    globalBlock: boolean,
+    readyQueue: { () -> nil },
+
+    new: (options: RequestHandlerOptions) -> RequestHandler,
+    globalUnblock: (self: RequestHandler) -> nil,
+    createRequest: (
+        self: RequestHandler,
+        method: net.HttpMethod,
+        url: string,
+        auth: boolean?,
+        body: { [string]: any }?,
+        file: FileContent?,
+        _route: string?,
+        short: boolean?
+    ) -> Promise,
+    getRatelimitBucketIdFromUrl: (self: RequestHandler, url: string, method: net.HttpMethod) -> string
+} & typeof(RequestHandler)
+
+function RequestHandler.new(options: RequestHandlerOptions): RequestHandler
+    local self = setmetatable({} :: RequestHandler, {
         __index = RequestHandler
     })
 
+    options = options or {}
+
     self.options = {
-        disableLatencyCompensation = options and options.disableLatencyCompensation or false,
-        latencyThreshold = options and options.latencyThreshold or 30000,
-        ratelimiterOffset = options and options.ratelimiterOffset or 0,
-        requestTimeout = options and options.requestTimeout or 15000
+        disableLatencyCompensation = options.disableLatencyCompensation or false,
+        latencyThreshold = options.latencyThreshold or 30000,
+        ratelimiterOffset = options.ratelimiterOffset or 0,
+        requestTimeout = options.requestTimeout or 15000
     }
-    self.preferSnakeCase = options and options.preferSnakeCase or false
-    self.authorization = authorization
+
+    self.logger = options.logger or Logger.new()
+
+    self.preferSnakeCase = options.preferSnakeCase or false
+    
+    self.authorization = `Bot {options.token}`
     self.userAgent = "DiscordBot (https://github.com/cleversource/discord.lua, 0.0.1)"
     self.ratelimits = {}
     self.latencyRef = {
@@ -58,7 +111,7 @@ function RequestHandler.new(authorization, options)
     return self
 end
 
-function RequestHandler:globalUnblock()
+function RequestHandler.globalUnblock(self: RequestHandler)
     self.globalBlock = false
     while #self.readyQueue > 0 do
         local callback = table.remove(self.readyQueue, 1)
@@ -68,7 +121,7 @@ function RequestHandler:globalUnblock()
     end
 end
 
-function RequestHandler:createRequest(method, url, auth, body, file, _route, short)
+function RequestHandler.createRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent?, _route: string?, short: boolean?): Promise
     local route = _route or self:getRatelimitBucketIdFromUrl(url, method)
  
     return Promise.new(function(resolve, reject)
@@ -227,8 +280,7 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
             end
             
             if method ~= "GET" and (response.headers[HEADER_RATELIMIT_REMAINING] == nil or response.headers[HEADER_RATELIMIT_LIMIT] == nil) and self.ratelimits[route].limit ~= 1 then
-                -- TODO: better debug logging
-                print(`Missing ratelimit headers for OrderedBucket({self.ratelimits[route].remaining}/{self.ratelimits[route].limit}) with non-default limit`)
+                self.logger:warn(`Missing ratelimit headers for OrderedBucket({self.ratelimits[route].remaining}/{self.ratelimits[route].limit}) with non-default limit`)
             end
 
             self.ratelimits[route].remaining = response.headers[HEADER_RATELIMIT_REMAINING] == nil and 1 or tonumber(response.headers[HEADER_RATELIMIT_REMAINING]) or 0
@@ -252,9 +304,8 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
             end
 
             if response.statusCode ~= HTTP_TOO_MANY_REQUESTS then
-                -- TODO: better debug logging
                 local content = if typeof(body) == "table" then body.content else ""
-                print(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
+                self.logger:debug(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
             end
 
             if response.statusCode >= HTTP_MULTIPLE_CHOICES then
@@ -263,11 +314,10 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
                     if response.headers[HEADER_RATELIMIT_SCOPE] == "shared" then
                         delay = responseBody.retry_after * 1000
                     end
-                    -- TODO: better debug logging
                     local content = if typeof(body) == "table" then body.content else ""
-                    print(`{response.headers[HEADER_RATELIMIT_GLOBAL] and "Global" or "Unexpected"} 429`)
-                    print(responseBody)
-                    print(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left) | Scope {response.headers[HEADER_RATELIMIT_SCOPE]}`)
+                    self.logger:warn(`{response.headers[HEADER_RATELIMIT_GLOBAL] and "Global" or "Unexpected"} 429`)
+                    self.logger:warn(responseBody)
+                    self.logger:warn(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left) | Scope {response.headers[HEADER_RATELIMIT_SCOPE]}`)
                     
                     if delay then
                         task.delay(delay / 1000, function() 
@@ -326,7 +376,7 @@ function RequestHandler:createRequest(method, url, auth, body, file, _route, sho
     end)
 end
 
-function RequestHandler:getRatelimitBucketIdFromUrl(url, method)
+function RequestHandler.getRatelimitBucketIdFromUrl(self: RequestHandler, url: string, method: net.HttpMethod): string
     return method .. " " .. url
 end
 

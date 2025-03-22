@@ -13,8 +13,17 @@ local VALID_EXTENSIONS = {
 
 local FormData = {}
 
-function FormData.new()
-    local self = setmetatable({}, {
+export type FormData = {
+    boundary: "DiscordLua",
+    data: { string },
+
+    new: () -> FormData,
+    attach: (self: FormData, fieldName: string, data: string, filename: string) -> nil,
+    finish: (self: FormData) -> { string }
+} & typeof(FormData)
+
+function FormData.new(): FormData
+    local self = setmetatable({} :: FormData, {
         __index = FormData
     })
 
@@ -24,7 +33,7 @@ function FormData.new()
     return self
 end
 
-function FormData:attach(fieldName, data, filename)
+function FormData.attach(self: FormData, fieldName: string, data: string, filename: string)
     local str = "\r\n--" .. self.boundary .. "\r\nContent-Disposition: form-data; name=\"" .. fieldName .. "\""
     local contentType = ""
     if filename then
@@ -58,7 +67,7 @@ function FormData:attach(fieldName, data, filename)
     table.insert(self.data, data)
 end
 
-function FormData:finish()
+function FormData.finish(self: FormData): { string }
     table.insert(self.data, "\r\n--" .. self.boundary .. "--")
     return self.data
 end
