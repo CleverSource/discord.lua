@@ -15,6 +15,9 @@ type LatencyRef = OrderedBucket.LatencyRef
 local Logger = require("../log/Logger")
 type Logger = Logger.Logger
 
+local PROMISE_SUCCESS = "Resolved"
+local PROMISE_FAIL = "Rejected"
+
 local HEADER_AUDIT_LOG_REASON = "x-audit-log-reason"
 
 local HEADER_RATELIMIT_LIMIT = "x-ratelimit-limit"
@@ -51,6 +54,12 @@ export type RequestHandlerOptions = {
 export type FileContent = {
     file: string,
     name: string
+}
+
+export type CreateRequestOptions = {
+    authenticated: boolean?,
+    body: { [string]: any }?,
+    file: FileContent? | { FileContent }?
 }
 
 export type RequestHandler = typeof(setmetatable({} :: {
@@ -97,6 +106,18 @@ function RequestHandler.new(options: RequestHandlerOptions): RequestHandler
     return self
 end
 
+function RequestHandler._processPromise(self: RequestHandler, promise: Promise): any
+    local status, result = promise:StatusAwait()
+    if status == PROMISE_SUCCESS then
+        return result
+    elseif status == PROMISE_FAIL then
+        self.logger:error(result)
+        return
+    else
+        error("Fatal error: Promise status is neither Resolved nor Rejected")
+    end
+end
+
 function RequestHandler.globalUnblock(self: RequestHandler)
     self.globalBlock = false
     while #self.readyQueue > 0 do
@@ -107,9 +128,29 @@ function RequestHandler.globalUnblock(self: RequestHandler)
     end
 end
 
-function RequestHandler.createRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent?, _route: string?, short: boolean?): Promise
+function RequestHandler.get(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
+    return self:_processPromise(self:makeRequest("GET", url, options and options.authenticated, options and options.body, options and options.file))
+end
+
+function RequestHandler.post(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
+    return self:_processPromise(self:makeRequest("POST", url, options and options.authenticated, options and options.body, options and options.file))
+end
+
+function RequestHandler.delete(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
+    return self:_processPromise(self:makeRequest("DELETE", url, options and options.authenticated, options and options.body, options and options.file))
+end
+
+function RequestHandler.patch(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
+    return self:_processPromise(self:makeRequest("PATCH", url, options and options.authenticated, options and options.body, options and options.file))
+end
+
+function RequestHandler.put(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
+    return self:_processPromise(self:makeRequest("PUT", url, options and options.authenticated, options and options.body, options and options.file))
+end
+
+function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent? | { FileContent }?, _route: string?, short: boolean?): Promise
     local route = _route or self:getRatelimitBucketIdFromUrl(url, method)
- 
+
     return Promise.new(function(resolve, reject)
         local attempts = 0
 
@@ -144,8 +185,8 @@ function RequestHandler.createRequest(self: RequestHandler, method: net.HttpMeth
                 local data = FormData.new()
                 headers["content-type"] = "multipart/form-data; boundary=" .. data.boundary
     
-                if typeof(file[1]) == "table" then
-                    for index, fileData in file do
+                if typeof(file) == "table" then
+                    for index, fileData in pairs(file) do
                         if not fileData.file then
                             return
                         end
@@ -308,18 +349,18 @@ function RequestHandler.createRequest(self: RequestHandler, method: net.HttpMeth
                     if delay then
                         task.delay(delay / 1000, function() 
                             callback()
-                            self:createRequest(method, url, auth, body, file, route, true)
+                            self:makeRequest(method, url, auth, body, file, route, true)
                         end)
                         return
                     else
                         callback()
-                        self:createRequest(method, url, auth, body, file, route, true)
+                        self:makeRequest(method, url, auth, body, file, route, true)
                         return
                     end
                 elseif response.statusCode == HTTP_BAD_GATEWAY and attempts < 4 then
                     attempts += 1
                     task.delay((math.random() * 1900 + 100) / 1000, function() 
-                        self:createRequest(method, url, auth, body, file, route, true)
+                        self:makeRequest(method, url, auth, body, file, route, true)
                     end)
                     callback()
                     return

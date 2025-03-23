@@ -2,4 +2,4 @@
 .vscode/
 
 # Test code
-test.luau
+config.luau

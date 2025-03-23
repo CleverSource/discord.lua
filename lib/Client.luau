@@ -4,9 +4,6 @@ local GatewayHandler = require("gateway/GatewayHandler")
 
 local ExtendedUser = require("structures/ExtendedUser")
 
-local PROMISE_SUCCESS = "Resolved"
-local PROMISE_FAIL = "Rejected"
-
 local Logger = require("log/Logger")
 
 local Client = {}
@@ -20,12 +17,17 @@ function Client.new(options)
 
     local logger = Logger.new(options.debug or false)
 
-    local preferSnakeCase = options.preferSnakeCase or false
+    local preferSnakeCase = options.preferSnakeCase
+    
+    -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
         token = options.token,
-        preferSnakeCase = preferSnakeCase,
+        preferSnakeCase = preferSnakeCase or false,
         logger = logger
     }
+
+    -- Converting snake_case to camelCase is expensive for constant gateway events, 
+    -- so we should prefer snake_case for gateway events
     local gatewayOptions = options.gatewayOptions or {
         token = options.token,
         events = {
@@ -34,7 +36,7 @@ function Client.new(options)
                 -- print(packet)
             end
         },
-        preferSnakeCase = preferSnakeCase,
+        preferSnakeCase = preferSnakeCase or true,
         logger = logger
     }
 
@@ -45,35 +47,27 @@ function Client.new(options)
     return self
 end
 
-local function processPromise(promise)
-    local status, result = promise:StatusAwait()
-    if status == PROMISE_SUCCESS then
-        return result
-    elseif status == PROMISE_FAIL then
-        error(result)
-    else
-        error("Fatal error: Promise status is neither Resolved nor Rejected")
-    end
-end
-
 function Client:getGateway()
-    local res = self.request:createRequest("GET", Routes.gateway())
-    return processPromise(res)
+    return self.request:get(Routes.gateway())    
 end
 
 function Client:getBotGateway()
-    local res = self.request:createRequest("GET", Routes.gatewayBot(), true)
-    return processPromise(res)
+    return self.request:get(Routes.gatewayBot(), {
+        authenticated = true
+    })
 end
 
 function Client:getSelf()
-    local res = processPromise(self.request:createRequest("GET", Routes.user("@me"), true))
-    return ExtendedUser.new(res)
+    return ExtendedUser.new(self.request:get(Routes.user("@me"), {
+        authenticated = true
+    }))
 end
 
 function Client:editSelf(options)
-    local res = processPromise(self.request:createRequest("PATCH", Routes.user("@me"), true, options))
-    return ExtendedUser.new(res)
+    return ExtendedUser.new(self.request:patch(Routes.user("@me"), {
+        authenticated = true,
+        body = options
+    }))
 end
 
 function Client:connect()
