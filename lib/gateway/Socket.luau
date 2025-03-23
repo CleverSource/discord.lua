@@ -1,20 +1,21 @@
 local net = require("@lune/net")
 local task = require("@lune/task")
 
-local Signal = require("../vendor/Signal")
-type Signal<T> = Signal.Signal<T>
-
 local Socket = {}
 Socket.__index = Socket
+
+export type Events = {
+    open: (() -> ())?,
+    message: ((string) -> ())?,
+    close: ((number) -> ())?,
+    error: ((string) -> ())?
+}
 
 export type Socket = typeof(setmetatable({} :: {
     socket: net.WebSocket?,
     isOpen: boolean,
-    
-    OnOpen: Signal<nil>,
-    OnMessage: Signal<string>,
-    OnClose: Signal<number>,
-    OnError: Signal<string>,
+
+    events: Events,
 }, Socket))
 
 function Socket.new(url: string, listenImmediately: boolean?): Socket
@@ -23,10 +24,7 @@ function Socket.new(url: string, listenImmediately: boolean?): Socket
     self.socket = net.socket(url)
     self.isOpen = true
 
-    self.OnOpen = Signal()
-    self.OnMessage = Signal()
-    self.OnClose = Signal()
-    self.OnError = Signal()
+    self.events = {}
 
     -- NOTE: a race condition will occur with "OnOpen" if listenImmediately is true
     if not (not listenImmediately) then
@@ -38,21 +36,29 @@ end
 
 function Socket._startListening(self: Socket)
     task.spawn(function()
-        self.OnOpen:Fire()
+        if self.events.open then
+            self.events.open()
+        end
 
         while self.socket and self.socket.closeCode == nil do
             local success, message = pcall(self.socket.next)
             if success and message then
-                self.OnMessage:Fire(message)
+                if self.events.message then
+                    self.events.message(message)
+                end
             elseif not success then
-                self.OnError:Fire(message)
+                if self.events.error then
+                    self.events.error(message)
+                end
                 break
             end
         end
 
         self.isOpen = false
         if self.socket then
-            self.OnClose:Fire(self.socket.closeCode :: number)
+            if self.events.close then
+                self.events.close(self.socket.closeCode :: number)
+            end
         end
     end)
 end
@@ -65,10 +71,14 @@ function Socket.send(self: Socket, message: string)
     if self.socket and self.socket.closeCode == nil then
         local success, err = pcall(self.socket.send, message)
         if not success then
-            self.OnError:Fire(err)
+            if self.events.error then
+                self.events.error(err)
+            end
         end
     else
-        self.OnError:Fire("Socket is closed")
+        if self.events.error then
+            self.events.error("Socket is closed")
+        end
     end
 end
 

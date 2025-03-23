@@ -39,18 +39,18 @@ export type ShardConnection = {
 }
 
 export type Events = {
-    disconnected: ((Shard) -> nil)?,
-    heartbeat: ((Shard) -> nil)?,
-    hello: ((Shard) -> nil)?,
-    heartbeatAck: ((Shard) -> nil)?,
-    requestedReconnect: ((Shard) -> nil)?,
-    invalidSession: ((Shard, boolean) -> nil)?,
-    resumed: ((Shard) -> nil)?,
-    message: ((Shard, any) -> nil)?,
-    connected: ((Shard) -> nil)?,
-    connecting: ((Shard) -> nil)?,
-    identifying: ((Shard) -> nil)?,
-    identified: ((Shard) -> nil)?
+    disconnected: ((Shard) -> ())?,
+    heartbeat: ((Shard) -> ())?,
+    hello: ((Shard) -> ())?,
+    heartbeatAck: ((Shard) -> ())?,
+    requestedReconnect: ((Shard) -> ())?,
+    invalidSession: ((Shard, boolean) -> ())?,
+    resumed: ((Shard) -> ())?,
+    message: ((Shard, any) -> ())?,
+    connected: ((Shard) -> ())?,
+    connecting: ((Shard) -> ())?,
+    identifying: ((Shard) -> ())?,
+    identified: ((Shard) -> ())?
 }
 
 export type ShardOptions = {
@@ -374,18 +374,18 @@ function Shard.connect(self: Shard): Promise
     local socket = Socket.new(url, false)
     self.socket = socket
 
-    socket.OnError:Connect(function(err)
+    socket.events.error = function(err)
         self:handleError(err)
-    end)
-    socket.OnClose:Connect(function(code) 
+    end
+    socket.events.close = function(code)
         self:handleClose(code)
-    end)
-    socket.OnMessage:Connect(function(msg) 
+    end
+    socket.events.message = function(msg)
         self:handleMessage(msg)
-    end)
+    end
 
     return Promise.new(function(resolve)
-        socket.OnOpen:Connect(function() 
+        socket.events.open = function()
             if self.state ~= SHARD_STATE_IDENTIFYING and self.state ~= SHARD_STATE_RESUMING then
                 self.state = SHARD_STATE_UNIDENTIFIED
             end
@@ -395,7 +395,7 @@ function Shard.connect(self: Shard): Promise
             end
 
             resolve()
-        end)
+        end
 
         socket:connect()
     end)

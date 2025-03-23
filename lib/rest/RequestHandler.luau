@@ -52,7 +52,7 @@ export type RequestHandlerOptions = {
 }
 
 export type FileContent = {
-    file: string,
+    content: string,
     name: string
 }
 
@@ -185,23 +185,24 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                 local data = FormData.new()
                 headers["content-type"] = "multipart/form-data; boundary=" .. data.boundary
     
-                if typeof(file) == "table" then
+                if typeof(file) == "table" and #file > 0 then
                     for index, fileData in pairs(file) do
-                        if not fileData.file then
+                        if not fileData.content then
                             return
                         end
                         
                         data:attach(`files[{index - 1}]`, fileData.file, fileData.name)
                     end
-                elseif file.file then
+                elseif (file :: FileContent).content then
                     -- TODO: confirm stickers is valid
                     if method == "POST" and url:sub(#url - #STICKERS_ROUTE + 1, #url) == STICKERS_ROUTE then
-                        data:attach("file", file.file, file.name)
+                        data:attach("file", (file :: FileContent).content, (file :: FileContent).name)
                     else
-                        data:attach("files[0]", file.file, file.name)
+                        data:attach("files[0]", (file :: FileContent).content, (file :: FileContent).name)
                     end
                 else
-                    error("Invalid file object")
+                    reject("Invalid file object")
+                    return
                 end
 
                 if body then
