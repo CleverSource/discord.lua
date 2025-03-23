@@ -5,8 +5,8 @@ local task = require("@lune/task")
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
-local camelize = require("../util/camelize")
-local snakize = require("../util/snakize")
+local camelize = require("../util/snakeCaseToCamel")
+local snakize = require("../util/camelCaseToSnake")
 local FormData = require("../util/FormData")
 local OrderedBucket = require("../util/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket

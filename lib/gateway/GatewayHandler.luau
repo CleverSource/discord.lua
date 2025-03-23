@@ -14,8 +14,6 @@ local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 local BigNum = require("../vendor/BigNum")
 
-local GatewayTypes = require("../types/bot/gateway")
-
 local GatewayHandler = {}
 GatewayHandler.__index = GatewayHandler
 
@@ -292,7 +290,7 @@ function GatewayHandler.kill(self: GatewayHandler, shardId: number)
     shard:shutdown()
 end
 
-function GatewayHandler.joinVoiceChannel(self: GatewayHandler, guildId: string, channelId: string, options: GatewayTypes.UpdateVoiceStateOptions?)
+function GatewayHandler.joinVoiceChannel(self: GatewayHandler, guildId: string, channelId: string, options: { selfMute: boolean?, selfDeaf: boolean? }?)
     local shardId = self:calculateShardId(guildId)
     
     self.logger:debug(`[Gateway] Joining voice channel (guildId: {guildId} channelId: {channelId})`)

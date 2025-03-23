@@ -4,8 +4,6 @@ type Logger = Logger.Logger
 local RequestHandler = require("RequestHandler")
 type RequestHandler = RequestHandler.RequestHandler
 
-local ExtendedUser = require("../structures/ExtendedUser") -- TEMP
-
 local RestClient = {}
 RestClient.__index = RestClient
 
@@ -36,7 +34,6 @@ function RestClient.new(options: RestClientOptions): RestClient
     return self
 end
 
--- TEMP
 function RestClient:getGateway()
     return self.request:get(Routes.gateway())
 end
@@ -45,19 +42,6 @@ function RestClient:getBotGateway()
     return self.request:get(Routes.gatewayBot(), {
         authenticated = true
     })
-end
-
-function RestClient:getSelf()
-    return ExtendedUser.new(self.request:get(Routes.user("@me"), {
-        authenticated = true
-    }))
-end
-
-function RestClient:editSelf(options)
-    return ExtendedUser.new(self.request:patch(Routes.user("@me"), {
-        authenticated = true,
-        body = options
-    }))
 end
 
 return RestClient
