@@ -68,11 +68,11 @@ function Client.new(options)
 end
 
 function Client:handleDispatch(event, shard, packet)
-    print(packet)
+    -- print(packet)
 end
 
 function Client:getGateway()
-    return self.request:get(Routes.gateway())    
+    return self.request:get(Routes.gateway())
 end
 
 function Client:getBotGateway()

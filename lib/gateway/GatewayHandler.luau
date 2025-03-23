@@ -10,6 +10,9 @@ type Logger = Logger.Logger
 
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
+local BigNum = require("../vendor/BigNum")
+
+local GatewayTypes = require("../types/bot/gateway")
 
 local GatewayHandler = {}
 GatewayHandler.__index = GatewayHandler
@@ -112,6 +115,26 @@ function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
     -- TODO: resharding
 
     return self
+end
+
+function GatewayHandler.calculateShardId(self: GatewayHandler, guildId: string, totalShards: number?): number
+    if not totalShards then
+        totalShards = self.totalShards
+    end
+
+    if totalShards == 1 then
+        self.logger:debug("[Gateway] calculateShardId (1 shard)")
+        return 0
+    end
+
+    self.logger:debug(`[Gateway] calculateShardId (guildId: {guildId}, totalShards: {totalShards})`)
+    
+    -- HACK: BigNum doesn't support bitwise operations
+    -- and can't convert "small" BigNum's to numbers
+    -- so we have to convert it to a string first
+    local bigGuildId = BigNum.new(guildId)
+    local shardId = (bigGuildId / (2 ^ 22)) % totalShards
+    return tonumber(tostring(shardId)) :: number
 end
 
 function GatewayHandler.updateConnectionOptions(self: GatewayHandler, newOptions: ConnectionOptions)
@@ -268,6 +291,38 @@ function GatewayHandler.kill(self: GatewayHandler, shardId: number)
     self.logger:debug(`[Gateway] Killing Shard #{shardId}`)
     self.shards[tostring(shardId)] = nil
     shard:shutdown()
+end
+
+function GatewayHandler.joinVoiceChannel(self: GatewayHandler, guildId: string, channelId: string, options: GatewayTypes.UpdateVoiceStateOptions?)
+    local shardId = self:calculateShardId(guildId)
+    
+    self.logger:debug(`[Gateway] Joining voice channel (guildId: {guildId} channelId: {channelId})`)
+
+    self:sendPayload(shardId, {
+        op = Constants.GatewayOpCodes.VoiceStateUpdate,
+        d = {
+            guild_id = guildId,
+            channel_id = channelId,
+            self_mute = options and options.selfMute or false,
+            self_deaf = options and options.selfDeaf or false
+        }
+    })
+end
+
+function GatewayHandler.leaveVoiceChannel(self: GatewayHandler, guildId: string)
+    local shardId = self:calculateShardId(guildId)
+    
+    self.logger:debug(`[Gateway] Leaving voice channel (guildId: {guildId})`)
+
+    self:sendPayload(shardId, {
+        op = Constants.GatewayOpCodes.VoiceStateUpdate,
+        d = {
+            guild_id = guildId,
+            channel_id = "null",
+            self_mute = false,
+            self_deaf = false
+        }
+    })
 end
 
 return GatewayHandler

@@ -84,6 +84,7 @@ return {
     GatewayCloseCodes = {
         NormalClosure = 1000,
         GoingAway = 1001,
+        DecodeError = 4002,
         NotAuthenticated = 4003,
         AuthenticationFailed = 4004,
         AlreadyAuthenticated = 4005,

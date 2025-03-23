@@ -57,7 +57,11 @@ function Socket._startListening(self: Socket)
     end)
 end
 
-function Socket.send(self: Socket, message: any)
+function Socket.send(self: Socket, message: string)
+    if message:find('"null"') then
+        message = message:gsub('"null"', "null")
+    end
+
     if self.socket and self.socket.closeCode == nil then
         local success, err = pcall(self.socket.send, message)
         if not success then
