@@ -8,6 +8,8 @@ local Constants = require("../Constants")
 local Logger = require("../log/Logger")
 type Logger = Logger.Logger
 
+local bigNumToNum = require("../util/bigNumToNum")
+
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 local BigNum = require("../vendor/BigNum")
@@ -128,13 +130,10 @@ function GatewayHandler.calculateShardId(self: GatewayHandler, guildId: string, 
     end
 
     self.logger:debug(`[Gateway] calculateShardId (guildId: {guildId}, totalShards: {totalShards})`)
-    
-    -- HACK: BigNum doesn't support bitwise operations
-    -- and can't convert "small" BigNum's to numbers
-    -- so we have to convert it to a string first
+
     local bigGuildId = BigNum.new(guildId)
     local shardId = (bigGuildId / (2 ^ 22)) % totalShards
-    return tonumber(tostring(shardId)) :: number
+    return bigNumToNum(shardId)
 end
 
 function GatewayHandler.updateConnectionOptions(self: GatewayHandler, newOptions: ConnectionOptions)

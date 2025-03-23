@@ -1,7 +1,7 @@
 local task = require("@lune/task")
 local net = require("@lune/net")
 
-local camelize = require("../util/Camelize")
+local camelize = require("../util/camelize")
 local Socket = require("Socket")
 type Socket = Socket.Socket
 local Constants = require("../Constants")

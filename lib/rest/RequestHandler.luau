@@ -5,8 +5,8 @@ local task = require("@lune/task")
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
-local camelize = require("../util/Camelize")
-local snakize = require("../util/Snakize")
+local camelize = require("../util/camelize")
+local snakize = require("../util/snakize")
 local FormData = require("../util/FormData")
 local OrderedBucket = require("../util/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
@@ -90,7 +90,7 @@ function RequestHandler.new(options: RequestHandlerOptions): RequestHandler
 
     self.preferSnakeCase = options.preferSnakeCase or false
     
-    self.authorization = `Bot {options.token}`
+    self.authorization = options.token
     self.userAgent = "DiscordBot (https://github.com/cleversource/discord.lua, 0.0.1)"
     self.ratelimits = {}
     self.latencyRef = {

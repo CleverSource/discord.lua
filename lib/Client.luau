@@ -1,9 +1,6 @@
-local RequestHandler = require("rest/RequestHandler")
-local Routes = require("rest/Routes")
+local RestClient = require("rest/RestClient")
 local GatewayHandler = require("gateway/GatewayHandler")
 local Constants = require("Constants")
-
-local ExtendedUser = require("structures/ExtendedUser")
 
 local Logger = require("log/Logger")
 
@@ -37,7 +34,7 @@ function Client.new(options)
     
     -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
-        token = options.token,
+        token = `Bot {options.token}`,
         preferSnakeCase = preferSnakeCase or false,
         logger = logger
     }
@@ -61,8 +58,8 @@ function Client.new(options)
     }
 
     self.logger = logger
-    self.request = RequestHandler.new(restOptions)
     self.gateway = GatewayHandler.new(gatewayOptions)
+    self.rest = RestClient.new(restOptions)
 
     return self
 end
@@ -71,32 +68,9 @@ function Client:handleDispatch(event, shard, packet)
     -- print(packet)
 end
 
-function Client:getGateway()
-    return self.request:get(Routes.gateway())
-end
-
-function Client:getBotGateway()
-    return self.request:get(Routes.gatewayBot(), {
-        authenticated = true
-    })
-end
-
-function Client:getSelf()
-    return ExtendedUser.new(self.request:get(Routes.user("@me"), {
-        authenticated = true
-    }))
-end
-
-function Client:editSelf(options)
-    return ExtendedUser.new(self.request:patch(Routes.user("@me"), {
-        authenticated = true,
-        body = options
-    }))
-end
-
 function Client:connect()
     if self.gateway.defaultConnection then
-        self.gateway:updateConnectionOptions(self:getBotGateway())
+        self.gateway:updateConnectionOptions(self.rest:getBotGateway())
     end
 
     self.gateway:spawnShards()
