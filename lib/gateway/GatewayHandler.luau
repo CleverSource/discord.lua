@@ -109,6 +109,8 @@ function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
         device = "DiscordLua"
     }
 
+    -- TODO: resharding
+
     return self
 end
 

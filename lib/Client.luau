@@ -1,6 +1,7 @@
 local RequestHandler = require("rest/RequestHandler")
 local Routes = require("rest/Routes")
 local GatewayHandler = require("gateway/GatewayHandler")
+local Constants = require("Constants")
 
 local ExtendedUser = require("structures/ExtendedUser")
 
@@ -16,8 +17,23 @@ function Client.new(options)
     self.token = options.token
 
     local logger = Logger.new(options.debug or false)
-
     local preferSnakeCase = options.preferSnakeCase
+
+    if options.intents then
+        local intents = 0
+        for _, intent in ipairs(options.intents) do
+            if typeof(intent) == "number" then
+                intents = bit32.bor(intents, intent)
+            elseif typeof(intent) == "string" and Constants.Intents[intent] then
+                intents = bit32.bor(intents, Constants.Intents[intent])
+            else
+                logger:warn("Unknown intent: " .. intent)
+            end
+        end
+        options.intent = intents
+    end
+
+    local intentsBit = options.intent or Constants.Intents.allNonPrivileged
     
     -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
@@ -32,12 +48,16 @@ function Client.new(options)
         token = options.token,
         events = {
             message = function(shard, packet)
-                -- print(shard)
-                -- print(packet)
+                if not packet.t then
+                    return
+                end
+
+                self:handleDispatch(packet.t, shard, packet)
             end
         },
         preferSnakeCase = preferSnakeCase or true,
-        logger = logger
+        logger = logger,
+        intents = intentsBit
     }
 
     self.logger = logger
@@ -45,6 +65,10 @@ function Client.new(options)
     self.gateway = GatewayHandler.new(gatewayOptions)
 
     return self
+end
+
+function Client:handleDispatch(event, shard, packet)
+    print(packet)
 end
 
 function Client:getGateway()
