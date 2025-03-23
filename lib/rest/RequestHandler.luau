@@ -404,6 +404,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 end
 
 function RequestHandler.getRatelimitBucketIdFromUrl(self: RequestHandler, url: string, method: net.HttpMethod): string
+    -- TODO: implement this
     return method .. " " .. url
 end
 
