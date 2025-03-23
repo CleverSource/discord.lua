@@ -4,6 +4,8 @@ type Logger = Logger.Logger
 local RequestHandler = require("RequestHandler")
 type RequestHandler = RequestHandler.RequestHandler
 
+local GatewayTypes = require("../types/internal/gateway")
+
 local RestClient = {}
 RestClient.__index = RestClient
 
@@ -34,11 +36,11 @@ function RestClient.new(options: RestClientOptions): RestClient
     return self
 end
 
-function RestClient:getGateway()
+function RestClient:getGateway(): { url: string }
     return self.request:get(Routes.gateway())
 end
 
-function RestClient:getBotGateway()
+function RestClient:getBotGateway(): GatewayTypes.GetGatewayBot
     return self.request:get(Routes.gatewayBot(), {
         authenticated = true
     })

@@ -10,6 +10,8 @@ type Logger = Logger.Logger
 
 local bigNumToNum = require("../util/bigNumToNum")
 
+local GatewayTypes = require("../types/internal/gateway")
+
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 local BigNum = require("../vendor/BigNum")
@@ -17,17 +19,10 @@ local BigNum = require("../vendor/BigNum")
 local GatewayHandler = {}
 GatewayHandler.__index = GatewayHandler
 
-export type SessionStartLimit = {
-    maxConcurrency: number,
-    remaining: number,
-    total: number,
-    resetAfter: number
-}
-
 export type ConnectionOptions = {
     url: string,
     shards: number,
-    sessionStartLimit: SessionStartLimit
+    sessionStartLimit: GatewayTypes.SessionStartLimit
 }
 
 export type GatewayHandlerOptions = {
@@ -56,7 +51,7 @@ export type GatewayHandler = typeof(setmetatable({} :: {
     version: number,
     compress: boolean,
     intents: number,
-    sessionStartLimit: SessionStartLimit,
+    sessionStartLimit: GatewayTypes.SessionStartLimit,
     totalShards: number,
     lastShardId: number,
     firstShardId: number,
