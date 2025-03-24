@@ -6,7 +6,8 @@ local bot = Client.new({
     debug = true,
     intents = {
         "AllNonPrivileged"
-    }
+    },
+    compression = false
 })
 
 bot:connect()

@@ -14,9 +14,12 @@ local GatewayTypes = require("types/internal/gateway")
 local Client = {}
 Client.__index = Client
 
+Client.constants = Constants
+
 export type ClientOptions = {
     token: string,
     debug: boolean?,
+    compression: boolean?,
     preferSnakeCase: boolean?,
     intents: { number | string }?,
     restOptions: RestClient.RestClientOptions?,
@@ -27,7 +30,8 @@ export type Client = typeof(setmetatable({} :: {
     token: string,
     logger: Logger,
     gateway: GatewayHandler,
-    rest: RestClient
+    rest: RestClient,
+    constants: typeof(Constants)
 }, Client))
 
 function Client.new(options: ClientOptions): Client
@@ -76,7 +80,8 @@ function Client.new(options: ClientOptions): Client
         },
         preferSnakeCase = preferSnakeCase or true,
         logger = logger,
-        intents = intentsBit
+        intents = intentsBit,
+        compress = options.compression or false
     }
 
     self.logger = logger

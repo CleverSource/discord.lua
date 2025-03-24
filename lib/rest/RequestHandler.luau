@@ -1,6 +1,7 @@
 local net = require("@lune/net")
 local datetime = require("@lune/datetime")
 local task = require("@lune/task")
+local serde = require("@lune/serde")
 
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
@@ -159,7 +160,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
         local function request(callback)
             local headers = {
                 ["user-agent"] = self.userAgent,
-                ["accept-encoding"] = "gzip,deflate"
+                ["accept-encoding"] = "gzip"
             }
             
             if auth then
@@ -252,6 +253,16 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
             self.latencyRef.latency = self.latencyRef.latency - math.modf(table.remove(self.latencyRef.raw, 1) :: number / 10) + math.modf(latency / 10) 
         
             local responseBody = response.body
+
+            -- TODO: confirm this even works
+            -- I have not been able to get "content-encoding" to appear in headers
+            if response.headers["content-encoding"] then
+                self.logger:warn("Content encoding detected, decompressing")
+                if string.find(response.headers["content-encoding"], "gzip") then
+                    responseBody = serde.decompress("gzip", responseBody)
+                end
+            end
+
             if response.headers["content-type"] == "application/json" then
                 -- convert null to boolean for role tags case (see https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure)
                 -- TODO: check this based on route, for now we do it in all cases
@@ -301,8 +312,6 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                 self.latencyRef.timeOffset = self.latencyRef.timeOffset - math.modf(table.remove(self.latencyRef.timeOffsets, 1) :: number / 10) + math.modf(timeOffset / 10)
                 table.insert(self.latencyRef.timeOffsets, timeOffset)
             end
-
-            -- TODO: encoding?
 
             local now = datetime.now().unixTimestampMillis
             if response.headers[HEADER_RATELIMIT_LIMIT] then
@@ -355,18 +364,18 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                     if delay then
                         task.delay(delay / 1000, function() 
                             callback()
-                            self:makeRequest(method, url, auth, body, file, route, true)
+                            self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
                         end)
                         return
                     else
                         callback()
-                        self:makeRequest(method, url, auth, body, file, route, true)
+                        self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
                         return
                     end
                 elseif response.statusCode == HTTP_BAD_GATEWAY and attempts < 4 then
                     attempts += 1
                     task.delay((math.random() * 1900 + 100) / 1000, function() 
-                        self:makeRequest(method, url, auth, body, file, route, true)
+                        self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
                     end)
                     callback()
                     return

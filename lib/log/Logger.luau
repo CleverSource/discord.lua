@@ -22,9 +22,14 @@ function Logger.new(debug: boolean?): Logger
 end
 
 local function log(level, color, message, ...)
-    local timestamp = os.date("%Y-%m-%d %H:%M:%S")
-    local messageFormated = string.format(message, ...)
-    print(string.format("%s[%s] [%s] %s%s", color, timestamp, level, messageFormated, colors.reset))
+    if typeof(message) == "string" then    
+        local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+        local messageFormatted = message:format(...)
+        print(`{color}[{timestamp}] [{level}] {messageFormatted}{colors.reset}`)
+    else
+        print(`{color}{os.date("%Y-%m-%d %H:%M:%S")} [{level}]:{colors.reset}`)
+        print(message)
+    end
 end
 
 function Logger:debug(message, ...)

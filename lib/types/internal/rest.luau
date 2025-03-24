@@ -5,3 +5,5 @@ export type AddDmRecipientOptions = {
     accessToken: string,
     nick: string?
 }
+
+return {}

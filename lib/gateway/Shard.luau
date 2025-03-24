@@ -1,5 +1,6 @@
 local task = require("@lune/task")
 local net = require("@lune/net")
+local serde = require("@lune/serde")
 
 local camelize = require("../util/snakeCaseToCamel")
 local Socket = require("Socket")
@@ -82,6 +83,7 @@ export type Shard = typeof(setmetatable({} :: {
     resumeGatewayUrl: string,
     sessionId: string,
     previousSequenceNumber: number,
+    reusableBuffer: buffer,
     state: "identifying" | "resuming" | "connecting" | "unidentified" | "connected" | "disconnected" | "offline",
     resolveAfterClose: (() -> ())?,
 }, Shard))
@@ -130,6 +132,33 @@ end
 
 function Shard.connectionUrl(self: Shard): string
     return self.resumeGatewayUrl or self:gatewayConfig().url
+end
+
+function Shard.decompressPacket(self: Shard, packet: any)
+    if self:gatewayConfig().compress then
+        local zlibBuffer
+        if self.reusableBuffer and buffer.len(self.reusableBuffer) >= #packet then
+            zlibBuffer = self.reusableBuffer
+        else
+            zlibBuffer = buffer.fromstring(packet)
+            self.reusableBuffer = zlibBuffer
+        end
+
+        local success, decompressedData = pcall(serde.decompress, "zlib" :: any, zlibBuffer)
+
+        if not success then
+            self.logger:error(`[Shard] Failed to decode decompressed packet`, decompressedData)
+        end
+
+        local jsonSuccess, data = pcall(net.jsonDecode, decompressedData)
+        if not jsonSuccess then
+            self.logger:error(`[Shard] Failed to decode decompressed packet`, data)
+        end
+
+        return data
+    end
+
+    return nil
 end
 
 function Shard.handleError(self: Shard, err: any)
@@ -213,9 +242,15 @@ function Shard.handleClose(self: Shard, code: number?)
 end
 
 function Shard.handleMessage(self: Shard, msg: any)
-    -- TODO: compression
+    local success, data = pcall(net.jsonDecode, msg)
 
-    local data = net.jsonDecode(msg)
+    -- If we can't decode the message, it's likely compressed
+    if not success then
+        data = self:decompressPacket(msg)
+    end
+
+    if not data then return end
+
     self:handleDiscordPacket(data)
 end
 
