@@ -219,7 +219,7 @@ function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
         })
 
         if self.preferSnakeCase then
-            shard.forwardToClient = function(shardSelf, packet)
+            shard.forwardToClient = function(shardSelf: Shard, packet: GatewayTypes.Packet<any>)
                 if shardSelf.events.message then
                     shardSelf.events.message(shardSelf, packet)
                 end

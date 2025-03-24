@@ -8,6 +8,7 @@ type Promise = Promise.Promise
 local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
 local FormData = require("../util/FormData")
+local snowflakeCreatedAt = require("../util/snowflakeCreatedAt")
 local OrderedBucket = require("../util/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
 type LatencyRef = OrderedBucket.LatencyRef
@@ -34,6 +35,7 @@ local HTTP_MULTIPLE_CHOICES = 300
 local HTTP_BAD_GATEWAY = 502
 
 local STICKERS_ROUTE = "/stickers"
+local REACTIONS_ROUTE = "/reactions/:id"
 
 local API_VERSION = 10
 local BASE_URL = "https://discord.com/api/v" .. API_VERSION
@@ -129,23 +131,23 @@ function RequestHandler.globalUnblock(self: RequestHandler)
 end
 
 function RequestHandler.get(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("GET", url, options and options.authenticated, options and options.body, options and options.file))
+    return self:_processPromise(self:makeRequest("GET", url, options and options.authenticated or true, options and options.body, options and options.file))
 end
 
 function RequestHandler.post(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("POST", url, options and options.authenticated, options and options.body, options and options.file))
+    return self:_processPromise(self:makeRequest("POST", url, options and options.authenticated or true, options and options.body, options and options.file))
 end
 
 function RequestHandler.delete(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("DELETE", url, options and options.authenticated, options and options.body, options and options.file))
+    return self:_processPromise(self:makeRequest("DELETE", url, options and options.authenticated or true, options and options.body, options and options.file))
 end
 
 function RequestHandler.patch(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("PATCH", url, options and options.authenticated, options and options.body, options and options.file))
+    return self:_processPromise(self:makeRequest("PATCH", url, options and options.authenticated or true, options and options.body, options and options.file))
 end
 
 function RequestHandler.put(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("PUT", url, options and options.authenticated, options and options.body, options and options.file))
+    return self:_processPromise(self:makeRequest("PUT", url, options and options.authenticated or true, options and options.body, options and options.file))
 end
 
 function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent? | { FileContent }?, _route: string?, short: boolean?): Promise
@@ -190,7 +192,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                         if not fileData.content then
                             return
                         end
-                        
+
                         data:attach(`files[{index - 1}]`, fileData.file, fileData.name)
                     end
                 elseif (file :: FileContent).content then
@@ -325,7 +327,10 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                 end
             elseif response.headers[HEADER_RATELIMIT_RESET] then
                 local resetTime = (tonumber(response.headers[HEADER_RATELIMIT_RESET]) :: number) * 1000
-                -- TODO: reactions route is special
+                -- TODO: confirm if this is valid
+                if (route:sub(#route - #REACTIONS_ROUTE + 1, #route) == REACTIONS_ROUTE) and (resetTime - dateNow) == 1000 then
+                    resetTime = now + 250
+                end
                 self.ratelimits[route].reset = math.max(resetTime - self.latencyRef.latency, now)
             else
                 self.ratelimits[route].reset = now
@@ -405,8 +410,42 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 end
 
 function RequestHandler.getRatelimitBucketIdFromUrl(self: RequestHandler, url: string, method: net.HttpMethod): string
-    -- TODO: implement this
-    return method .. " " .. url
+    local route = url:gsub("/([a-z-]+)/([0-9]{17,19})", function(match, p)
+        return (p == "channels" or p == "guilds" or p == "webhooks") and match or `/{p}/:id`
+    end)
+    :gsub("/reactions/[^/]+", "/reactions/:id")
+    :gsub("/reactions/:id/[^/]+", "/reactions/:id/:userId")
+    :gsub("^/webhooks/(%d+)/[A-Za-z0-9-_]{64,}", "/webhooks/%1/:token")
+
+    if method == "DELETE" and route:sub(-16) == "/messages/:id" then
+        local messageId = url:match("/messages/([0-9]+)$")
+        local prefixedMethod = method
+
+        if messageId then
+            local createdAt = snowflakeCreatedAt(messageId)
+            local currentTime = datetime.now().unixTimestampMillis
+            local adjustedTime = currentTime - self.latencyRef.latency
+            
+            if adjustedTime - createdAt >= 1000 * 60 * 60 * 24 * 14 then
+                method = prefixedMethod .. "_OLD"
+            elseif adjustedTime - createdAt <= 1000 * 10 then
+                method = prefixedMethod .. "_NEW"
+            end
+        end
+
+        route = prefixedMethod .. route
+    elseif method == "GET" and route:match("/guilds/[0-9]+/channels$") then
+        route = "/guilds/:id/channels"
+    end
+
+    if method == "PUT" or method == "DELETE" then
+        local index = route:find("/reactions")
+        if index then
+            route = "MODIFY" .. route:sub(1, index + 9)
+        end
+    end
+
+    return route
 end
 
 return RequestHandler

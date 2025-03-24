@@ -5,7 +5,7 @@ local bot = Client.new({
     token = config.token,
     debug = true,
     intents = {
-        "allNonPrivileged"
+        "AllNonPrivileged"
     }
 })
 

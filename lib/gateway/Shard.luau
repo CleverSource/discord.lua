@@ -11,6 +11,8 @@ type Logger = Logger.Logger
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
+local GatewayTypes = require("../types/internal/gateway")
+
 local SHARD_STATE_IDENTIFYING = "identifying"
 local SHARD_STATE_RESUMING = "resuming"
 local SHARD_STATE_CONNECTING = "connecting"
@@ -46,7 +48,7 @@ export type Events = {
     requestedReconnect: ((Shard) -> ())?,
     invalidSession: ((Shard, boolean) -> ())?,
     resumed: ((Shard) -> ())?,
-    message: ((Shard, any) -> ())?,
+    message: ((Shard, GatewayTypes.Packet<any>) -> ())?,
     connected: ((Shard) -> ())?,
     connecting: ((Shard) -> ())?,
     identifying: ((Shard) -> ())?,
@@ -217,7 +219,7 @@ function Shard.handleMessage(self: Shard, msg: any)
     self:handleDiscordPacket(data)
 end
 
-function Shard.handleDiscordPacket(self: Shard, packet: any)
+function Shard.handleDiscordPacket(self: Shard, packet: GatewayTypes.Packet<any>)
     self.heart.acknowledged = true
 
     if packet.op == Constants.GatewayOpCodes.Heartbeat then
@@ -319,7 +321,7 @@ function Shard.handleDiscordPacket(self: Shard, packet: any)
     self:forwardToClient(packet)
 end
 
-function Shard.forwardToClient(self: Shard, packet: any)
+function Shard.forwardToClient(self: Shard, packet: GatewayTypes.Packet<any>)
     if self.events.message then
         self.events.message(self, camelize(packet))
     end

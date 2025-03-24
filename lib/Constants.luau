@@ -1,57 +1,57 @@
 local Intents = {
-    guilds = bit32.lshift(1, 0),
-    guildMembers = bit32.lshift(1, 1),
-    guildBans = bit32.lshift(1, 2),
-    guildExpressions = bit32.lshift(1, 3),
-    guildIntegrations = bit32.lshift(1, 4),
-    guildWebhooks = bit32.lshift(1, 5),
-    guildInvites = bit32.lshift(1, 6),
-    guildVoiceStates = bit32.lshift(1, 7),
-    guildPresences = bit32.lshift(1, 8),
-    guildMessages = bit32.lshift(1, 9),
-    guildMessageReactions = bit32.lshift(1, 10),
-    guildMessageTyping = bit32.lshift(1, 11),
-    directMessages = bit32.lshift(1, 12),
-    directMessageReactions = bit32.lshift(1, 13),
-    directMessageTyping = bit32.lshift(1, 14),
-    messageContent = bit32.lshift(1, 15),
-    guildScheduledEvents = bit32.lshift(1, 16),
-    autoModerationConfiguration = bit32.lshift(1, 20),
-    autoModerationExecution = bit32.lshift(1, 21),
-    guildMessagePolls = bit32.lshift(1, 24),
-    directMessagePolls = bit32.lshift(1, 25)
+    Guilds = bit32.lshift(1, 0),
+    GuildMembers = bit32.lshift(1, 1),
+    GuildBans = bit32.lshift(1, 2),
+    GuildExpressions = bit32.lshift(1, 3),
+    GuildIntegrations = bit32.lshift(1, 4),
+    GuildWebhooks = bit32.lshift(1, 5),
+    GuildInvites = bit32.lshift(1, 6),
+    GuildVoiceStates = bit32.lshift(1, 7),
+    GuildPresences = bit32.lshift(1, 8),
+    GuildMessages = bit32.lshift(1, 9),
+    GuildMessageReactions = bit32.lshift(1, 10),
+    GuildMessageTyping = bit32.lshift(1, 11),
+    DirectMessages = bit32.lshift(1, 12),
+    DirectMessageReactions = bit32.lshift(1, 13),
+    DirectMessageTyping = bit32.lshift(1, 14),
+    MessageContent = bit32.lshift(1, 15),
+    GuildScheduledEvents = bit32.lshift(1, 16),
+    AutoModerationConfiguration = bit32.lshift(1, 20),
+    AutoModerationExecution = bit32.lshift(1, 21),
+    GuildMessagePolls = bit32.lshift(1, 24),
+    DirectMessagePolls = bit32.lshift(1, 25)
 }
 
-Intents.allNonPrivileged = bit32.bor(
-    Intents.guilds,
-    Intents.guildBans,
-    Intents.guildExpressions,
-    Intents.guildIntegrations,
-    Intents.guildWebhooks,
-    Intents.guildInvites,
-    Intents.guildVoiceStates,
-    Intents.guildMessages,
-    Intents.guildMessageReactions,
-    Intents.guildMessageTyping,
-    Intents.directMessages,
-    Intents.directMessageReactions,
-    Intents.directMessageTyping,
-    Intents.guildScheduledEvents,
-    Intents.autoModerationConfiguration,
-    Intents.autoModerationExecution,
-    Intents.guildMessagePolls,
-    Intents.directMessagePolls
+Intents.AllNonPrivileged = bit32.bor(
+    Intents.Guilds,
+    Intents.GuildBans,
+    Intents.GuildExpressions,
+    Intents.GuildIntegrations,
+    Intents.GuildWebhooks,
+    Intents.GuildInvites,
+    Intents.GuildVoiceStates,
+    Intents.GuildMessages,
+    Intents.GuildMessageReactions,
+    Intents.GuildMessageTyping,
+    Intents.DirectMessages,
+    Intents.DirectMessageReactions,
+    Intents.DirectMessageTyping,
+    Intents.GuildScheduledEvents,
+    Intents.AutoModerationConfiguration,
+    Intents.AutoModerationExecution,
+    Intents.GuildMessagePolls,
+    Intents.DirectMessagePolls
 )
 
-Intents.allPrivileged = bit32.bor(
-    Intents.guildPresences,
-    Intents.guildMembers,
-    Intents.guildVoiceStates
+Intents.AllPrivileged = bit32.bor(
+    Intents.GuildPresences,
+    Intents.GuildMembers,
+    Intents.GuildVoiceStates
 )
 
-Intents.all = bit32.bor(
-    Intents.allNonPrivileged,
-    Intents.allPrivileged
+Intents.All = bit32.bor(
+    Intents.AllNonPrivileged,
+    Intents.AllPrivileged
 )
 
 return {

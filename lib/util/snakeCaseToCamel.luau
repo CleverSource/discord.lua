@@ -5,6 +5,10 @@ local function snakeCaseToCamelCase(str: string): string
 end
 
 local function camelize(body: { [string]: any }): { [string]: any }
+    if typeof(body) ~= "table" then
+        return body
+    end
+    
     local newBody = {}
     
     for key, value in body do

@@ -1,16 +1,38 @@
 local RestClient = require("rest/RestClient")
+type RestClient = RestClient.RestClient
 local GatewayHandler = require("gateway/GatewayHandler")
+type GatewayHandler = GatewayHandler.GatewayHandler
 local Constants = require("Constants")
+local Shard = require("gateway/Shard")
+type Shard = Shard.Shard
 
 local Logger = require("log/Logger")
+type Logger = Logger.Logger
+
+local GatewayTypes = require("types/internal/gateway")
 
 local Client = {}
+Client.__index = Client
 
-function Client.new(options)
-    local self = setmetatable({}, {
-        __index = Client
-    })
-    
+export type ClientOptions = {
+    token: string,
+    debug: boolean?,
+    preferSnakeCase: boolean?,
+    intents: { number | string }?,
+    restOptions: RestClient.RestClientOptions?,
+    gatewayOptions: GatewayHandler.GatewayHandlerOptions?
+}
+
+export type Client = typeof(setmetatable({} :: {
+    token: string,
+    logger: Logger,
+    gateway: GatewayHandler,
+    rest: RestClient
+}, Client))
+
+function Client.new(options: ClientOptions): Client
+    local self = setmetatable({}, Client) :: Client
+
     self.token = options.token
 
     local logger = Logger.new(options.debug or false)
@@ -27,10 +49,10 @@ function Client.new(options)
                 logger:warn("Unknown intent: " .. intent)
             end
         end
-        options.intent = intents
+        options.intents = intents
     end
 
-    local intentsBit = options.intent or Constants.Intents.allNonPrivileged
+    local intentsBit = options.intents or Constants.Intents.AllNonPrivileged
     
     -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
@@ -44,7 +66,7 @@ function Client.new(options)
     local gatewayOptions = options.gatewayOptions or {
         token = options.token,
         events = {
-            message = function(shard, packet)
+            message = function(shard: Shard, packet: GatewayTypes.Packet<any>)
                 if not packet.t then
                     return
                 end
@@ -64,11 +86,11 @@ function Client.new(options)
     return self
 end
 
-function Client:handleDispatch(event, shard, packet)
+function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Packet<any>)
     -- print(packet)
 end
 
-function Client:connect()
+function Client.connect(self: Client)
     if self.gateway.defaultConnection then
         self.gateway:updateConnectionOptions(self.rest:getBotGateway())
     end
