@@ -17,7 +17,7 @@ Client.__index = Client
 Client.constants = Constants
 
 export type ClientOptions = {
-    token: string,
+    token: string?,
     debug: boolean?,
     compression: boolean?,
     preferSnakeCase: boolean?,

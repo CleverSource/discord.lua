@@ -3,6 +3,7 @@ local net = require("@lune/net")
 local serde = require("@lune/serde")
 
 local camelize = require("../util/snakeCaseToCamel")
+local closeCodeToString = require("../util/closeCodeToString")
 local Socket = require("Socket")
 type Socket = Socket.Socket
 local Constants = require("../Constants")
@@ -202,7 +203,7 @@ function Shard.handleClose(self: Shard, code: number?)
             self.events.disconnected(self)
         end
 
-        self.logger:error(`[Shard] Shard #{self.id} closed and will not reconnect. Code: {code}`)
+        self.logger:error(`[Shard] Shard #{self.id} closed and will not reconnect. Code: {code} | Friendly code: {closeCodeToString(code)}`)
         return
     elseif code == Constants.GatewayCloseCodes.NotAuthenticated or code == Constants.GatewayCloseCodes.InvalidSeq or code == Constants.GatewayCloseCodes.SessionTimedOut then
         self.logger:debug(`[Shard] Shard #{self.id} closed requiring re-identify`)
