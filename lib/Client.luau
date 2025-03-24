@@ -21,7 +21,7 @@ export type ClientOptions = {
     debug: boolean?,
     compression: boolean?,
     preferSnakeCase: boolean?,
-    intents: { number | string }?,
+    intents: { number | Constants.Intents }?,
     restOptions: RestClient.RestClientOptions?,
     gatewayOptions: GatewayHandler.GatewayHandlerOptions?
 }

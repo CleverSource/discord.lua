@@ -54,6 +54,31 @@ Intents.All = bit32.bor(
     Intents.AllPrivileged
 )
 
+export type Intents = "Guilds" 
+                    | "GuildMembers"
+                    | "GuildBans"
+                    | "GuildExpressions"
+                    | "GuildIntegrations"
+                    | "GuildWebhooks"
+                    | "GuildInvites"
+                    | "GuildVoiceStates"
+                    | "GuildPresences"
+                    | "GuildMessages"
+                    | "GuildMessageReactions"
+                    | "GuildMessageTyping"
+                    | "DirectMessages"
+                    | "DirectMessageReactions"
+                    | "DirectMessageTyping"
+                    | "MessageContent"
+                    | "GuildScheduledEvents"
+                    | "AutoModerationConfiguration"
+                    | "AutoModerationExecution"
+                    | "GuildMessagePolls"
+                    | "DirectMessagePolls"
+                    | "AllNonPrivileged"
+                    | "AllPrivileged"
+                    | "All"
+
 return {
     DefaultGateway = "wss://gateway.discord.gg",
     GatewayVersion = 10,

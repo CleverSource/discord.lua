@@ -84,7 +84,7 @@ export type Shard = typeof(setmetatable({} :: {
     resumeGatewayUrl: string,
     sessionId: string,
     previousSequenceNumber: number,
-    reusableBuffer: buffer,
+    reusableZlibBuffer: string | nil,
     state: "identifying" | "resuming" | "connecting" | "unidentified" | "connected" | "disconnected" | "offline",
     resolveAfterClose: (() -> ())?,
 }, Shard))
@@ -137,23 +137,25 @@ end
 
 function Shard.decompressPacket(self: Shard, packet: any)
     if self:gatewayConfig().compress then
-        local zlibBuffer
-        if self.reusableBuffer and buffer.len(self.reusableBuffer) >= #packet then
-            zlibBuffer = self.reusableBuffer
+        if self.reusableZlibBuffer then
+            self.reusableZlibBuffer ..= packet
         else
-            zlibBuffer = buffer.fromstring(packet)
-            self.reusableBuffer = zlibBuffer
+            self.reusableZlibBuffer = packet
         end
 
-        local success, decompressedData = pcall(serde.decompress, "zlib" :: any, zlibBuffer)
+        local success, decompressedData = pcall(serde.decompress, "zlib" :: any, self.reusableZlibBuffer :: string)
+
+        self.reusableZlibBuffer = nil
 
         if not success then
             self.logger:error(`[Shard] Failed to decode decompressed packet`, decompressedData)
+            return nil
         end
 
         local jsonSuccess, data = pcall(net.jsonDecode, decompressedData)
         if not jsonSuccess then
             self.logger:error(`[Shard] Failed to decode decompressed packet`, data)
+            return nil
         end
 
         return data
