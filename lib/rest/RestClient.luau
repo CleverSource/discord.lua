@@ -12,6 +12,7 @@ local RestTypes = require("../types/internal/rest")
 -- TODO: temporary
 type AutoModerationRule = any
 type Channel = any
+type Emoji = any
 
 local RestClient = {}
 RestClient.__index = RestClient
@@ -86,6 +87,13 @@ end
 
 function RestClient.createChannel(self: RestClient, guildId: string, options: RestTypes.CreateGuildChannelOptions, reason: string?): Channel
     return self.request:post(Routes.guilds.channels(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createEmoji(self: RestClient, guildId: string, options: RestTypes.CreateGuildEmojiOptions, reason: string?): Emoji
+    return self.request:post(Routes.guilds.emojis(guildId), {
         body = options,
         reason = reason
     })

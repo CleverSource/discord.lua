@@ -6,6 +6,7 @@ local serde = require("@lune/serde")
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
+local imageDataToBase64 = require("../util/imageDataToBase64")
 local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
 local calculateBitwise = require("../util/calculateBitwise")
@@ -168,10 +169,14 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
             newKey = snakize(key)
         end
 
+        -- Bitwise permissions
         if newKey == "allow" or newKey == "deny" or newKey == "permissions" then
-            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value) 
+            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value :: any) 
         elseif newKey == "defaultMemberPermissions" then
-            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value) 
+            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value :: any) 
+        -- Image data encoding in base64
+        elseif newKey == "image" then
+            newBody[newKey] = imageDataToBase64(value)
         elseif typeof(value) == "table" then
             if #value > 0 then
                 local newArray = {}

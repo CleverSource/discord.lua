@@ -117,4 +117,10 @@ export type CreateGuildChannelOptions = {
     defaultThreadRateLimitPerUser: number?
 }
 
+export type CreateGuildEmojiOptions = {
+    name: string,
+    image: string,
+    roles: { string }?
+}
+
 return {}
