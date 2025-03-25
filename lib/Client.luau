@@ -14,7 +14,7 @@ local GatewayTypes = require("types/internal/gateway")
 local Client = {}
 Client.__index = Client
 
-Client.constants = Constants
+Client.Constants = Constants
 
 export type ClientOptions = {
     token: string?,

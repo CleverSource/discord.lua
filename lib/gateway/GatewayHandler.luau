@@ -8,13 +8,12 @@ local Constants = require("../Constants")
 local Logger = require("../log/Logger")
 type Logger = Logger.Logger
 
-local bigNumToNum = require("../util/bigNumToNum")
+local getDiscordEpoch = require("../util/getDiscordEpoch")
 
 local GatewayTypes = require("../types/internal/gateway")
 
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
-local BigNum = require("../vendor/BigNum")
 
 local GatewayHandler = {}
 GatewayHandler.__index = GatewayHandler
@@ -124,9 +123,8 @@ function GatewayHandler.calculateShardId(self: GatewayHandler, guildId: string, 
 
     self.logger:debug(`[Gateway] calculateShardId (guildId: {guildId}, totalShards: {totalShards})`)
 
-    local bigGuildId = BigNum.new(guildId)
-    local shardId = (bigGuildId / (2 ^ 22)) % totalShards
-    return bigNumToNum(shardId)
+    local shardId = getDiscordEpoch(guildId) % totalShards :: number
+    return shardId
 end
 
 function GatewayHandler.updateConnectionOptions(self: GatewayHandler, newOptions: ConnectionOptions)

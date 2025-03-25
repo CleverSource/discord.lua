@@ -8,6 +8,7 @@ type Promise = Promise.Promise
 
 local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
+local calculateBitwise = require("../util/calculateBitwise")
 local FormData = require("../util/FormData")
 local snowflakeCreatedAt = require("../util/snowflakeCreatedAt")
 local OrderedBucket = require("../util/OrderedBucket")
@@ -62,7 +63,9 @@ export type FileContent = {
 export type CreateRequestOptions = {
     authenticated: boolean?,
     body: { [string]: any }?,
-    file: FileContent? | { FileContent }?
+    headers: { [string]: string }?,
+    file: FileContent? | { FileContent }?,
+    reason: string?
 }
 
 export type RequestHandler = typeof(setmetatable({} :: {
@@ -131,27 +134,63 @@ function RequestHandler.globalUnblock(self: RequestHandler)
     end
 end
 
-function RequestHandler.get(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("GET", url, options and options.authenticated or true, options and options.body, options and options.file))
+function RequestHandler.get(self: RequestHandler, url: string, options: CreateRequestOptions?): any
+    return self:_processPromise(self:makeRequest("GET", url, options and options.authenticated or true, options and options.body, options and options.file, options and options.reason, options and options.headers))
 end
 
-function RequestHandler.post(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("POST", url, options and options.authenticated or true, options and options.body, options and options.file))
+function RequestHandler.post(self: RequestHandler, url: string, options: CreateRequestOptions?): any
+    return self:_processPromise(self:makeRequest("POST", url, options and options.authenticated or true, options and options.body, options and options.file, options and options.reason, options and options.headers))
 end
 
-function RequestHandler.delete(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("DELETE", url, options and options.authenticated or true, options and options.body, options and options.file))
+function RequestHandler.delete(self: RequestHandler, url: string, options: CreateRequestOptions?): any
+    return self:_processPromise(self:makeRequest("DELETE", url, options and options.authenticated or true, options and options.body, options and options.file, options and options.reason, options and options.headers))
 end
 
-function RequestHandler.patch(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("PATCH", url, options and options.authenticated or true, options and options.body, options and options.file))
+function RequestHandler.patch(self: RequestHandler, url: string, options: CreateRequestOptions?): any
+    return self:_processPromise(self:makeRequest("PATCH", url, options and options.authenticated or true, options and options.body, options and options.file, options and options.reason, options and options.headers))
 end
 
-function RequestHandler.put(self: RequestHandler, url: string, options: CreateRequestOptions?): unknown
-    return self:_processPromise(self:makeRequest("PUT", url, options and options.authenticated or true, options and options.body, options and options.file))
+function RequestHandler.put(self: RequestHandler, url: string, options: CreateRequestOptions?): any
+    return self:_processPromise(self:makeRequest("PUT", url, options and options.authenticated or true, options and options.body, options and options.file, options and options.reason, options and options.headers))
 end
 
-function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent? | { FileContent }?, _route: string?, short: boolean?): Promise
+function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): any?
+    if typeof(body) ~= "table" then
+        return body
+    end
+
+    local newBody = {}
+
+    for key, value in pairs(body) do
+        local newKey = key
+
+        if typeof(key) == "string" then
+            newKey = snakize(key)
+        end
+
+        if newKey == "allow" or newKey == "deny" or newKey == "permissions" then
+            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value) 
+        elseif newKey == "defaultMemberPermissions" then
+            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value) 
+        elseif typeof(value) == "table" then
+            if #value > 0 then
+                local newArray = {}
+                for i, v in ipairs(value) do
+                    newArray[i] = self:changeToDiscordFormat(v)
+                end
+                newBody[newKey] = newArray
+            else
+                newBody[newKey] = self:changeToDiscordFormat(value)
+            end
+        else
+            newBody[newKey] = value
+        end
+    end
+
+    return newBody
+end
+
+function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod, url: string, auth: boolean?, body: { [string]: any }?, file: FileContent? | { FileContent }?, reason: string?, extraHeaders: { [string]: string }?, _route: string?, short: boolean?): Promise
     local route = _route or self:getRatelimitBucketIdFromUrl(url, method)
 
     return Promise.new(function(resolve, reject)
@@ -167,13 +206,19 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                 headers.authorization = self.authorization
             end
 
-            if body then
-                if body.reason then
-                    headers[HEADER_AUDIT_LOG_REASON] = net.urlEncode(body.reason)
-                    body.reason = nil
-                end
+            if reason then
+                headers[HEADER_AUDIT_LOG_REASON] = net.urlEncode(reason)
+            end
 
-                body = snakize(body)
+            if extraHeaders then
+                for key, value in extraHeaders do
+                    headers[key] = value
+                end
+            end
+
+            if body then
+                body = self:changeToDiscordFormat(body)
+                print(body)
 
                 if file then
                     body = {

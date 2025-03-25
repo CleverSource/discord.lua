@@ -1,4 +1,5 @@
 local datetime = require("@lune/datetime")
+local net = require("@lune/net")
 
 return {
     webhooks = {
@@ -61,16 +62,16 @@ return {
         end,
         reactions = {
             bot = function(channelId: string, messageId: string, emoji: string): string
-                return `/channels/{channelId}/messages/{messageId}/reactions/{emoji}/@me`
+                return `/channels/{channelId}/messages/{messageId}/reactions/{net.urlEncode(emoji)}/@me`
             end,
             user = function(channelId: string, messageId: string, emoji: string, userId: string): string
-                return `/channels/{channelId}/messages/{messageId}/reactions/{emoji}/{userId}`
+                return `/channels/{channelId}/messages/{messageId}/reactions/{net.urlEncode(emoji)}/{userId}`
             end,
             all = function(channelId: string, messageId: string): string
                 return `/channels/{channelId}/messages/{messageId}/reactions`
             end,
             emoji = function(channelId: string, messageId: string, emoji: string, options: { type: number, after: string?, limit: number? }?): string
-                local path = `/channels/{channelId}/messages/{messageId}/reactions/{emoji}?`
+                local path = `/channels/{channelId}/messages/{messageId}/reactions/{net.urlEncode(emoji)}?`
 
                 if options then
                     if options.type then
@@ -89,7 +90,7 @@ return {
                 return path
             end,
             message = function(channelId: string, messageId: string, emoji: string, options: { type: number, after: string?, limit: number? }?): string
-                local path = `/channels/{channelId}/messages/{messageId}/reactions/{emoji}?`
+                local path = `/channels/{channelId}/messages/{messageId}/reactions/{net.urlEncode(emoji)}?`
     
                 if options then
                     if options.after then
@@ -481,7 +482,7 @@ return {
                 return path
             end,
             search = function(guildId: string, query: string, options: { limit: number? }?): string
-                local path = `/guilds/{guildId}/members/search?query={query}`
+                local path = `/guilds/{guildId}/members/search?query={net.urlEncode(query)}`
 
                 if options then
                     if options.limit then

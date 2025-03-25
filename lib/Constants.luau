@@ -1,3 +1,5 @@
+local bit64 = require("vendor/bit64")
+
 local Intents = {
     Guilds = bit32.lshift(1, 0),
     GuildMembers = bit32.lshift(1, 1),
@@ -124,4 +126,108 @@ return {
     },
 
     Intents = Intents,
+
+    AutoModerationEventTypes = {
+        MessageSend = 1,
+        MemberUpdate = 2
+    },
+
+    AutoModerationTriggerTypes = {
+        Keyword = 1,
+        Spam = 3,
+        KeywordPresent = 4,
+        MentionSpam = 5,
+        MemberProfile = 6
+    },
+
+    AutoModerationRuleTriggerMetadataPresets = {
+        Profanity = 1,
+        SexualContent = 2,
+        Slurs = 3
+    },
+
+    AutoModerationActionType = {
+        BlockMessage = 1,
+        SendAlertMessage = 2,
+        Timeout = 3,
+        BlockMemberInteraction = 4
+    },
+
+    ChannelTypes = {
+        GuildText = 0,
+        DM = 1,
+        GuildVoice = 2,
+        GroupDm = 3,
+        GuildCategory = 4,
+        GuildAnnouncement = 5,
+        AnnouncementThread = 10,
+        PublicThread = 11,
+        PrivateThread = 12,
+        GuildStageVoice = 13,
+        GuildDirectory = 14,
+        GuildForum = 15,
+        GuildMedia = 16
+    },
+
+    OverwriteTypes = {
+        Role = 0,
+        Member = 1
+    },
+
+    SortOrderTypes = {
+        LatestActivity = 0,
+        CreationDate = 1
+    },
+
+    BitwisePermissionFlags = {
+        CREATE_INSTANT_INVITE = bit32.lshift(1, 0),
+        KICK_MEMBERS = bit32.lshift(1, 1),
+        BAN_MEMBERS = bit32.lshift(1, 2),
+        ADMINISTRATOR = bit32.lshift(1, 3),
+        MANAGE_CHANNELS = bit32.lshift(1, 4),
+        MANAGE_GUILD = bit32.lshift(1, 5),
+        ADD_REACTIONS = bit32.lshift(1, 6),
+        VIEW_AUDIT_LOG = bit32.lshift(1, 7),
+        PRIORITY_SPEAKER = bit32.lshift(1, 8),
+        STREAM = bit32.lshift(1, 9),
+        VIEW_CHANNEL = bit32.lshift(1, 10),
+        SEND_MESSAGES = bit32.lshift(1, 11),
+        SEND_TTS_MESSAGES = bit32.lshift(1, 12),
+        MANAGE_MESSAGES = bit32.lshift(1, 13),
+        EMBED_LINKS = bit32.lshift(1, 14),
+        ATTACH_FILES = bit32.lshift(1, 15),
+        READ_MESSAGE_HISTORY = bit32.lshift(1, 16),
+        MENTION_EVERYONE = bit32.lshift(1, 17),
+        USE_EXTERNAL_EMOJIS = bit32.lshift(1, 18),
+        VIEW_GUILD_INSIGHTS = bit32.lshift(1, 19),
+        CONNECT = bit32.lshift(1, 20),
+        SPEAK = bit32.lshift(1, 21),
+        MUTE_MEMBERS = bit32.lshift(1, 22),
+        DEAFEN_MEMBERS = bit32.lshift(1, 23),
+        MOVE_MEMBERS = bit32.lshift(1, 24),
+        USE_VAD = bit32.lshift(1, 25),
+        CHANGE_NICKNAME = bit32.lshift(1, 26),
+        MANAGE_NICKNAMES = bit32.lshift(1, 27),
+        MANAGE_ROLES = bit32.lshift(1, 28),
+        MANAGE_WEBHOOKS = bit32.lshift(1, 29),
+        MANAGE_GUILD_EXPRESSIONS = bit32.lshift(1, 30),
+        USE_SLASH_COMMANDS = bit32.lshift(1, 31),
+        REQUEST_TO_SPEAK = bit64.shift(1, 32),
+        MANAGE_EVENTS = bit64.shift(1, 33),
+        MANAGE_THREADS = bit64.shift(1, 34),
+        CREATE_PUBLIC_THREADS = bit64.shift(1, 35),
+        CREATE_PRIVATE_THREADS = bit64.shift(1, 36),
+        USE_EXTERNAL_STICKERS = bit64.shift(1, 37),
+        SEND_MESSAGES_IN_THREADS = bit64.shift(1, 38),
+        USE_EMBEDDED_ACTIVITIES = bit64.shift(1, 39),
+        MODERATE_MEMBERS = bit64.shift(1, 40),
+        VIEW_CREATOR_MONETIZATION_ANALYTICS = bit64.shift(1, 41),
+        USE_SOUNDBOARD = bit64.shift(1, 42),
+        CREATE_GUILD_EXPRESSIONS = bit64.shift(1, 43),
+        CREATE_EVENTS = bit64.shift(1, 44),
+        USE_EXTERNAL_SOUNDS = bit64.shift(1, 45),
+        SEND_VOICE_MESSAGES = bit64.shift(1, 46),
+        SEND_POLLS = bit64.shift(1, 49),
+        USE_EXTERNAL_APPS = bit64.shift(1, 50)
+    }
 }

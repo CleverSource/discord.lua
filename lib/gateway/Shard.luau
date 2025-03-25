@@ -144,17 +144,17 @@ function Shard.decompressPacket(self: Shard, packet: any)
         end
 
         local success, decompressedData = pcall(serde.decompress, "zlib" :: any, self.reusableZlibBuffer :: string)
-
-        self.reusableZlibBuffer = nil
-
-        if not success then
-            self.logger:error(`[Shard] Failed to decode decompressed packet`, decompressedData)
+        
+        if success then
+            self.reusableZlibBuffer = nil
+        else
+            self.logger:error(`[Shard] Failed to decode decompressed packet: {decompressedData}`)
             return nil
         end
 
         local jsonSuccess, data = pcall(net.jsonDecode, decompressedData)
         if not jsonSuccess then
-            self.logger:error(`[Shard] Failed to decode decompressed packet`, data)
+            self.logger:error(`[Shard] Failed to decode decompressed packet: {data}`)
             return nil
         end
 
@@ -165,7 +165,7 @@ function Shard.decompressPacket(self: Shard, packet: any)
 end
 
 function Shard.handleError(self: Shard, err: any)
-    self.logger:error(`[Shard] There was an error connecting Shard #{self.id}.`, err)
+    self.logger:error(`[Shard] There was an error connecting Shard #{self.id}. {err}`)
 end
 
 function Shard.handleClose(self: Shard, code: number?)
@@ -479,7 +479,7 @@ function Shard.startHeartbeating(self: Shard, interval: number)
                 end
     
                 if not self.heart.acknowledged then
-                    self.logger:warn(`[Shard] Heartbeat not acknowledged for Shard #{self.id}. Closing`)
+                    self.logger:warn(`[Shard] Heartbeat not acknowledged for Shard #{self.id}`)
                     self:close(Constants.ShardCloseCodes.ZombieConnection)
                     return
                 end

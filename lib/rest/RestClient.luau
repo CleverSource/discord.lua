@@ -9,6 +9,10 @@ local processDiscordReaction = require("../util/processDiscordReaction")
 local GatewayTypes = require("../types/internal/gateway")
 local RestTypes = require("../types/internal/rest")
 
+-- TODO: temporary
+type AutoModerationRule = any
+type Channel = any
+
 local RestClient = {}
 RestClient.__index = RestClient
 
@@ -59,9 +63,7 @@ end
 
 function RestClient.addRole(self: RestClient, guildId: string, userId: string, roleId: string, reason: string)
     self.request:put(Routes.guilds.roles.member(guildId, userId, roleId), {
-        body = {
-            reason = reason
-        }
+        reason = reason
     })
 end
 
@@ -72,6 +74,20 @@ end
 function RestClient.addDmRecipient(self: RestClient, channelId: string, userId: string, options: RestTypes.AddDmRecipientOptions)
     self.request:put(Routes.channels.dmRecipient(channelId, userId), {
         body = options
+    })
+end
+
+function RestClient.createAutomodRule(self: RestClient, guildId: string, options: RestTypes.CreateAutomodRuleOptions, reason: string?): AutoModerationRule
+    return self.request:post(Routes.guilds.automod.rules(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createChannel(self: RestClient, guildId: string, options: RestTypes.CreateGuildChannelOptions, reason: string?): Channel
+    return self.request:post(Routes.guilds.channels(guildId), {
+        body = options,
+        reason = reason
     })
 end
 
