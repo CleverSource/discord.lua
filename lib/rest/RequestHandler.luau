@@ -218,7 +218,6 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 
             if body then
                 body = self:changeToDiscordFormat(body)
-                print(body)
 
                 if file then
                     body = {

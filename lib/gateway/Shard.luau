@@ -470,18 +470,18 @@ function Shard.startHeartbeating(self: Shard, interval: number)
         self.heart.acknowledged = false
 
         self.heart.spawnId = task.spawn(function() 
-            local function beat()
+            while self:isOpen() do
                 task.wait(self.heart.interval / 1000)
-
+                
                 if not self:isOpen() then
                     self.logger:warn(`[Shard] Shard #{self.id} is not open, but attempted heartbeat`)
-                    return
+                    break
                 end
     
                 if not self.heart.acknowledged then
                     self.logger:warn(`[Shard] Heartbeat not acknowledged for Shard #{self.id}`)
                     self:close(Constants.ShardCloseCodes.ZombieConnection)
-                    return
+                    break
                 end
     
                 self.logger:debug(`[Shard] Heartbeating on Shard #{self.id}. Previous sequence number: {self.previousSequenceNumber}`)
@@ -496,9 +496,7 @@ function Shard.startHeartbeating(self: Shard, interval: number)
                 if self.events.heartbeat then
                     self.events.heartbeat(self)
                 end
-                beat()
             end
-            beat()
         end)
     end)
 end
