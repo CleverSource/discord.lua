@@ -7,14 +7,12 @@ export type Packet<T> = {
     t: string?
 }
 
--- https://discord.com/developers/docs/events/gateway#get-gateway-bot
 export type GetGatewayBot = {
     url: string,
     shards: number,
     sessionStartLimit: SessionStartLimit
 }
 
--- https://discord.com/developers/docs/events/gateway#session-start-limit-object
 export type SessionStartLimit = {
     total: number,
     remaining: number,

@@ -13,6 +13,7 @@ local RestTypes = require("../types/internal/rest")
 type AutoModerationRule = any
 type Channel = any
 type Emoji = any
+type ApplicationCommand = any
 
 local RestClient = {}
 RestClient.__index = RestClient
@@ -20,12 +21,14 @@ RestClient.__index = RestClient
 export type RestClientOptions = {
     token: string?,
     logger: Logger?,
-    preferSnakeCase: boolean?
+    preferSnakeCase: boolean?,
+    applicationId: string?
 }
 
 export type RestClient = typeof(setmetatable({} :: {
     logger: Logger,
-    request: RequestHandler
+    request: RequestHandler,
+    applicationId: string
 }, RestClient))
 
 function RestClient.new(options: RestClientOptions): RestClient
@@ -37,6 +40,7 @@ function RestClient.new(options: RestClientOptions): RestClient
         preferSnakeCase = options.preferSnakeCase or false,
         logger = self.logger
     })
+    self.applicationId = options.applicationId
 
     return self
 end
@@ -97,6 +101,27 @@ function RestClient.createEmoji(self: RestClient, guildId: string, options: Rest
         body = options,
         reason = reason
     })
+end
+
+function RestClient.createApplicationEmoji(self: RestClient, options: RestTypes.CreateApplicationEmojiOptions): Emoji
+    return self.request:post(Routes.applicationEmojis(self.applicationId), {
+        body = options
+    })
+end
+
+function RestClient.createGlobalApplicationCommand(self: RestClient, command: RestTypes.CreateApplicationCommand, options: RestTypes.CreateApplicationCommandOptions?): ApplicationCommand
+    local restOptions: RequestHandler.CreateRequestOptions = {
+        body = command
+    }
+
+    if options and options.bearerToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.bearerToken}`
+        }
+    end
+
+    return self.request:post(Routes.interactions.commands.commands(self.applicationId), restOptions)
 end
 
 return RestClient

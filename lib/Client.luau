@@ -6,6 +6,8 @@ local Constants = require("Constants")
 local Shard = require("gateway/Shard")
 type Shard = Shard.Shard
 
+local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
+
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
 
@@ -18,6 +20,7 @@ Client.Constants = Constants
 
 export type ClientOptions = {
     token: string?,
+    applicationId: string?,
     debug: boolean?,
     compression: boolean?,
     preferSnakeCase: boolean?,
@@ -64,6 +67,12 @@ function Client.new(options: ClientOptions): Client
         preferSnakeCase = preferSnakeCase or false,
         logger = logger
     }
+
+    if options.token and not options.applicationId then
+        restOptions.applicationId = getApplicationIdFromToken(options.token)
+    else
+        restOptions.applicationId = options.applicationId
+    end
 
     -- Converting snake_case to camelCase is expensive for constant gateway events, 
     -- so we should prefer snake_case for gateway events

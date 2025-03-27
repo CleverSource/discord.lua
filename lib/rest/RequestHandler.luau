@@ -10,9 +10,9 @@ local imageDataToBase64 = require("../util/imageDataToBase64")
 local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
 local calculateBitwise = require("../util/calculateBitwise")
-local FormData = require("../util/FormData")
+local FormData = require("FormData")
 local snowflakeCreatedAt = require("../util/snowflakeCreatedAt")
-local OrderedBucket = require("../util/OrderedBucket")
+local OrderedBucket = require("../ratelimit/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
 type LatencyRef = OrderedBucket.LatencyRef
 

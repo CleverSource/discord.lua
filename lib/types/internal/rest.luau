@@ -1,6 +1,5 @@
 -- camelCase types are preferred for internal types; these are a representation of the Discord API
 
--- https://discord.com/developers/docs/resources/channel#group-dm-add-recipient-json-params
 export type AddDmRecipientOptions = {
     accessToken: string,
     nick: string?
@@ -121,6 +120,104 @@ export type CreateGuildEmojiOptions = {
     name: string,
     image: string,
     roles: { string }?
+}
+
+export type CreateApplicationEmojiOptions = {
+    name: string,
+    image: string
+}
+
+export type Locales = "id"
+                    | "da"
+                    | "de"
+                    | "en-GB"
+                    | "en-US"
+                    | "es-ES"
+                    | "es-419"
+                    | "fr"
+                    | "hr"
+                    | "it"
+                    | "lt"
+                    | "hu"
+                    | "nl"
+                    | "no"
+                    | "pl"
+                    | "pt-BR"
+                    | "ro"
+                    | "fi"
+                    | "sv-SE"
+                    | "vi"
+                    | "tr"
+                    | "cs"
+                    | "el"
+                    | "bg"
+                    | "ru"
+                    | "uk"
+                    | "hi"
+                    | "th"
+                    | "zh-CN"
+                    | "ja"
+                    | "zh-TW"
+                    | "ko"
+
+export type Localization = {
+    [Locales]: string
+}
+
+export type ApplicationCommandOptionChoice = {
+    name: string,
+    nameLocalizations: Localization?,
+    value: string | number
+}
+
+export type ApplicationCommandOption = {
+    type: number,
+    name: string,
+    nameLocalizations: Localization?,
+    description: string,
+    descriptionLocalizations: Localization?,
+    required: boolean?,
+    choices: { ApplicationCommandOptionChoice }?,
+    options: { ApplicationCommandOption }?,
+    autocomplete: boolean?,
+    channelTypes: number?,
+    minValue: number?,
+    maxValue: number?,
+    minLength: number?,
+    maxLength: number?
+}
+
+export type CreateApplicationCommand = CreateSlashApplicationCommand | CreateContextApplicationCommand
+
+export type CreateSlashApplicationCommand = {
+    name: string,
+    nameLocalizations: Localization?,
+    description: string,
+    descriptionLocalizations: Localization?,
+    type: number?,
+    options: { ApplicationCommandOption }?,
+    defaultMemberPermissions: { PermissionStrings }?,
+    integrationTypes: { number }?,
+    contexts: { number }?,
+    dmPermission: boolean?,
+    nsfw: boolean?,
+    handler: number?
+}
+
+export type CreateContextApplicationCommand = {
+    name: string,
+    nameLocalizations: Localization?,
+    type: number?,
+    defaultMemberPermissions: { PermissionStrings }?,
+    integrationTypes: { number }?,
+    contexts: { number }?,
+    dmPermission: boolean?,
+    nsfw: boolean?,
+    handler: number?
+}
+
+export type CreateApplicationCommandOptions = {
+    bearerToken: string
 }
 
 return {}
