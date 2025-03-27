@@ -170,9 +170,7 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
         end
 
         -- Bitwise permissions
-        if newKey == "allow" or newKey == "deny" or newKey == "permissions" then
-            newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value :: any) 
-        elseif newKey == "defaultMemberPermissions" then
+        if newKey == "allow" or newKey == "deny" or newKey == "permissions" or newKey == "defaultMemberPermissions" then
             newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value :: any) 
         -- Image data encoding in base64
         elseif newKey == "image" then
@@ -355,8 +353,8 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
             if self.latencyRef.lastTimeOffsetCheck < datetime.now().unixTimestampMillis - 5000 then
                 self.latencyRef.lastTimeOffsetCheck = datetime.now().unixTimestampMillis
                 local timeOffset = dateNow + 500 - self.latencyRef.lastTimeOffsetCheck
-                if (self.latencyRef.timeOffset - self.latencyRef.latency >= self.options.latencyThreshold and timeOffset - self.latencyRef.latency >= self.options.latencyThreshold) then
-                    warn(`Your clock is {timeOffset}ms behind Discord's server clock. Please check your connection and system time.`)
+                if self.latencyRef.timeOffset - self.latencyRef.latency >= self.options.latencyThreshold and timeOffset - self.latencyRef.latency >= self.options.latencyThreshold then
+                    self.logger:warn(`Your clock is {timeOffset}ms behind Discord's server clock. Please check your connection and system time.`)
                 end
                 self.latencyRef.timeOffset = self.latencyRef.timeOffset - math.modf(table.remove(self.latencyRef.timeOffsets, 1) :: number / 10) + math.modf(timeOffset / 10)
                 table.insert(self.latencyRef.timeOffsets, timeOffset)
