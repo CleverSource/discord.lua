@@ -11,6 +11,7 @@ type Logger = Logger.Logger
 local getDiscordEpoch = require("../util/getDiscordEpoch")
 
 local GatewayTypes = require("../types/internal/gateway")
+local ApiTypes = require("../types/apiTypes")
 
 local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
@@ -21,7 +22,7 @@ GatewayHandler.__index = GatewayHandler
 export type ConnectionOptions = {
     url: string,
     shards: number,
-    sessionStartLimit: GatewayTypes.SessionStartLimit
+    sessionStartLimit: ApiTypes.SessionStartLimitObject
 }
 
 export type GatewayHandlerOptions = {
@@ -50,7 +51,7 @@ export type GatewayHandler = typeof(setmetatable({} :: {
     version: number,
     compress: boolean,
     intents: number,
-    sessionStartLimit: GatewayTypes.SessionStartLimit,
+    sessionStartLimit: ApiTypes.SessionStartLimitObject,
     totalShards: number,
     lastShardId: number,
     firstShardId: number,
@@ -217,7 +218,7 @@ function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
         })
 
         if self.preferSnakeCase then
-            shard.forwardToClient = function(shardSelf: Shard, packet: GatewayTypes.Packet<any>)
+            shard.forwardToClient = function(shardSelf: Shard, packet: GatewayTypes.Payload<any>)
                 if shardSelf.events.message then
                     shardSelf.events.message(shardSelf, packet)
                 end

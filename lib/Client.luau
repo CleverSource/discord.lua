@@ -79,7 +79,7 @@ function Client.new(options: ClientOptions): Client
     local gatewayOptions = options.gatewayOptions or {
         token = options.token,
         events = {
-            message = function(shard: Shard, packet: GatewayTypes.Packet<any>)
+            message = function(shard: Shard, packet: GatewayTypes.Payload<any>)
                 if not packet.t then
                     return
                 end
@@ -100,7 +100,7 @@ function Client.new(options: ClientOptions): Client
     return self
 end
 
-function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Packet<any>)
+function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Payload<any>)
     -- print(packet)
 end
 

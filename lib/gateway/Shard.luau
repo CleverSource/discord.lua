@@ -50,7 +50,7 @@ export type Events = {
     requestedReconnect: ((Shard) -> ())?,
     invalidSession: ((Shard, boolean) -> ())?,
     resumed: ((Shard) -> ())?,
-    message: ((Shard, GatewayTypes.Packet<any>) -> ())?,
+    message: ((Shard, GatewayTypes.Payload<any>) -> ())?,
     connected: ((Shard) -> ())?,
     connecting: ((Shard) -> ())?,
     identifying: ((Shard) -> ())?,
@@ -257,7 +257,7 @@ function Shard.handleMessage(self: Shard, msg: any)
     self:handleDiscordPacket(data)
 end
 
-function Shard.handleDiscordPacket(self: Shard, packet: GatewayTypes.Packet<any>)
+function Shard.handleDiscordPacket(self: Shard, packet: GatewayTypes.Payload<any>)
     self.heart.acknowledged = true
 
     if packet.op == Constants.GatewayOpCodes.Heartbeat then
@@ -359,7 +359,7 @@ function Shard.handleDiscordPacket(self: Shard, packet: GatewayTypes.Packet<any>
     self:forwardToClient(packet)
 end
 
-function Shard.forwardToClient(self: Shard, packet: GatewayTypes.Packet<any>)
+function Shard.forwardToClient(self: Shard, packet: GatewayTypes.Payload<any>)
     if self.events.message then
         self.events.message(self, camelize(packet))
     end

@@ -6,14 +6,7 @@ type RequestHandler = RequestHandler.RequestHandler
 
 local processDiscordReaction = require("../util/processDiscordReaction")
 
-local GatewayTypes = require("../types/internal/gateway")
 local RestTypes = require("../types/internal/rest")
-
--- TODO: temporary
-type AutoModerationRule = any
-type Channel = any
-type Emoji = any
-type ApplicationCommand = any
 
 local RestClient = {}
 RestClient.__index = RestClient
@@ -45,13 +38,13 @@ function RestClient.new(options: RestClientOptions): RestClient
     return self
 end
 
-function RestClient.getGateway(self: RestClient): { url: string }
+function RestClient.getGateway(self: RestClient): RestTypes.GetGatewayResponse
     return self.request:get(Routes.gateway(), {
         authenticated = false
     })
 end
 
-function RestClient.getBotGateway(self: RestClient): GatewayTypes.GetGatewayBot
+function RestClient.getBotGateway(self: RestClient): RestTypes.GetGatewayBotResponse
     return self.request:get(Routes.gatewayBot())
 end
 
@@ -76,40 +69,40 @@ function RestClient.addThreadMember(self: RestClient, channelId: string, userId:
     self.request:put(Routes.channels.threads.user(channelId, userId))
 end
 
-function RestClient.addDmRecipient(self: RestClient, channelId: string, userId: string, options: RestTypes.AddDmRecipientOptions)
+function RestClient.addDmRecipient(self: RestClient, channelId: string, userId: string, options: RestTypes.GroupDMAddRecipientRequest)
     self.request:put(Routes.channels.dmRecipient(channelId, userId), {
         body = options
     })
 end
 
-function RestClient.createAutomodRule(self: RestClient, guildId: string, options: RestTypes.CreateAutomodRuleOptions, reason: string?): AutoModerationRule
+function RestClient.createAutomodRule(self: RestClient, guildId: string, options: RestTypes.CreateAutoModerationRuleRequest, reason: string?): RestTypes.CreateAutoModerationRuleResponse
     return self.request:post(Routes.guilds.automod.rules(guildId), {
         body = options,
         reason = reason
     })
 end
 
-function RestClient.createChannel(self: RestClient, guildId: string, options: RestTypes.CreateGuildChannelOptions, reason: string?): Channel
+function RestClient.createChannel(self: RestClient, guildId: string, options: RestTypes.CreateGuildChannelRequest, reason: string?): RestTypes.CreateGuildChannelResponse
     return self.request:post(Routes.guilds.channels(guildId), {
         body = options,
         reason = reason
     })
 end
 
-function RestClient.createEmoji(self: RestClient, guildId: string, options: RestTypes.CreateGuildEmojiOptions, reason: string?): Emoji
+function RestClient.createEmoji(self: RestClient, guildId: string, options: RestTypes.CreateGuildEmojiRequest, reason: string?): RestTypes.CreateGuildEmojiResponse
     return self.request:post(Routes.guilds.emojis(guildId), {
         body = options,
         reason = reason
     })
 end
 
-function RestClient.createApplicationEmoji(self: RestClient, options: RestTypes.CreateApplicationEmojiOptions): Emoji
+function RestClient.createApplicationEmoji(self: RestClient, options: RestTypes.CreateApplicationEmojiRequest): RestTypes.CreateGuildEmojiResponse
     return self.request:post(Routes.applicationEmojis(self.applicationId), {
         body = options
     })
 end
 
-function RestClient.createGlobalApplicationCommand(self: RestClient, command: RestTypes.CreateApplicationCommand, options: RestTypes.CreateApplicationCommandOptions?): ApplicationCommand
+function RestClient.createGlobalApplicationCommand(self: RestClient, command: RestTypes.CreateGlobalApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.CreateGlobalApplicationCommandResponse
     local restOptions: RequestHandler.CreateRequestOptions = {
         body = command
     }
