@@ -135,13 +135,13 @@ export type EditMessageRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/channel#create-channel-invite
 export type CreateChannelInviteRequest = Request<{
-    max_age: number?, -- duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days)
-    max_uses: number?, -- max number of uses or 0 for unlimited. between 0 and 100
+    maxAge: number?, -- duration of invite in seconds before expiry, or 0 for never. between 0 and 604800 (7 days)
+    maxUses: number?, -- max number of uses or 0 for unlimited. between 0 and 100
     temporary: boolean?, -- whether this invite only grants temporary membership
     unique: boolean?, -- if true, don't try to reuse a similar invite (useful for creating many unique one time use invites)
-    target_type: objects.InviteTargetTypes?, -- the type of target for this voice channel invite
-    target_user_id: objects.Snowflake?, -- the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel
-    target_application_id: objects.Snowflake?, -- the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag
+    targetType: objects.InviteTargetTypes?, -- the type of target for this voice channel invite
+    targetUserId: objects.Snowflake?, -- the id of the user whose stream to display for this invite, required if target_type is 1, the user must be streaming in the channel
+    targetApplicationId: objects.Snowflake?, -- the id of the embedded application to open for this invite, required if target_type is 2, the application must have the EMBEDDED flag
 }>
 
 -- https://discord.com/developers/docs/resources/channel#bulk-delete-messages
@@ -179,11 +179,11 @@ export type StartThreadWithoutMessageRequest = Request<{
 -- https://discord.com/developers/docs/resources/channel#start-thread-in-forum-or-media-channel
 export type StartThreadInForumOrMediaChannelRequest = Request<{
     name: string, -- 1-100 character channel name
-    auto_archive_duration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
-    rate_limit_per_user: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
-    --files: { },
+    autoArchiveDuration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
+    rateLimitPerUser: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
+    files: { objects.FileContent },
     -- payload_json: string,
-    applied_tags: { objects.Snowflake }?, -- the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM or a GUILD_MEDIA channel
+    appliedTags: { objects.Snowflake }?, -- the IDs of the set of tags that have been applied to a thread in a GUILD_FORUM or a GUILD_MEDIA channel
     message: objects.ForumAndMediaThreadMessageObject?, -- contents of the first message in the forum/media thread
 }>
 
@@ -324,11 +324,11 @@ export type BulkGuildBanRequest = Request<{
 -- https://discord.com/developers/docs/resources/guild#create-guild-role
 export type CreateGuildRoleRequest = Request<{
     name: string?, -- name of the role, max 100 characters
-    permissions: string?, -- bitwise value of the enabled/disabled permissions
+    permissions: { objects.PermissionStrings }?, -- bitwise value of the enabled/disabled permissions
     color: number?, -- RGB color value
     hoist: boolean?, -- whether the role should be displayed separately in the sidebar
     icon: string?, -- the role's icon image (if the guild has the ROLE_ICONS feature)
-    unicode_emoji: string?, -- the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature)
+    unicodeEmoji: string?, -- the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature)
     mentionable: boolean?, -- whether the role should be mentionable
 }>
 
@@ -392,14 +392,14 @@ export type ModifyUserVoiceStateRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 export type CreateGuildScheduledEventRequest = Request<{
-    channel_id: objects.Snowflake?, -- the channel id of the scheduled event.
-    entity_metadata: objects.GuildScheduledEventEntityMetadata, -- the entity metadata of the scheduled event
+    channelId: objects.Snowflake?, -- the channel id of the scheduled event.
+    entityMetadata: objects.GuildScheduledEventEntityMetadata, -- the entity metadata of the scheduled event
     name: string, -- the name of the scheduled event
-    privacy_level: objects.PrivacyLevel, -- the privacy level of the scheduled event
-    scheduled_start_time: string, -- the time to schedule the scheduled event
-    scheduled_end_time: string?, -- the time when the scheduled event is scheduled to end
+    privacyLevel: objects.PrivacyLevel, -- the privacy level of the scheduled event
+    scheduledStartTime: string, -- the time to schedule the scheduled event
+    scheduledEndTime: string?, -- the time when the scheduled event is scheduled to end
     description: string?, -- the description of the scheduled event
-    entity_type: objects.GuildScheduledEventEntityType, -- the entity type of the scheduled event
+    entityType: objects.GuildScheduledEventEntityType, -- the entity type of the scheduled event
     image: string?, -- the cover image of the scheduled event
 }>
 
@@ -437,11 +437,11 @@ export type ModifyGuildTemplateRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/stage-instance#create-stage-instance
 export type CreateStageInstanceRequest = Request<{
-    channel_id: objects.Snowflake, -- The id of the Stage channel
+    channelId: objects.Snowflake, -- The id of the Stage channel
     topic: string, -- The topic of the Stage instance (1-120 characters)
-    privacy_level: objects.PrivacyLevel?, -- The privacy level of the Stage instance (default GUILD_ONLY)
-    send_start_notification: boolean?, -- Notify @everyone that a Stage instance has started
-    guild_scheduled_event_id: objects.Snowflake?, -- The guild scheduled event associated with this Stage instance
+    privacyLevel: objects.PrivacyLevel?, -- The privacy level of the Stage instance (default GUILD_ONLY)
+    sendStartNotification: boolean?, -- Notify @everyone that a Stage instance has started
+    guildScheduledEventId: objects.Snowflake?, -- The guild scheduled event associated with this Stage instance
 }>
 
 -- https://discord.com/developers/docs/resources/stage-instance#modify-stage-instance
@@ -870,6 +870,9 @@ export type GetGuildEmojiResponse = Response<objects.EmojiObject>
 
 -- https://discord.com/developers/docs/resources/emoji#create-guild-emoji
 export type CreateGuildEmojiResponse = Response<objects.EmojiObject>
+
+-- https://discord.com/developers/docs/resources/emoji#create-application-emoji
+export type CreateApplicationEmojiResponse = Response<objects.EmojiObject>
 
 -- https://discord.com/developers/docs/resources/emoji#modify-guild-emoji
 export type ModifyGuildEmojiResponse = Response<objects.EmojiObject>

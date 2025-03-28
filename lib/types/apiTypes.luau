@@ -473,8 +473,8 @@ export type UnavailableGuildObject = {
 
 -- https://discord.com/developers/docs/topics/teams#data-models-team-member-object
 export type TeamMemberObject = {
-    membership_state: MembershipState, -- User's membership state on the team
-    team_id: Snowflake, -- ID of the parent team of which they are a member
+    membershipState: MembershipState, -- User's membership state on the team
+    teamId: Snowflake, -- ID of the parent team of which they are a member
     user: UserObject, -- Avatar, discriminator, ID, and username of the user
     role: TeamMemberRole, -- Role of the team member
 }
@@ -485,7 +485,7 @@ export type TeamObject = {
     id: Snowflake, -- Unique ID of the team
     members: { TeamMemberObject }, -- Members of the team
     name: string, -- Name of the team
-    owner_user_id: Snowflake, -- User ID of the current team owner
+    ownerUserId: Snowflake, -- User ID of the current team owner
 }
 
 -- https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
@@ -615,30 +615,30 @@ export type ApplicationObject = {
     name: string, -- Name of the app
     icon: string?, -- Icon hash of the app
     description: string, -- Description of the app
-    rpc_origins: { string }?, -- List of RPC origin URLs, if RPC is enabled
-    bot_public: boolean, -- When false, only the app owner can add the app to guilds
-    bot_require_code_grant: boolean, -- When true, the app's bot will only join upon completion of the full OAuth2 code grant flow
+    rpcOrigins: { string }?, -- List of RPC origin URLs, if RPC is enabled
+    botPublic: boolean, -- When false, only the app owner can add the app to guilds
+    botRequireCodeGrant: boolean, -- When true, the app's bot will only join upon completion of the full OAuth2 code grant flow
     bot: UserObject?, -- Partial user object for the bot user associated with the app
-    terms_of_service_url: string?, -- URL of the app's Terms of Service
-    privacy_policy_url: string?, -- URL of the app's Privacy Policy
+    termsOfServiceUrl: string?, -- URL of the app's Terms of Service
+    privacyPolicyUrl: string?, -- URL of the app's Privacy Policy
     owner: UserObject?, -- Partial user object for the owner of the app
     summary: string, -- deprecated and will be removed in v11. An empty string.
-    verify_key: string, -- Hex encoded key for verification in interactions and the GameSDK's GetTicket
+    verifyKey: string, -- Hex encoded key for verification in interactions and the GameSDK's GetTicket
     team: TeamObject?, -- If the app belongs to a team, this will be a list of the members of that team
-    guild_id: Snowflake?, -- Guild associated with the app. For example, a developer support server.
+    guildId: Snowflake?, -- Guild associated with the app. For example, a developer support server.
     guild: GuildObject?, -- Partial object of the associated guild
-    primary_sku_id: Snowflake?, -- If this app is a game sold on Discord, this field will be the id of the "Game SKU" that is created, if exists
+    primarySkuId: Snowflake?, -- If this app is a game sold on Discord, this field will be the id of the "Game SKU" that is created, if exists
     slug: string?, -- If this app is a game sold on Discord, this field will be the URL slug that links to the store page
-    cover_image: string?, -- App's default rich presence invite cover image hash
+    coverImage: string?, -- App's default rich presence invite cover image hash
     flags: number?, -- App's public flags
-    approximate_guild_count: number?, -- Approximate count of guilds the app has been added to
-    redirect_uris: { string }?, -- Array of redirect URIs for the app
-    interactions_endpoint_url: string?, -- Interactions endpoint URL for the app
-    role_connections_verification_url: string?, -- Role connection verification URL for the app
+    approximateGuildCount: number?, -- Approximate count of guilds the app has been added to
+    redirectUris: { string }?, -- Array of redirect URIs for the app
+    interactionsEndpointUrl: string?, -- Interactions endpoint URL for the app
+    roleConnectionsVerificationUrl: string?, -- Role connection verification URL for the app
     tags: { string }?, -- List of tags describing the content and functionality of the app. Max of 5 tags.
-    install_params: InstallParamsObject?, -- Settings for the app's default in-app authorization link, if enabled
-    integration_types_config: { [ApplicationIntegrationType]: boolean }?, -- In preview. Default scopes and permissions for each supported installation context. Value for each key is an integration type configuration object
-    custom_install_url: string?, -- Default custom authorization URL for the app, if enabled
+    installParams: InstallParamsObject?, -- Settings for the app's default in-app authorization link, if enabled
+    integrationTypesConfig: { [ApplicationIntegrationType]: boolean }?, -- In preview. Default scopes and permissions for each supported installation context. Value for each key is an integration type configuration object
+    customInstallUrl: string?, -- Default custom authorization URL for the app, if enabled
 }
 
 -- https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
@@ -842,12 +842,12 @@ export type PresenceUpdateObject = {
 -- https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
 export type StageInstanceObject = {
     id: Snowflake, -- The id of this Stage instance
-    guild_id: Snowflake, -- The guild id of the associated Stage channel
-    channel_id: Snowflake, -- The id of the associated Stage channel
+    guildId: Snowflake, -- The guild id of the associated Stage channel
+    channelId: Snowflake, -- The id of the associated Stage channel
     topic: string, -- The topic of the Stage instance (1-120 characters)
-    privacy_level: PrivacyLevel, -- The privacy level of the Stage instance
-    discoverable_disabled: boolean, -- Whether or not Stage Discovery is disabled (deprecated)
-    guild_scheduled_event_id: Snowflake?, -- The id of the scheduled event for this Stage instance
+    privacyLevel: PrivacyLevel, -- The privacy level of the Stage instance
+    discoverableDisabled: boolean, -- Whether or not Stage Discovery is disabled (deprecated)
+    guildScheduledEventId: Snowflake?, -- The id of the scheduled event for this Stage instance
 }
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata
@@ -858,20 +858,20 @@ export type GuildScheduledEventEntityMetadata = {
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object
 export type GuildScheduledEventObject = {
     id: Snowflake, -- the id of the scheduled event
-    guild_id: Snowflake, -- the guild id which the scheduled event belongs to
-    channel_id: Snowflake?, -- the channel id in which the scheduled event will be hosted, or null if scheduled entity type is EXTERNAL
-    creator_id: Snowflake?, -- the id of the user that created the scheduled event
+    guildId: Snowflake, -- the guild id which the scheduled event belongs to
+    channelId: Snowflake?, -- the channel id in which the scheduled event will be hosted, or null if scheduled entity type is EXTERNAL
+    creatorId: Snowflake?, -- the id of the user that created the scheduled event
     name: string, -- the name of the scheduled event (1-100 characters)
     description: string?, -- the description of the scheduled event (1-1000 characters)
-    scheduled_start_time: string, -- the time the scheduled event will start
-    scheduled_end_time: string?, -- the time the scheduled event will end, required if entity_type is EXTERNAL
-    privacy_level: PrivacyLevel, -- the privacy level of the scheduled event
+    scheduledStartTime: string, -- the time the scheduled event will start
+    scheduledEndTime: string?, -- the time the scheduled event will end, required if entity_type is EXTERNAL
+    privacyLevel: PrivacyLevel, -- the privacy level of the scheduled event
     status: GuildScheduledEventStatus, -- the status of the scheduled event
-    entity_type: GuildScheduledEventEntityType, -- the type of the scheduled event
-    entity_id: Snowflake?, -- the id of an entity associated with a guild scheduled event
-    entity_metadata: GuildScheduledEventEntityMetadata?, -- additional metadata for the guild scheduled event
+    entityType: GuildScheduledEventEntityType, -- the type of the scheduled event
+    entityId: Snowflake?, -- the id of an entity associated with a guild scheduled event
+    entityMetadata: GuildScheduledEventEntityMetadata?, -- additional metadata for the guild scheduled event
     creator: UserObject?, -- the user that created the scheduled event
-    user_count: number, -- the number of users subscribed to the scheduled event
+    userCount: number, -- the number of users subscribed to the scheduled event
     image: string?, -- the cover image hash of the scheduled event
 }
 
@@ -915,14 +915,14 @@ export type AttachmentObject = Partial<{
     filename: string, -- name of file attached
     title: string?, -- the title of the file
     description: string?, -- description for the file (max 1024 characters)
-    content_type: string?, -- the attachment's media type
+    contentType: string?, -- the attachment's media type
     size: number, -- size of file in bytes
     url: string, -- source url of file
-    proxy_url: string, -- a proxied url of file
+    proxyUrl: string, -- a proxied url of file
     height: number?, -- height of file (if image)
     width: number?, -- width of file (if image)
     ephemeral: boolean?, -- whether this attachment is ephemeral
-    duration_secs: number?, -- the duration of the audio file (currently for voice messages)
+    durationSecs: number?, -- the duration of the audio file (currently for voice messages)
     waveform: string?, -- base64 encoded bytearray representing a sampled waveform (currently for voice messages)
     flags: number, -- attachment flags combined as a bitfield
 }>
@@ -930,14 +930,14 @@ export type AttachmentObject = Partial<{
 -- https://discord.com/developers/docs/resources/channel#embed-object-embed-footer-structure
 export type EmbedFooterObject = {
     text: string, -- footer text
-    icon_url: string?, -- url of footer icon (only supports http(s) and attachments)
-    proxy_icon_url: string?, -- a proxied url of footer icon
+    iconUrl: string?, -- url of footer icon (only supports http(s) and attachments)
+    proxyIconUrl: string?, -- a proxied url of footer icon
 }
 
 -- https://discord.com/developers/docs/resources/channel#embed-object-embed-image-structure
 export type EmbedImageObject = {
     url: string, -- source url of image (only supports http(s) and attachments)
-    proxy_url: string?, -- a proxied url of the image
+    proxyUrl: string?, -- a proxied url of the image
     height: number?, -- height of image
     width: number?, -- width of image
 }
@@ -952,8 +952,8 @@ export type EmbedProviderObject = {
 export type EmbedAuthorObject = {
     name: string, -- name of author
     url: string?, -- url of author (only supports http(s))
-    icon_url: string?, -- url of author icon (only supports http(s) and attachments)
-    proxy_icon_url: string?, -- a proxied url of author icon
+    iconUrl: string?, -- url of author icon (only supports http(s) and attachments)
+    proxyIconUrl: string?, -- a proxied url of author icon
 }
 
 -- https://discord.com/developers/docs/resources/channel#embed-object-embed-field-structure
@@ -966,7 +966,7 @@ export type EmbedFieldObject = {
 -- https://discord.com/developers/docs/resources/channel#embed-object-embed-thumbnail-structure
 export type EmbedThumbnailObject = {
     url: string, -- source url of thumbnail (only supports http(s) and attachments)
-    proxy_url: string?, -- a proxied url of the thumbnail
+    proxyUrl: string?, -- a proxied url of the thumbnail
     height: number?, -- height of thumbnail
     width: number?, -- width of thumbnail
 }
@@ -974,7 +974,7 @@ export type EmbedThumbnailObject = {
 -- https://discord.com/developers/docs/resources/channel#embed-object-embed-video-structure
 export type EmbedVideoObject = {
     url: string, -- source url of video
-    proxy_url: string?, -- a proxied url of the video
+    proxyUrl: string?, -- a proxied url of the video
     height: number?, -- height of video
     width: number?, -- width of video
 }
@@ -1074,8 +1074,8 @@ export type ButtonComponentObject = Partial<{
     style: ButtonStyle, -- A button style
     label: string?, -- Text that appears on the button; max 80 characters
     emoji: EmojiObject?, -- name, id, and animated
-    custom_id: string?, -- Developer-defined identifier for the button; max 100 characters
-    sku_id: string?, -- Identifier for a purchasable SKU, only available when using premium-style buttons
+    customId: string?, -- Developer-defined identifier for the button; max 100 characters
+    skuId: string?, -- Identifier for a purchasable SKU, only available when using premium-style buttons
     url: string?, --  URL for link-style buttons
     disabled: boolean?, -- Whether the button is disabled (defaults to false)
 }>
@@ -1083,24 +1083,24 @@ export type ButtonComponentObject = Partial<{
 -- https://discord.com/developers/docs/interactions/message-components#select-menu-object
 export type SelectMenuComponentObject = {
     type: number, -- Type of select menu component (text: 3, user: 5, role: 6, mentionable: 7, channels: 8)
-    custom_id: string, -- ID for the select menu; max 100 characters
+    customId: string, -- ID for the select menu; max 100 characters
     options: { SelectOptionObject }?, -- Specified choices in a select menu (only required and available for string selects (type 3); max 25
-    channel_types: { ChannelType }?, -- List of channel types to include in the channel select component (type 8)
+    channelTypes: { ChannelType }?, -- List of channel types to include in the channel select component (type 8)
     placeholder: string?, -- Placeholder text if nothing is selected; max 150 characters
-    default_values: { SelectDefaultValueObject }?, -- List of default values for auto-populated select menu components; number of default values must be in the range defined by min_values and max_values
-    min_values: number?, -- Minimum number of items that must be chosen (defaults to 1); min 0, max 25
-    max_values: number?, -- Maximum number of items that can be chosen (defaults to 1); max 25
+    defaultValues: { SelectDefaultValueObject }?, -- List of default values for auto-populated select menu components; number of default values must be in the range defined by min_values and max_values
+    minValues: number?, -- Minimum number of items that must be chosen (defaults to 1); min 0, max 25
+    maxValues: number?, -- Maximum number of items that can be chosen (defaults to 1); max 25
     disabled: boolean?, -- Whether select menu is disabled (defaults to false)
 }
 
 -- https://discord.com/developers/docs/interactions/message-components#select-menu-object
 export type TextInputComponentObject = {
     type: number, -- 4 for a text input
-    custom_id: string, -- Developer-defined identifier for the input; max 100 characters
+    customId: string, -- Developer-defined identifier for the input; max 100 characters
     style: TextInputStyles, -- The Text Input Style
     label: string, -- Label for this component; max 45 characters
-    min_length: number?, -- Minimum input length for a text input; min 0, max 4000
-    max_length: number?, -- Maximum input length for a text input; min 1, max 4000
+    minLength: number?, -- Minimum input length for a text input; min 0, max 4000
+    maxLength: number?, -- Maximum input length for a text input; min 1, max 4000
     required: boolean?, -- Whether this component is required to be filled (defaults to true)
     value: string?, -- Pre-filled value for this component; max 4000 characters
     placeholder: string?, -- Custom placeholder text if the input is empty; max 100 characters
@@ -1393,14 +1393,14 @@ export type InviteObject = {
     guild: GuildObject?, -- the guild this invite is for
     channel: ChannelObject?, -- the channel this invite is for
     inviter: UserObject?, -- the user who created the invite
-    target_type: InviteTargetTypes, -- the type of target for this voice channel invite
-    target_user: UserObject?, -- the user whose stream to display for this voice channel stream invite
-    target_application: ApplicationObject?, -- the embedded application to open for this voice channel embedded application invite
-    approximate_presence_count: number?, -- approximate count of online members, returned from the GET /invites/<code> endpoint when with_counts is true
-    approximate_member_count: number?, -- approximate count of total members, returned from the GET /invites/<code> endpoint when with_counts is true
-    expires_at: string?, -- the expiration date of this invite, returned from the GET /invites/<code> endpoint when with_expiration is true
-    stage_instance: StageInstanceObject?, -- stage instance data if there is a public Stage instance in the Stage channel this invite is for (deprecated)
-    guild_scheduled_event: GuildScheduledEventObject?, -- guild scheduled event data, only included if guild_scheduled_event_id contains a valid guild scheduled event id
+    targetType: InviteTargetTypes, -- the type of target for this voice channel invite
+    targetUser: UserObject?, -- the user whose stream to display for this voice channel stream invite
+    targetApplication: ApplicationObject?, -- the embedded application to open for this voice channel embedded application invite
+    approximatePresenceCount: number?, -- approximate count of online members, returned from the GET /invites/<code> endpoint when with_counts is true
+    approximateMemberCount: number?, -- approximate count of total members, returned from the GET /invites/<code> endpoint when with_counts is true
+    expiresAt: string?, -- the expiration date of this invite, returned from the GET /invites/<code> endpoint when with_expiration is true
+    stageInstance: StageInstanceObject?, -- stage instance data if there is a public Stage instance in the Stage channel this invite is for (deprecated)
+    guildScheduledEvent: GuildScheduledEventObject?, -- guild scheduled event data, only included if guild_scheduled_event_id contains a valid guild scheduled event id
 }
 
 -- https://discord.com/developers/docs/resources/guild#get-guild-vanity-url
@@ -1579,16 +1579,16 @@ export type AllowedMentionObject = {
     parse: { AllowedMentionTypes }?, -- An array of allowed mention types to parse from the content.
     users: { string }?, -- Array of role_ids to mention (Max size of 100)
     roles: { string }?, -- Array of user_ids to mention (Max size of 100)
-    replied_user: boolean?, -- For replies, whether to mention the author of the message being replied to (default false)
+    repliedUser: boolean?, -- For replies, whether to mention the author of the message being replied to (default false)
 }
 
 -- https://discord.com/developers/docs/resources/channel#start-thread-in-forum-or-media-channel-forum-and-media-thread-message-params-object
 export type ForumAndMediaThreadMessageObject = {
     content: string?, -- Message contents (up to 2000 characters)
     embeds: { EmbedObject }?, -- Up to 10 rich embeds (up to 6000 characters)
-    allowed_mentions: AllowedMentionObject?, -- Allowed mentions for the message
+    allowedMentions: AllowedMentionObject?, -- Allowed mentions for the message
     components: { ComponentObjects }?, -- Components to include with the message
-    sticker_ids: { Snowflake }?, -- IDs of up to 3 stickers in the server to send in the message
+    stickerIds: { Snowflake }?, -- IDs of up to 3 stickers in the server to send in the message
     attachments: { AttachmentObject }?, -- Attachment objects with filename and description. See Uploading Files
     flags: number?, -- Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set)
 }

@@ -96,7 +96,7 @@ function RestClient.createEmoji(self: RestClient, guildId: string, options: Rest
     })
 end
 
-function RestClient.createApplicationEmoji(self: RestClient, options: RestTypes.CreateApplicationEmojiRequest): RestTypes.CreateGuildEmojiResponse
+function RestClient.createApplicationEmoji(self: RestClient, options: RestTypes.CreateApplicationEmojiRequest): RestTypes.CreateApplicationEmojiResponse
     return self.request:post(Routes.applicationEmojis(self.applicationId), {
         body = options
     })
@@ -155,6 +155,191 @@ end
 function RestClient.createGuildTemplate(self: RestClient, guildId: string, options: RestTypes.CreateGuildTemplateRequest): RestTypes.CreateGuildTemplateResponse
     return self.request:post(Routes.guilds.templates.all(guildId), {
         body = options
+    })
+end
+
+function RestClient.createForumThread(self: RestClient, channelId: string, options: RestTypes.StartThreadInForumOrMediaChannelRequest, reason: string): RestTypes.StartThreadInForumOrMediaChannelResponse
+    return self.request:post(Routes.channels.forum(channelId), {
+        body = options,
+        file = options.files,
+        reason = reason  
+    })
+end
+
+function RestClient.createInvite(self: RestClient, channelId: string, options: RestTypes.CreateChannelInviteRequest, reason: string): RestTypes.CreateChannelInviteResponse
+    return self.request:post(Routes.channels.invites(channelId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createRole(self: RestClient, guildId: string, options: RestTypes.CreateGuildRoleRequest, reason: string): RestTypes.CreateGuildRoleResponse
+    return self.request:post(Routes.guilds.roles.all(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createScheduledEvent(self: RestClient, guildId: string, options: RestTypes.CreateGuildScheduledEventRequest, reason: string): RestTypes.CreateGuildScheduledEventResponse
+    return self.request:post(Routes.guilds.events.events(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createStageInstance(self: RestClient, options: RestTypes.CreateStageInstanceRequest, reason: string): RestTypes.CreateStageInstanceResponse
+    return self.request:post(Routes.channels.stages(), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.createWebhook(self: RestClient, channelId: string, options: RestTypes.CreateWebhookRequest, reason: string): RestTypes.CreateWebhookResponse
+    return self.request:post(Routes.channels.webhooks(channelId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.deleteAutomodRule(self: RestClient, guildId: string, ruleId: string, reason: string)
+    self.request:delete(Routes.guilds.automod.rule(guildId, ruleId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteChannel(self: RestClient, channelId: string, reason: string)
+    self.request:delete(Routes.channels.channel(channelId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteChannelPermissionOverride(self: RestClient, channelId: string, overwriteId: string, reason: string)
+    self.request:delete(Routes.channels.overwrite(channelId, overwriteId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteEmoji(self: RestClient, guildId: string, emojiId: string, reason: string)
+    self.request:delete(Routes.guilds.emoji(guildId, emojiId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteApplicationEmoji(self: RestClient, emojiId: string)
+    self.request:delete(Routes.applicationEmoji(self.applicationId, emojiId))
+end
+
+function RestClient.deleteFollowupMessage(self: RestClient, token: string, messageId: string)
+    self.request:delete(Routes.interactions.responses.message(self.applicationId, token, messageId), {
+        authenticated = false
+    })
+end
+
+function RestClient.deleteGlobalApplicationCommand(self: RestClient, commandId: string)
+    self.request:delete(Routes.interactions.commands.command(self.applicationId, commandId))
+end
+
+function RestClient.deleteGuild(self: RestClient, guildId: string)
+    self.request:delete(Routes.guilds.guild(guildId))
+end
+
+function RestClient.deleteGuildApplicationCommand(self: RestClient, guildId: string, commandId: string)
+    self.request:delete(Routes.interactions.commands.guilds.one(self.applicationId, guildId, commandId))
+end
+
+function RestClient.deleteGuildSticker(self: RestClient, guildId: string, stickerId: string, reason: string)
+    self.request:delete(Routes.guilds.sticker(guildId, stickerId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteGuildTemplate(self: RestClient, guildId: string, templateCode: string)
+    self.request:delete(Routes.guilds.templates.guild(guildId, templateCode))
+end
+
+function RestClient.deleteIntegration(self: RestClient, guildId: string, integrationId: string, reason: string)
+    self.request:delete(Routes.guilds.integration(guildId, integrationId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteInvite(self: RestClient, inviteCode: string, reason: string)
+    self.request:delete(Routes.guilds.invite(inviteCode), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteMessage(self: RestClient, channelId: string, messageId: string, reason: string)
+    self.request:delete(Routes.channels.message(channelId, messageId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteMessages(self: RestClient, channelId: string, messageIds: { string }, reason: string)
+    self.request:post(Routes.channels.bulk(channelId), {
+        body = {
+            messages = messageIds
+        },
+        reason
+    })
+end
+
+function RestClient.deleteOriginalInteractionResponse(self: RestClient, token: string)
+    self.request:delete(Routes.interactions.responses.original(self.applicationId, token), {
+        authenticated = false
+    })
+end
+
+function RestClient.deleteOwnReaction(self: RestClient, channelId: string, messageId: string, reaction: string)
+    reaction = processDiscordReaction(reaction)
+    self.request:delete(Routes.channels.reactions.bot(channelId, messageId, reaction))
+end
+
+function RestClient.deleteReactionsAll(self: RestClient, channelId: string, messageId: string)
+    self.request:delete(Routes.channels.reactions.all(channelId, messageId))
+end
+
+function RestClient.deleteReactionsEmoji(self: RestClient, channelId: string, messageId: string, reaction: string)
+    reaction = processDiscordReaction(reaction)
+    self.request:delete(Routes.channels.reactions.emoji(channelId, messageId, reaction))
+end
+
+function RestClient.deleteRole(self: RestClient, guildId: string, roleId: string, reason: string)
+    self.request:delete(Routes.guilds.roles.one(guildId, roleId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteScheduledEvent(self: RestClient, guildId: string, eventId: string)
+    self.request:delete(Routes.guilds.events.event(guildId, eventId))
+end
+
+function RestClient.deleteStageInstance(self: RestClient, channelId: string, reason: string)
+    self.request:delete(Routes.channels.stage(channelId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteUserReaction(self: RestClient, channelId: string, messageId: string, userId: string, reaction: string)
+    reaction = processDiscordReaction(reaction)
+    self.request:delete(Routes.channels.reactions.user(channelId, messageId, reaction, userId))
+end
+
+function RestClient.deleteWebhook(self: RestClient, webhookId: string, reason: string)
+    self.request:delete(Routes.webhooks.id(webhookId), {
+        reason = reason
+    })
+end
+
+function RestClient.deleteWebhookMessage(self: RestClient, webhookId: string, token: string, messageId: string, options: { type: number, after: string?, limit: number? }?)
+    self.request:delete(Routes.webhooks.message(webhookId, token, messageId, options :: any), {
+        authenticatedq = false
+    })
+end
+
+function RestClient.deleteWebhookWithToken(self: RestClient, webhookId: string, token: string)
+    self.request:delete(Routes.webhooks.webhook(webhookId, token), {
+        authenticated = false
     })
 end
 

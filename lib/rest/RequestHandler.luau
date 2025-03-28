@@ -176,7 +176,7 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
         elseif newKey == "image" then
             newBody[newKey] = imageDataToBase64(value)
         -- Url image data encoding in base64 
-        elseif newKey == "icon" then
+        elseif newKey == "icon" or newKey == "avatar" then
             newBody[newKey] = urlToBase64(value)
         elseif typeof(value) == "table" then
             if #value > 0 then
@@ -244,7 +244,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                             return
                         end
 
-                        data:attach(`files[{index - 1}]`, fileData.file, fileData.name)
+                        data:attach(`files[{index - 1}]`, fileData.content, fileData.name)
                     end
                 elseif (file :: FileContent).content then
                     if method == "POST" and url:sub(#url - #STICKERS_ROUTE + 1, #url) == STICKERS_ROUTE then
@@ -259,6 +259,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 
                 if body then
                     body.payload_json.file = nil
+                    body.payload_json.files = nil
                     for key, value in body do
                         data:attach(key, value)
                     end
