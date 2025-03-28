@@ -7,6 +7,7 @@ local Promise = require("../vendor/Promise")
 type Promise = Promise.Promise
 
 local imageDataToBase64 = require("../util/imageDataToBase64")
+local urlToBase64 = require("../util/urlToBase64")
 local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
 local calculateBitwise = require("../util/calculateBitwise")
@@ -15,6 +16,8 @@ local snowflakeCreatedAt = require("../util/snowflakeCreatedAt")
 local OrderedBucket = require("../ratelimit/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
 type LatencyRef = OrderedBucket.LatencyRef
+
+local ApiTypes = require("../types/apiTypes")
 
 local Logger = require("../log/Logger")
 type Logger = Logger.Logger
@@ -56,10 +59,7 @@ export type RequestHandlerOptions = {
     token: string?
 }
 
-export type FileContent = {
-    content: string,
-    name: string
-}
+type FileContent = ApiTypes.FileContent
 
 export type CreateRequestOptions = {
     authenticated: boolean?,
@@ -175,6 +175,9 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
         -- Image data encoding in base64
         elseif newKey == "image" then
             newBody[newKey] = imageDataToBase64(value)
+        -- Url image data encoding in base64 
+        elseif newKey == "icon" then
+            newBody[newKey] = urlToBase64(value)
         elseif typeof(value) == "table" then
             if #value > 0 then
                 local newArray = {}
@@ -244,7 +247,6 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                         data:attach(`files[{index - 1}]`, fileData.file, fileData.name)
                     end
                 elseif (file :: FileContent).content then
-                    -- TODO: confirm stickers is valid
                     if method == "POST" and url:sub(#url - #STICKERS_ROUTE + 1, #url) == STICKERS_ROUTE then
                         data:attach("file", (file :: FileContent).content, (file :: FileContent).name)
                     else

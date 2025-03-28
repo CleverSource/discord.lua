@@ -117,4 +117,45 @@ function RestClient.createGlobalApplicationCommand(self: RestClient, command: Re
     return self.request:post(Routes.interactions.commands.commands(self.applicationId), restOptions)
 end
 
+function RestClient.createGuild(self: RestClient, options: RestTypes.CreateGuildRequest): RestTypes.CreateGuildResponse
+    return self.request:post(Routes.guilds.all(), {
+        body = options
+    })
+end
+
+function RestClient.createGuildApplicationCommand(self: RestClient, guildId: string, command: RestTypes.CreateGuildApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.CreateGuildApplicationCommandResponse
+    local restOptions: RequestHandler.CreateRequestOptions = {
+        body = command
+    }
+
+    if options and options.bearerToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.bearerToken}`
+        }
+    end
+
+    return self.request:post(Routes.interactions.commands.guilds.all(self.applicationId, guildId), restOptions)
+end
+
+function RestClient.createGuildFromTemplate(self: RestClient, templateCode: string, options: RestTypes.CreateGuildFromGuildTemplateRequest): RestTypes.CreateGuildFromGuildTemplateResponse
+    return self.request:post(Routes.guilds.templates.code(templateCode), {
+        body = options
+    })
+end
+
+function RestClient.createGuildSticker(self: RestClient, guildId: string, options: RestTypes.CreateGuildStickerRequest, reason: string): RestTypes.CreateGuildStickerResponse
+    return self.request:post(Routes.guilds.stickers(guildId), {
+        body = options,
+        reason = reason,
+        file = options.file
+    })
+end
+
+function RestClient.createGuildTemplate(self: RestClient, guildId: string, options: RestTypes.CreateGuildTemplateRequest): RestTypes.CreateGuildTemplateResponse
+    return self.request:post(Routes.guilds.templates.all(guildId), {
+        body = options
+    })
+end
+
 return RestClient

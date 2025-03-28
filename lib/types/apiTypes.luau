@@ -26,6 +26,11 @@ export type Partial<T> = any
 
 export type Snowflake = string
 
+export type FileContent = {
+    content: string,
+    name: string
+}
+
 -- https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags
 export type PermissionStrings = "CreateInstantInvite"
                                 | "KickMembers"
@@ -485,12 +490,12 @@ export type TeamObject = {
 
 -- https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure
 export type GuildRoleTagObject = {
-    bot_id: Snowflake?, -- the id of the bot this role belongs to
-    integration_id: Snowflake?, -- the id of the integration this role belongs to
-    premium_subscriber: nil, -- whether this is the guild's Booster role
-    subscription_listing_id: Snowflake, -- the id of this role's subscription sku and listing
-    available_for_purchase: nil, -- whether this role is available for purchase
-    guild_connections: nil, -- whether this role is a guild's linked role
+    botId: Snowflake?, -- the id of the bot this role belongs to
+    integrationId: Snowflake?, -- the id of the integration this role belongs to
+    premiumSubscriber: nil, -- whether this is the guild's Booster role
+    subscriptionListingId: Snowflake, -- the id of this role's subscription sku and listing
+    availableForPurchase: nil, -- whether this role is available for purchase
+    guildConnections: nil, -- whether this role is a guild's linked role
 }
 
 -- https://discord.com/developers/docs/topics/permissions#role-object
@@ -500,7 +505,7 @@ export type GuildRoleObject = {
     color: number, -- integer representation of hexadecimal color code
     hoist: boolean, -- if this role is pinned in the user listing
     icon: string?, -- role icon hash
-    unicode_emoji: string?, -- role unicode emoji
+    unicodeEmoji: string?, -- role unicode emoji
     position: number, -- position of this role (roles with the same position are sorted by id)
     permissions: string, -- permission bit set
     managed: boolean, -- whether this role is managed by an integration
@@ -515,7 +520,7 @@ export type EmojiObject = {
     name: string, -- emoji name
     roles: { Snowflake }?, -- roles allowed to use this emoji
     user: UserObject?, -- user that created this emoji
-    require_colons: boolean?, -- whether this emoji must be wrapped in colons
+    requireColons: boolean?, -- whether this emoji must be wrapped in colons
     managed: boolean?, -- whether this emoji is managed
     animated: boolean?, -- whether this emoji is animated
     available: boolean?, -- whether this emoji can be used, may be false due to loss of Server Boosts
@@ -523,32 +528,32 @@ export type EmojiObject = {
 
 -- https://discord.com/developers/docs/resources/guild#welcome-screen-object-welcome-screen-channel-structure
 export type WelcomeScreenChannelObject = {
-    channel_id: Snowflake?, -- the channel's id
+    channelId: Snowflake?, -- the channel's id
     description: string?, -- the description shown for the channel
-    emoji_id: Snowflake?, -- the emoji id, if the emoji is custom
-    emoji_name: string?, -- the emoji name if custom, the unicode character if standard, or null if no emoji is set
+    emojiId: Snowflake?, -- the emoji id, if the emoji is custom
+    emojiName: string?, -- the emoji name if custom, the unicode character if standard, or null if no emoji is set
 }
 
 -- https://discord.com/developers/docs/resources/guild#welcome-screen-object
 export type WelcomeScreenObject = {
     description: string, -- the server description shown in the welcome screen
-    welcome_channels: { WelcomeScreenChannelObject }, -- the channels shown in the welcome screen, up to 5
+    welcomeChannels: { WelcomeScreenChannelObject }, -- the channels shown in the welcome screen, up to 5
 }
 
 -- https://discord.com/developers/docs/resources/sticker#sticker-object
 export type StickerObject = {
     id: Snowflake, -- id of the sticker
-    pack_id: Snowflake, -- for standard stickers, id of the pack the sticker is from
+    packId: Snowflake, -- for standard stickers, id of the pack the sticker is from
     name: string, -- name of the sticker
     description: string?, -- description of the sticker
     tags: string, -- autocomplete/suggestion tags for the sticker (max 200 characters)
     asset: string?, -- Deprecated previously the sticker asset hash, now an empty string
     type: StickerType, -- type of sticker
-    format_type: StickerFormatType, -- 	type of sticker format
+    formatType: StickerFormatType, -- 	type of sticker format
     available: boolean?, -- whether this guild sticker can be used, may be false due to loss of Server Boosts
-    guild_id: Snowflake?, -- id of the guild that owns this sticker
+    guildId: Snowflake?, -- id of the guild that owns this sticker
     user: UserObject?, -- the user that uploaded the guild sticker
-    sort_value: number?, -- the standard sticker's sort order within its pack
+    sortValue: number?, -- the standard sticker's sort order within its pack
 }
 
 -- https://discord.com/developers/docs/resources/guild#guild-object
@@ -556,46 +561,46 @@ export type GuildObject = {
     id: Snowflake?, -- guild id
     name: string?, -- guild name (2-100 characters, excluding trailing and leading whitespace)
     icon: string?, -- icon hash
-    icon_hash: string?, -- icon hash, returned when in the template object
+    iconHash: string?, -- icon hash, returned when in the template object
     splash: string?, -- 	splash hash
-    discovery_splash: string?, -- discovery splash hash; only present for guilds with the "DISCOVERABLE" feature
+    discoverySplash: string?, -- discovery splash hash; only present for guilds with the "DISCOVERABLE" feature
     owner: boolean?, -- true if the user is the owner of the guild
-    owner_id: Snowflake?, -- id of owner
+    ownerId: Snowflake?, -- id of owner
     permissions: string?, -- total permissions for the user in the guild (excludes overwrites and implicit permissions)
     region: string?, -- voice region id for the guild (deprecated)
-    afk_channel_id: Snowflake?, -- id of afk channel
-    afk_timeout: number?, -- afk timeout in seconds
-    widget_enabled: boolean?, -- true if the server widget is enabled
-    widget_channel_id: Snowflake?, -- the channel id that the widget will generate an invite to, or null if set to no invite
-    verification_level: VerificationLevel?, -- verification level required for the guild
-    default_message_notifications: DefaultMessageNotification?, -- default message notifications level
-    explicit_content_filter: ExplicitContentFilterLevel?, -- explicit content filter level
+    afkChannelId: Snowflake?, -- id of afk channel
+    afkTimeout: number?, -- afk timeout in seconds
+    widgetEnabled: boolean?, -- true if the server widget is enabled
+    widgetChannelId: Snowflake?, -- the channel id that the widget will generate an invite to, or null if set to no invite
+    verificationLevel: VerificationLevel?, -- verification level required for the guild
+    defaultMessageNotifications: DefaultMessageNotification?, -- default message notifications level
+    explicitContentFilter: ExplicitContentFilterLevel?, -- explicit content filter level
     roles: { GuildRoleObject }?, -- roles in the guild
     emojis: { EmojiObject }?, -- custom guild emojis
     features: { GuildFeature }?, -- enabled guild features
-    mfa_level: MFALevel?, -- required MFA level for the guild
-    application_id: Snowflake?, -- application id of the guild creator if it is bot-created
-    system_channel_id: Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
-    system_channel_flags: SystemChannelFlags?, -- system channel flags
-    rules_channel_id: Snowflake?, -- the id of the channel where Community guilds can display rules and/or guidelines
-    max_presences: number?, -- the maximum number of presences for the guild (null is always returned, apart from the largest of guilds)
-    max_members: number?, -- the maximum number of members for the guild
-    vanity_url_code: string?, -- the vanity url code for the guild
+    mfaLevel: MFALevel?, -- required MFA level for the guild
+    applicationId: Snowflake?, -- application id of the guild creator if it is bot-created
+    systemChannelId: Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
+    systemChannelFlags: SystemChannelFlags?, -- system channel flags
+    rulesChannelId: Snowflake?, -- the id of the channel where Community guilds can display rules and/or guidelines
+    maxPresences: number?, -- the maximum number of presences for the guild (null is always returned, apart from the largest of guilds)
+    maxMembers: number?, -- the maximum number of members for the guild
+    vanityUrlCode: string?, -- the vanity url code for the guild
     description: string?, -- the description of a guild
     banner: string?, -- banner hash
-    premium_tier: PremiumTier?, -- premium tier (Server Boost level)
-    premium_subscription_count: number?, -- the number of boosts this guild currently has
-    preferred_locale: LanguageLocales?, -- the preferred locale of a Community guild; used in server discovery and notices from Discord, and sent in interactions; defaults to "en-US"
-    public_updates_channel_id: Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive notices from Discord
-    max_video_channel_users: number?, -- the maximum amount of users in a video channel
-    max_stage_video_channel_users: number?, -- the maximum amount of users in a stage video channel
-    approximate_member_count: number?, -- approximate number of members in this guild, returned from the GET /guilds/<id> and /users/@me/guilds endpoints when with_counts is true
-    approximate_presence_count: number?, -- approximate number of non-offline members in this guild, returned from the GET /guilds/<id> and /users/@me/guilds endpoints when with_counts is true
-    welcome_screen: WelcomeScreenObject?, -- the welcome screen of a Community guild, shown to new members, returned in an Invite's guild object
-    nsfw_level: GuildNSFWLevel?, -- 	guild NSFW level
+    premiumTier: PremiumTier?, -- premium tier (Server Boost level)
+    premiumSubscriptionCount: number?, -- the number of boosts this guild currently has
+    preferredLocale: LanguageLocales?, -- the preferred locale of a Community guild; used in server discovery and notices from Discord, and sent in interactions; defaults to "en-US"
+    publicUpdatesChannelId: Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive notices from Discord
+    maxVideoChannelUsers: number?, -- the maximum amount of users in a video channel
+    maxStageVideoChannelUsers: number?, -- the maximum amount of users in a stage video channel
+    approximateMemberCount: number?, -- approximate number of members in this guild, returned from the GET /guilds/<id> and /users/@me/guilds endpoints when with_counts is true
+    approximatePresenceCount: number?, -- approximate number of non-offline members in this guild, returned from the GET /guilds/<id> and /users/@me/guilds endpoints when with_counts is true
+    welcomeScreen: WelcomeScreenObject?, -- the welcome screen of a Community guild, shown to new members, returned in an Invite's guild object
+    nsfwLevel: GuildNSFWLevel?, -- 	guild NSFW level
     stickers: { StickerObject }?, -- custom guild stickers
-    premium_progress_bar_enabled: boolean?, -- whether the guild has the boost progress bar enabled
-    safety_alerts_channel_id: Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive safety alerts from Discord
+    premiumProgressBarEnabled: boolean?, -- whether the guild has the boost progress bar enabled
+    safetyAlertsChannelId: Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive safety alerts from Discord
 }
 
 -- https://discord.com/developers/docs/resources/application#install-params-object
@@ -899,7 +904,7 @@ export type IntegrationObject = {
 -- https://discord.com/developers/docs/resources/channel#channel-mention-object
 export type ChannelMentionObject = {
     id: Snowflake, -- id of the channel
-    guild_id: Snowflake, -- id of the guild containing the channel
+    guildId: Snowflake, -- id of the guild containing the channel
     type: ChannelType, -- the type of channel
     name: string, -- the name of the channel
 }
@@ -1510,14 +1515,14 @@ export type GuildTemplateObject = {
     code: string, -- the template code (unique ID)
     name: string, -- template name
     description: string?, -- the description for the template
-    usage_count: number, -- number of times this template has been used
-    creator_id: Snowflake, -- the ID of the user who created the template
+    usageCount: number, -- number of times this template has been used
+    creatorId: Snowflake, -- the ID of the user who created the template
     creator: UserObject, -- the user who created the template
-    created_at: string, -- when this template was created
-    updated_at: string, -- when this template was last synced to the source guild
-    source_guild_id: Snowflake, -- the ID of the guild this template is based on
-    serialized_source_guild: GuildObject, -- the guild snapshot this template contains
-    is_dirty: boolean?, -- whether the template has unsynced changes
+    createdAt: string, -- when this template was created
+    updatedAt: string, -- when this template was last synced to the source guild
+    sourceGuildId: Snowflake, -- the ID of the guild this template is based on
+    serializedSourceGuild: GuildObject, -- the guild snapshot this template contains
+    isDirty: boolean?, -- whether the template has unsynced changes
 }
 
 -- https://discord.com/developers/docs/resources/sticker#sticker-pack-object

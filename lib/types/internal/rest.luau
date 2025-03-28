@@ -211,15 +211,15 @@ export type CreateGuildRequest = Request<{
     name: string, -- name of the guild (2-100 characters)
     region: string?, -- voice region id (deprecated)
     icon: string?, -- base64 128x128 image for the guild icon
-    verification_level: objects.VerificationLevel?, -- verification level
-    default_message_notifications: objects.DefaultMessageNotification?, -- default message notification level
-    explicit_content_filter: objects.ExplicitContentFilterLevel?, -- explicit content filter level
+    verificationLevel: objects.VerificationLevel?, -- verification level
+    defaultMessageNotifications: objects.DefaultMessageNotification?, -- default message notification level
+    explicitContentFilter: objects.ExplicitContentFilterLevel?, -- explicit content filter level
     roles: { objects.GuildRoleObject }?, -- new guild roles
     channels: { objects.ChannelObject }?, -- new guild's channels
-    afk_channel_id: objects.Snowflake?, -- id for afk channel
-    afk_timeout: number?, -- afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600
-    system_channel_id: objects.Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
-    system_channel_flags: objects.SystemChannelFlags?, -- system channel flags
+    afkChannelId: objects.Snowflake?, -- id for afk channel
+    afkTimeout: number?, -- afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600
+    systemChannelId: objects.Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
+    systemChannelFlags: objects.SystemChannelFlags?, -- system channel flags
 }>
 
 -- https://discord.com/developers/docs/resources/guild#modify-guild
@@ -454,8 +454,8 @@ export type ModifyStageInstanceRequest = Request<{
 export type CreateGuildStickerRequest = Request<{
     name: string, -- name of the sticker (2-30 characters)
     description: string, -- description of the sticker (empty or 2-100 characters)
-    tags: { string }, -- autocomplete/suggestion tags for the sticker (max 200 characters)
-    file: string, -- the sticker file to upload, must be a PNG, APNG, GIF, or Lottie JSON file, max 512 KiB
+    tags: string, -- autocomplete/suggestion tags for the sticker (max 200 characters)
+    file: objects.FileContent, -- the sticker file to upload, must be a PNG, APNG, GIF, or Lottie JSON file, max 512 KiB
 }>
 
 -- https://discord.com/developers/docs/resources/sticker#modify-guild-sticker
@@ -587,14 +587,14 @@ export type EditGlobalApplicationCommandRequest = Request<{
 -- https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 export type CreateGuildApplicationCommandRequest = Request<{
     name: string, -- Name of command, 1-32 characters
-    name_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
+    nameLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
     description: string?, -- 1-100 character description for CHAT_INPUT commands
-    description_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
+    descriptionLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
     options: { objects.ApplicationCommandOptionObject }?, -- the parameters for the command, max of 25
-    default_member_permissions: string?, -- Set of permissions represented as a bit set
-    dm_permission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
-    default_permission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
-    integration_types: { objects.IntegrationType }?, -- Installation context(s) where the command is available
+    defaultMemberPermissions: { objects.PermissionStrings }?, -- Set of permissions represented as a bit set
+    dmPermission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
+    defaultPermission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
+    integrationTypes: { objects.IntegrationType }?, -- Installation context(s) where the command is available
     contexts: { objects.InteractionContextType }?, -- Interaction context(s) where the command can be used
     type: objects.ApplicationCommandType?, -- Type of command, defaults 1 if not set
     nsfw: boolean?, -- Indicates whether the command is age-restricted
