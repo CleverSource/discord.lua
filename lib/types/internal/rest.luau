@@ -34,13 +34,35 @@ export type Request<DATA> = DATA
 export type CreateInteractionRequest = Request<objects.InteractionResponseObject>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#edit-original-interaction-response
-export type EditOriginalInteractionRequest = Request<objects.Partial<objects.MessageObject>>
+export type EditOriginalInteractionRequest = Request<{
+    content: string?,
+    tts: boolean?,
+    embeds: { objects.EmbedObject }?,
+    allowedMentions: objects.AllowedMentionObject?,
+    files: { objects.FileContent }?,
+    customId: string?,
+    components: objects.ComponentObjects?,
+    flags: number?,
+    choices: { objects.ApplicationCommandOptionChoiceObject }?,
+    poll: objects.PollObject?
+}>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message
 export type CreateFollowupMessageRequest = Request<objects.Partial<objects.MessageObject>>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#edit-followup-message
-export type EditFollowupMessageRequest = Request<objects.Partial<objects.MessageObject>>
+export type EditFollowupMessageRequest = Request<{
+    content: string?,
+    tts: boolean?,
+    embeds: { objects.EmbedObject }?,
+    allowedMentions: objects.AllowedMentionObject?,
+    files: { objects.FileContent }?,
+    customId: string?,
+    components: objects.ComponentObjects?,
+    flags: number?,
+    choices: { objects.ApplicationCommandOptionChoiceObject }?,
+    poll: objects.PollObject?
+}>
 
 -- https://discord.com/developers/docs/resources/auto-moderation#create-auto-moderation-rule
 export type CreateAutoModerationRuleRequest = Request<{
@@ -127,9 +149,9 @@ export type CreateMessageRequest = Request<{
 export type EditMessageRequest = Request<{
     content: string?, -- Message contents (up to 2000 characters)
     embeds: { objects.EmbedObject }?, -- Up to 10 rich embeds (up to 6000 characters)
-    allowed_mentions: { objects.AllowedMentionObject }?, -- Allowed mentions for the message
+    allowedMentions: { objects.AllowedMentionObject }?, -- Allowed mentions for the message
     components: { objects.ComponentObjects }?, -- Components to include with the message
-    -- files: { },
+    files: { objects.FileContent },
     -- payload_json: string,
     attachments: { objects.AttachmentObject }?, -- Attachment objects with filename and description. See Uploading Files
     flags: number?, -- Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set)
@@ -233,25 +255,25 @@ export type CreateGuildRequest = Request<{
 export type ModifyGuildRequest = Request<
     objects.Partial<{
         name: string, -- guild name
-        verification_level: objects.VerificationLevel?, -- verification level
-        default_message_notifications: objects.DefaultMessageNotification?, -- default message notification level
-        explicit_content_filter: objects.ExplicitContentFilterLevel?, -- explicit content filter level
-        afk_channel_id: objects.Snowflake?, -- id for afk channel
-        afk_timeout: number?, -- afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600
+        verificationLevel: objects.VerificationLevel?, -- verification level
+        defaultMessageNotifications: objects.DefaultMessageNotification?, -- default message notification level
+        explicitContentFilter: objects.ExplicitContentFilterLevel?, -- explicit content filter level
+        afkChannelId: objects.Snowflake?, -- id for afk channel
+        afkTimeout: number?, -- afk timeout in seconds, can be set to: 60, 300, 900, 1800, 3600
         icon: string?, -- base64 1024x1024 png/jpeg/gif image for the guild icon (can be animated gif when the server has the ANIMATED_ICON feature)
-        owner_id: objects.Snowflake, -- user id to transfer guild ownership to (must be owner)
+        ownerId: objects.Snowflake, -- user id to transfer guild ownership to (must be owner)
         splash: string?, -- base64 16:9 png/jpeg image for the guild splash (when the server has the INVITE_SPLASH feature)
-        discovery_splash: string?, -- base64 16:9 png/jpeg image for the guild discovery splash (when the server has the DISCOVERABLE feature)
+        discoverySplash: string?, -- base64 16:9 png/jpeg image for the guild discovery splash (when the server has the DISCOVERABLE feature)
         banner: string?, -- base64 16:9 png/jpeg image for the guild banner (when the server has the BANNER feature; can be animated gif when the server has the ANIMATED_BANNER feature)
-        system_channel_id: objects.Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
-        system_channel_flags: objects.SystemChannelFlags?, -- system channel flags
-        rules_channel_id: objects.Snowflake?, -- the id of the channel where Community guilds display rules and/or guidelines
-        public_updates_channel_id: objects.Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive notices from Discord
-        preferred_locale: objects.LanguageLocales?, -- the preferred locale of a Community guild used in server discovery and notices from Discord; defaults to "en-US"
+        systemChannelId: objects.Snowflake?, -- the id of the channel where guild notices such as welcome messages and boost events are posted
+        systemChannelFlags: objects.SystemChannelFlags?, -- system channel flags
+        rulesChannelId: objects.Snowflake?, -- the id of the channel where Community guilds display rules and/or guidelines
+        publicUpdatesChannelId: objects.Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive notices from Discord
+        preferredLocale: objects.LanguageLocales?, -- the preferred locale of a Community guild used in server discovery and notices from Discord; defaults to "en-US"
         features: { objects.GuildFeature }?, -- enabled guild features
         description: string?, -- the description for the guild
-        premium_progress_bar_enabled: boolean?, -- whether the guild's boost progress bar should be enabled
-        safety_alerts_channel_id: objects.Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive safety alerts from Discord
+        premiumProgressBarEnabled: boolean?, -- whether the guild's boost progress bar should be enabled
+        safetyAlertsChannelId: objects.Snowflake?, -- the id of the channel where admins and moderators of Community guilds receive safety alerts from Discord
     }>
 >
 
@@ -579,14 +601,14 @@ export type CreateGlobalApplicationCommandRequest = Request<{
 -- https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
 export type EditGlobalApplicationCommandRequest = Request<{
     name: string, -- Name of command, 1-32 characters
-    name_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
+    nameLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
     description: string?, -- 1-100 character description for CHAT_INPUT commands
-    description_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
+    descriptionLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
     options: { objects.ApplicationCommandOptionObject }?, -- the parameters for the command, max of 25
-    default_member_permissions: string?, -- Set of permissions represented as a bit set
-    dm_permission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
-    default_permission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
-    integration_types: { objects.IntegrationType }?, -- Installation context(s) where the command is available
+    defaultMemberPermissions: string?, -- Set of permissions represented as a bit set
+    dmPermission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
+    defaultPermission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
+    integrationTypes: { objects.IntegrationType }?, -- Installation context(s) where the command is available
     contexts: { objects.InteractionContextType }?, -- Interaction context(s) where the command can be used
     nsfw: boolean?, -- Indicates whether the command is age-restricted
 }>
@@ -610,14 +632,14 @@ export type CreateGuildApplicationCommandRequest = Request<{
 -- https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
 export type EditGuildApplicationCommandRequest = Request<{
     name: string, -- Name of command, 1-32 characters
-    name_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
+    nameLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the name field. Values follow the same restrictions as name
     description: string?, -- 1-100 character description for CHAT_INPUT commands
-    description_localizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
+    descriptionLocalizations: { [objects.LanguageLocales]: string }?, -- Localization dictionary for the description field. Values follow the same restrictions as description
     options: { objects.ApplicationCommandOptionObject }?, -- the parameters for the command, max of 25
-    default_member_permissions: string?, -- Set of permissions represented as a bit set
-    dm_permission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
-    default_permission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
-    integration_types: { objects.IntegrationType }?, -- Installation context(s) where the command is available
+    defaultMemberPermissions: string?, -- Set of permissions represented as a bit set
+    dmPermission: boolean?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
+    defaultPermission: boolean, -- Replaced by default_member_permissions and will be deprecated in the future. Indicates whether the command is enabled by default when the app is added to a guild. Defaults to true
+    integrationTypes: { objects.IntegrationType }?, -- Installation context(s) where the command is available
     contexts: { objects.InteractionContextType }?, -- Interaction context(s) where the command can be used
     nsfw: boolean?, -- Indicates whether the command is age-restricted
 }>

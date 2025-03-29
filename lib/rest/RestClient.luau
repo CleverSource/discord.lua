@@ -400,4 +400,68 @@ function RestClient.editApplicationEmoji(self: RestClient, emojiId: string, opti
     })
 end
 
+function RestClient.editFollowupMessage(self: RestClient, token: string, messageId: string, options: RestTypes.EditFollowupMessageRequest): RestTypes.EditFollowupMessageResponse
+    return self.request:patch(Routes.interactions.responses.message(self.applicationId, token, messageId), {
+        body = options,
+        files = options.files,
+        authenticated = false
+    })
+end
+
+function RestClient.editGlobalApplicationCommand(self: RestClient, commandId: string, options: RestTypes.EditGlobalApplicationCommandRequest): RestTypes.EditGlobalApplicationCommandResponse
+    return self.request:patch(Routes.interactions.commands.command(self.applicationId, commandId), {
+        body = options
+    })
+end
+
+function RestClient.editGuild(self: RestClient, guildId: string, options: RestTypes.ModifyGuildRequest, reason: string?): RestTypes.ModifyGuildResponse
+    return self.request:patch(Routes.guilds.guild(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editGuildApplicationCommand(self: RestClient, guildId: string, commandId: string, options: RestTypes.EditGuildApplicationCommandRequest): RestTypes.EditGuildApplicationCommandResponse
+    return self.request:patch(Routes.interactions.commands.guilds.one(self.applicationId, guildId, commandId), {
+        body = options
+    })
+end
+
+function RestClient.editGuildMfaLevel(self: RestClient, guildId: string, mfaLeveL: ApiTypes.MFALevel, reason: string?)
+    self.request:post(Routes.guilds.mfa(guildId), {
+        body = {
+            level = mfaLeveL
+        },
+        reason = reason
+    })
+end
+
+function RestClient.editGuildSticker(self: RestClient, guildId: string, stickerId: string, options: RestTypes.ModifyGuildStickerRequest, reason: string?): RestTypes.ModifyGuildStickerResponse
+    return self.request:patch(Routes.guilds.sticker(guildId, stickerId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editGuildTemplate(self: RestClient, guildId: string, templateCode: string, options: RestTypes.ModifyGuildTemplateRequest): RestTypes.ModifyGuildTemplateResponse
+    return self.request:patch(Routes.guilds.templates.guild(guildId, templateCode), {
+        body = options
+    })
+end
+
+function RestClient.editMessage(self: RestClient, channelId: string, messageId: string, options: RestTypes.EditMessageRequest): RestTypes.EditMessageResponse
+    return self.request:patch(Routes.channels.message(channelId, messageId), {
+        body = options,
+        file = options.files
+    })
+end
+
+function RestClient.editOriginalInteractionResponse(self: RestClient, token: string, options: RestTypes.EditOriginalInteractionRequest): RestTypes.EditOriginalInteractionResponse
+    return self.request:patch(Routes.interactions.responses.original(self.applicationId, token), {
+        body = options,
+        file = options.files,
+        authenticated = false
+    })
+end
+
 return RestClient

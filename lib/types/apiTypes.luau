@@ -1015,27 +1015,27 @@ export type ReactionObject = {
 -- https://discord.com/developers/docs/resources/channel#message-object-message-activity-structure
 export type MessageActivityObject = {
     type: MessageActivityType, -- 	type of message activity
-    party_id: string, -- party_id from a Rich Presence event
+    partyId: string, -- party_id from a Rich Presence event
 }
 
 -- https://discord.com/developers/docs/resources/channel#message-reference-object-message-reference-structure
 export type MessageReferenceObject = {
     type: MessageReferenceType?, -- type of reference.
-    message_id: Snowflake?, -- id of the originating message
-    channel_id: Snowflake?, -- id of the originating message's channel
-    guild_id: Snowflake?, -- id of the originating message's guild
-    fail_if_not_exists: boolean?, -- when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true
+    messageId: Snowflake?, -- id of the originating message
+    channelId: Snowflake?, -- id of the originating message's channel
+    guildId: Snowflake?, -- id of the originating message's guild
+    failIfNotExists: boolean?, -- when sending, whether to error if the referenced message doesn't exist instead of sending as a normal (non-reply) message, default true
 }
 
 -- https://discord.com/developers/docs/resources/channel#message-interaction-metadata-object-message-interaction-metadata-structure
-export type MessageInteractionMetadatObject = {
+export type MessageInteractionMetadataObject = {
     id: Snowflake, -- ID of the interaction
     type: InteractionType, -- Type of interaction
     user: UserObject, -- User who triggered the interaction
-    authorizing_integration_owners: { [ApplicationIntegrationType]: Snowflake }, -- IDs for installation context(s) related to an interaction. Details in Authorizing Integration Owners Object
-    original_response_message_id: Snowflake?, -- ID of the original response message, present only on follow-up messages
-    interacted_message_id: Snowflake?, -- ID of the message that contained interactive component, present only on messages created from component interactions
-    triggering_interaction_metadata: MessageInteractionMetadatObject, -- Metadata for the interaction that was used to open the modal, present only on modal submit interactions
+    authorizingIntegrationOwners: { [ApplicationIntegrationType]: Snowflake }, -- IDs for installation context(s) related to an interaction. Details in Authorizing Integration Owners Object
+    originalResponseMessageId: Snowflake?, -- ID of the original response message, present only on follow-up messages
+    interactedMessageId: Snowflake?, -- ID of the message that contained interactive component, present only on messages created from component interactions
+    triggeringInteractionMetadata: MessageInteractionMetadataObject, -- Metadata for the interaction that was used to open the modal, present only on modal submit interactions
 }
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#message-interaction-object-message-interaction-structure
@@ -1114,18 +1114,18 @@ export type ComponentObjects =
     | TextInputComponentObject
 
 -- https://discord.com/developers/docs/resources/sticker#sticker-item-object
-export type SitckerItemObject = {
+export type StickerItemObject = {
     id: Snowflake, -- id of the sticker
     name: string, -- name of the sticker
-    format_type: StickerFormatType, -- 	type of sticker format
+    formatType: StickerFormatType, -- 	type of sticker format
 }
 
 -- https://discord.com/developers/docs/resources/channel#role-subscription-data-object
 export type RoleSubscriptionDataObject = {
-    role_subscription_listing_id: Snowflake, -- the id of the sku and listing that the user is subscribed to
-    tier_name: string, -- the name of the tier that the user is subscribed to
-    total_months_subscribed: number, -- the cumulative number of months that the user has been subscribed for
-    is_renewal: boolean, -- whether this notification is for a renewal rather than a new purchase
+    roleSubscriptionListingId: Snowflake, -- the id of the sku and listing that the user is subscribed to
+    tierName: string, -- the name of the tier that the user is subscribed to
+    totalMonthsSubscribed: number, -- the cumulative number of months that the user has been subscribed for
+    isRenewal: boolean, -- whether this notification is for a renewal rather than a new purchase
 }
 
 -- https://discord.com/developers/docs/resources/poll#poll-media-object-poll-media-object-structure
@@ -1136,21 +1136,21 @@ export type PollMediaObject = {
 
 -- https://discord.com/developers/docs/resources/poll#poll-answer-object-poll-answer-object-structure
 export type PollAnswerObject = {
-    answer_id: number, -- The ID of the answer
-    poll_media: PollMediaObject, -- The data of the answer
+    answerId: number, -- The ID of the answer
+    pollMedia: PollMediaObject, -- The data of the answer
 }
 
 -- https://discord.com/developers/docs/resources/poll#poll-results-object-poll-answer-count-object-structure
 export type PollAnswerCountObject = {
     id: number, -- The answer_id
     count: number, -- The number of votes for this answer
-    me_voted: boolean, -- Whether the current user voted for this answer
+    meVoted: boolean, -- Whether the current user voted for this answer
 }
 
 -- https://discord.com/developers/docs/resources/poll#poll-results-object-poll-results-object-structure
 export type PollResultObject = {
-    is_finalized: boolean, -- Whether the votes have been precisely counted
-    answer_counts: { PollAnswerCountObject }, -- The counts for each answer
+    isFinalized: boolean, -- Whether the votes have been precisely counted
+    answerCounts: { PollAnswerCountObject }, -- The counts for each answer
 }
 
 -- https://discord.com/developers/docs/resources/poll#poll-object
@@ -1158,53 +1158,51 @@ export type PollObject = {
     question: PollMediaObject, -- The question of the poll. Only text is supported.
     answers: { PollAnswerObject }, -- Each of the answers available in the poll.
     expiry: string?, -- The time when the poll ends.
-
-    --fixme: for some reason luau's type system doesn't like this being a `boolean`????
-    allow_multiselect: true | false, -- Whether a user can select multiple answers
-    layout_type: PollLayoutType, -- The layout type of the poll
+    allowMultiselect: boolean, -- Whether a user can select multiple answers
+    layoutType: PollLayoutType, -- The layout type of the poll
     results: PollResultObject?, -- The results of the poll
 }
 
 -- https://discord.com/developers/docs/resources/channel#message-call-object
 export type MessageCallObject = {
     participants: { UserObject }, -- array of user object ids that participated in the call
-    ended_timestamp: string, -- time when call ended
+    endedTimestamp: string, -- time when call ended
 }
 
 -- https://discord.com/developers/docs/resources/channel#message-object
 export type MessageObject = {
     id: Snowflake?, -- id of the message
-    channel_id: Snowflake?, -- id of the channel the message was sent in
+    channelId: Snowflake?, -- id of the channel the message was sent in
     author: UserObject?, -- the author of this message (not guaranteed to be a valid user, see below)
     content: string?, -- contents of the message
     timestamp: string?, -- when this message was sent
-    edited_timestamp: string?, -- when this message was edited (or null if never)
+    editedTimestamp: string?, -- when this message was edited (or null if never)
     tts: boolean?, -- whether this was a TTS message
-    mention_everyone: boolean?, -- whether this message mentions everyone
+    mentionEveryone: boolean?, -- whether this message mentions everyone
     mentions: { UserObject }?, -- users specifically mentioned in the message
-    mention_roles: { GuildRoleObject }?, -- roles specifically mentioned in this message
-    mention_channels: { ChannelMentionObject }?, -- channels specifically mentioned in this message
+    mentionRoles: { GuildRoleObject }?, -- roles specifically mentioned in this message
+    mentionChannels: { ChannelMentionObject }?, -- channels specifically mentioned in this message
     attachments: { AttachmentObject }?, -- any attached files
     embeds: { EmbedObject }?, -- any embedded content
     reactions: { ReactionObject }?, -- reactions to the message
     nonce: string?, -- used for validating a message was sent
     pinned: boolean?, -- whether this message is pinned
-    webhook_id: Snowflake?, -- if the message is generated by a webhook, this is the webhook's id
+    webhookId: Snowflake?, -- if the message is generated by a webhook, this is the webhook's id
     type: MessageType?, -- type of message
     activity: MessageActivityObject?, -- sent with Rich Presence-related chat embeds
     application: ApplicationObject?, -- sent with Rich Presence-related chat embeds
-    application_id: Snowflake?, -- if the message is an Interaction or application-owned webhook, this is the id of the application
-    message_reference: MessageReferenceObject?, -- data showing the source of a crosspost, channel follow add, pin, or reply message
+    applicationId: Snowflake?, -- if the message is an Interaction or application-owned webhook, this is the id of the application
+    messageReference: MessageReferenceObject?, -- data showing the source of a crosspost, channel follow add, pin, or reply message
     flags: number?, -- message flags combined as a bitfield
-    referenced_message: MessageObject?, -- the message associated with the message_reference
-    interaction_metadata: MessageInteractionMetadatObject?, -- In preview. Sent if the message is sent as a result of an interaction
+    referencedMessage: MessageObject?, -- the message associated with the message_reference
+    interactionMetadata: MessageInteractionMetadataObject?, -- In preview. Sent if the message is sent as a result of an interaction
     interaction: MessageInteractionObject?, -- Deprecated in favor of interaction_metadata; sent if the message is a response to an interaction
     thread: ChannelObject?, -- the thread that was started from this message, includes thread member object
     components: { ComponentObjects }?, -- sent if the message contains components like buttons, action rows, or other interactive components
-    sticker_items: { SitckerItemObject }?, -- sent if the message contains stickers
+    stickerItems: { StickerItemObject }?, -- sent if the message contains stickers
     stickers: { StickerObject }?, -- Deprecated the stickers sent with the message
     position: number?, -- A generally increasing integer (there may be gaps or duplicates) that represents the approximate position of the message in a thread, it can be used to estimate the relative position of the message in a thread in company with total_message_sent on parent thread
-    role_subscription_data: RoleSubscriptionDataObject?, -- data of the role subscription purchase or renewal that prompted this ROLE_SUBSCRIPTION_PURCHASE message
+    roleSubscriptionData: RoleSubscriptionDataObject?, -- data of the role subscription purchase or renewal that prompted this ROLE_SUBSCRIPTION_PURCHASE message
     resolved: ResolvedDataStructure?, -- data for users, members, channels, and roles in the message's auto-populated select menus
     poll: PollObject?, -- the poll associated with the message
     call: MessageCallObject?, -- the call associated with the message
