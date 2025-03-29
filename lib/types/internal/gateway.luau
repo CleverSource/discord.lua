@@ -505,4 +505,4 @@ export type MessagePollVoteRemove = Payload<{
     answer_id: number, -- ID of the answer
 }>
 
-return "DISCORD_V10_PAYLOAD_TYPES"
+return {}

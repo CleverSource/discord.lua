@@ -1308,18 +1308,18 @@ export type ApplicationCommandOptionObject = {
 export type ApplicationCommandObject = {
     id: Snowflake?, -- Unique ID of command
     type: ApplicationCommandType?, -- Type of command, defaults to 1
-    application_id: Snowflake?, -- ID of the parent application
-    guild_id: Snowflake?, -- Guild ID of the command, if not global
+    applicationId: Snowflake?, -- ID of the parent application
+    guildId: Snowflake?, -- Guild ID of the command, if not global
     name: string, -- Name of command, 1-32 characters
-    name_localizations: { [LanguageLocales]: string }?, -- Localization dictionary for name field. Values follow the same restrictions as name
+    nameLocalizations: { [LanguageLocales]: string }?, -- Localization dictionary for name field. Values follow the same restrictions as name
     description: string, -- Description for CHAT_INPUT commands, 1-100 characters. Empty string for USER and MESSAGE commands
-    description_localizations: { [LanguageLocales]: string }?, -- Localization dictionary for description field. Values follow the same restrictions as description
+    descriptionLocalizations: { [LanguageLocales]: string }?, -- Localization dictionary for description field. Values follow the same restrictions as description
     options: { ApplicationCommandOptionObject }?, -- Parameters for the command, max of 25
-    default_member_permissions: string?, -- Set of permissions represented as a bit set
-    dm_permission: string?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
-    default_permission: boolean?, -- Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true
+    defaultMemberPermissions: string?, -- Set of permissions represented as a bit set
+    dmPermission: string?, -- Deprecated (use contexts instead); Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible.
+    defaultPermission: boolean?, -- Not recommended for use as field will soon be deprecated. Indicates whether the command is enabled by default when the app is added to a guild, defaults to true
     nsfw: boolean?, -- Indicates whether the command is age-restricted, defaults to false
-    integration_types: { IntegrationType }?, -- Installation contexts where the command is available, only for globally-scoped commands. Defaults to your app's configured contexts
+    integrationTypes: { IntegrationType }?, -- Installation contexts where the command is available, only for globally-scoped commands. Defaults to your app's configured contexts
     contexts: { InteractionContextType }?, -- Interaction context(s) where the command can be used, only for globally-scoped commands. By default, all interaction context types included for new commands.
     version: Snowflake?, -- Autoincrementing version identifier updated during substantial record changes
 }

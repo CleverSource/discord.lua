@@ -26,7 +26,7 @@ function Socket.new(url: string, listenImmediately: boolean?): Socket
 
     self.events = {}
 
-    -- NOTE: a race condition will occur with "OnOpen" if listenImmediately is true
+    -- NOTE: a race condition will occur with events.open if listenImmediately is true
     if not (not listenImmediately) then
         self:_startListening()
     end

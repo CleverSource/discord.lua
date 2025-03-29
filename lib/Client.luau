@@ -63,7 +63,7 @@ function Client.new(options: ClientOptions): Client
     
     -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
-        token = `Bot {options.token}`,
+        token = options.token,
         preferSnakeCase = preferSnakeCase or false,
         logger = logger
     }

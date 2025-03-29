@@ -54,6 +54,8 @@ export type CreateAutoModerationRuleRequest = Request<{
     exemptChannels: { objects.Snowflake }?, -- the channel ids that should not be affected by the rule (Maximum of 50)
 }>
 
+export type EditAutoModerationRuleRequest = Request<objects.Partial<CreateAutoModerationRuleRequest>>
+
 -- https://discord.com/developers/docs/resources/auto-moderation#modify-auto-moderation-rule
 export type ModifyAutoModerationRuleRequest = Request<{
     name: string, -- the rule name
@@ -200,6 +202,11 @@ export type CreateApplicationEmojiRequest = Request<{
     image: string -- the 128x128 emoji image
 }>
 
+-- https://discord.com/developers/docs/resources/emoji#modify-application-emoji
+export type ModifyApplicationEmojiRequest = Request<{
+    name: string, -- name of the emoji
+}>
+
 -- https://discord.com/developers/docs/resources/emoji#modify-guild-emoji
 export type ModifyGuildEmojiRequest = Request<{
     name: string, -- name of the emoji
@@ -278,8 +285,8 @@ export type ModifyGuildChannelPositionsRequest = Request<
         {
             id: objects.Snowflake, -- channel id
             position: number?, -- sorting position of the channel (channels with the same position are sorted by id)
-            lock_permissions: boolean?, -- syncs the permission overwrites with the new parent, if moving to a new category
-            parent_id: objects.Snowflake?, -- the new parent ID for the channel that is moved
+            lockPermissions: boolean?, -- syncs the permission overwrites with the new parent, if moving to a new category
+            parentId: objects.Snowflake?, -- the new parent ID for the channel that is moved
         }
     }
 >
@@ -646,6 +653,9 @@ export type EditApplicationCommandPermissionsRequest = Request<{
 
 -- [[ Responses ]] --
 
+-- https://discord.com/developers/docs/resources/auto-moderation#modify-auto-moderation-rule
+export type EditAutoModerationRuleResponse = Response<objects.AutomoderationRuleObject>
+
 -- https://discord.com/developers/docs/resources/voice#get-current-user-voice-state
 export type GetCurrentUserVoiceStateResponse = Response<objects.VoiceStateObject>
 
@@ -873,6 +883,9 @@ export type CreateGuildEmojiResponse = Response<objects.EmojiObject>
 
 -- https://discord.com/developers/docs/resources/emoji#create-application-emoji
 export type CreateApplicationEmojiResponse = Response<objects.EmojiObject>
+
+-- https://discord.com/developers/docs/resources/emoji#modify-application-emoji
+export type ModifyApplicationEmojiResponse = Response<objects.EmojiObject>
 
 -- https://discord.com/developers/docs/resources/emoji#modify-guild-emoji
 export type ModifyGuildEmojiResponse = Response<objects.EmojiObject>

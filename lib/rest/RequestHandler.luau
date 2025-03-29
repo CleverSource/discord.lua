@@ -176,7 +176,7 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
         elseif newKey == "image" then
             newBody[newKey] = imageDataToBase64(value)
         -- Url image data encoding in base64 
-        elseif newKey == "icon" or newKey == "avatar" then
+        elseif newKey == "icon" or newKey == "avatar" or newKey == "banner" then
             newBody[newKey] = urlToBase64(value)
         elseif typeof(value) == "table" then
             if #value > 0 then
