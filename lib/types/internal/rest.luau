@@ -22,6 +22,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+local datetime = require("@lune/datetime")
 local objects = require("../apiTypes")
 
 -- [[ Base ]] --
@@ -45,6 +46,16 @@ export type EditOriginalInteractionRequest = Request<{
     flags: number?,
     choices: { objects.ApplicationCommandOptionChoiceObject }?,
     poll: objects.PollObject?
+}>
+
+-- https://discord.com/developers/docs/resources/webhook#edit-webhook-message
+export type EditOriginalWebhookRequest = EditOriginalInteractionRequest & Request<{
+    threadId: string?
+}>
+
+-- https://discord.com/developers/docs/resources/webhook#edit-webhook-message
+export type EditWebhookMessageRequest = EditOriginalInteractionRequest & Request<{
+    threadId: string?
 }>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message
@@ -374,7 +385,7 @@ export type ModifyGuildRoleRequest = Request<{
     color: number?, -- RGB color value
     hoist: boolean?, -- whether the role should be displayed separately in the sidebar
     icon: string?, -- the role's icon image (if the guild has the ROLE_ICONS feature)
-    unicode_emoji: string?, -- the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature)
+    unicodeEmoji: string?, -- the role's unicode emoji as a standard emoji (if the guild has the ROLE_ICONS feature)
     mentionable: boolean?, -- whether the role should be mentionable
 }>
 
@@ -394,7 +405,7 @@ export type BeginGuildPruneRequest = Request<{
 -- https://discord.com/developers/docs/resources/guild#modify-guild-welcome-screen
 export type ModifyGuildWelcomeScreenRequest = Request<{
     enabled: boolean?, -- whether the welcome screen is enabled
-    welcome_channels: { objects.WelcomeScreenChannelObject }, -- channels linked in the welcome screen and their display options
+    welcomeChannels: { objects.WelcomeScreenChannelObject }, -- channels linked in the welcome screen and their display options
     description: string?, -- the server description to show in the welcome screen
 }>
 
@@ -408,15 +419,16 @@ export type ModifyGuildOnboardingRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/guild#modify-current-user-voice-state
 export type ModifyCurrentUserVoiceStateRequest = Request<{
-    channel_id: objects.Snowflake?, -- the id of the channel the user is currently in
+    channelId: objects.Snowflake?, -- the id of the channel the user is currently in
     suppress: boolean?, -- toggles the user's suppress state
-    request_to_speak_timestamp: string?, -- sets the user's request to speak
+    requestToSpeakTimestamp: datetime.DateTime | string?, -- sets the user's request to speak
 }>
 
 -- https://discord.com/developers/docs/resources/guild#modify-user-voice-state
 export type ModifyUserVoiceStateRequest = Request<{
-    channel_id: objects.Snowflake?, -- the id of the channel the user is currently in
+    channelId: objects.Snowflake?, -- the id of the channel the user is currently in
     suppress: boolean?, -- toggles the user's suppress state
+    userId: objects.Snowflake
 }>
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
@@ -434,14 +446,14 @@ export type CreateGuildScheduledEventRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#modify-guild-scheduled-event
 export type ModifyGuildScheduledEventRequest = Request<{
-    channel_id: objects.Snowflake?, -- the channel id of the scheduled event.
-    entity_metadata: objects.GuildScheduledEventEntityMetadata, -- the entity metadata of the scheduled event
+    channelId: objects.Snowflake?, -- the channel id of the scheduled event.
+    entityMetadata: objects.GuildScheduledEventEntityMetadata, -- the entity metadata of the scheduled event
     name: string, -- the name of the scheduled event
-    privacy_level: objects.PrivacyLevel, -- the privacy level of the scheduled event
-    scheduled_start_time: string, -- the time to schedule the scheduled event
-    scheduled_end_time: string?, -- the time when the scheduled event is scheduled to end
+    privacyLevel: objects.PrivacyLevel, -- the privacy level of the scheduled event
+    scheduledStartTime: string, -- the time to schedule the scheduled event
+    scheduledEndTime: string?, -- the time when the scheduled event is scheduled to end
     description: string?, -- the description of the scheduled event
-    entity_type: objects.GuildScheduledEventEntityType, -- the entity type of the scheduled event
+    entityType: objects.GuildScheduledEventEntityType, -- the entity type of the scheduled event
     status: objects.GuildScheduledEventStatus?, -- the status of the scheduled event
     image: string?, -- the cover image of the scheduled event
 }>
@@ -529,7 +541,7 @@ export type CreateWebhookRequest = Request<{
 export type ModifyWebhookRequest = Request<{
     name: string,
     avatar: string,
-    channel_id: objects.Snowflake,
+    channelId: objects.Snowflake,
 }>
 
 -- https://discord.com/developers/docs/resources/webhook#execute-webhook
@@ -559,17 +571,6 @@ export type ExecuteSlackCompatibleWebhookRequest = Request<{
 -- https://discord.com/developers/docs/resources/webhook#execute-githubcompatible-webhook
 export type ExecuteGithubCompatibleWebhookRequest = Request<{
     -- ok, likewise with the slack comment, feel free to contribute; https://docs.github.com/en/webhooks/webhook-events-and-payloads
-}>
-
--- https://discord.com/developers/docs/resources/webhook#edit-webhook-message
-export type EditWebhookMessageRequest = Request<{
-    content: string, -- the message contents (up to 2000 characters)
-    embeds: { objects.EmbedObject }, -- embedded rich content
-    allowed_mentions: objects.AllowedMentionObject, -- allowed mentions for the message
-    components: { objects.ComponentObjects }, -- the components to include with the message
-    -- files: { },
-    -- payload_json: string,
-    attachments: objects.AttachmentObject, -- attached files to keep and possible descriptions for new files
 }>
 
 -- https://discord.com/developers/docs/resources/channel#edit-channel-permissions
@@ -1254,6 +1255,9 @@ export type GetOriginalInteractionResponse = Response<objects.MessageObject>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#edit-original-interaction-response
 export type EditOriginalInteractionResponse = Response<objects.MessageObject>
+
+-- https://discord.com/developers/docs/resources/webhook#edit-webhook-message
+export type EditWebhookInteractionResponse = Response<objects.MessageObject>
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#delete-original-interaction-response
 export type DeleteOriginalInteractionResponse = Response<nil>

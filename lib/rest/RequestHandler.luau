@@ -173,11 +173,12 @@ function RequestHandler.changeToDiscordFormat(self: RequestHandler, body: any): 
         if newKey == "allow" or newKey == "deny" or newKey == "permissions" or newKey == "defaultMemberPermissions" then
             newBody[newKey] = typeof(value) == "number" and value or calculateBitwise(value :: any) 
         -- Image data encoding in base64
-        elseif newKey == "image" then
-            newBody[newKey] = imageDataToBase64(value)
-        -- Url image data encoding in base64 
-        elseif newKey == "icon" or newKey == "avatar" or newKey == "banner" then
-            newBody[newKey] = urlToBase64(value)
+        elseif newKey == "image" or newKey == "icon" or newKey == "avatar" or newKey == "banner" then
+            if type(value) == "string" and value:match("^https?://") then
+                newBody[newKey] = urlToBase64(value)
+            else
+                newBody[newKey] = imageDataToBase64(value)
+            end
         elseif typeof(value) == "table" then
             if #value > 0 then
                 local newArray = {}

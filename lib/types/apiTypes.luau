@@ -1360,15 +1360,15 @@ export type AuditLogEntryObject = {
 export type WebhookObject = {
     id: Snowflake, -- the id of the webhook
     type: WebhookType, -- the type of the webhook
-    guild_id: Snowflake?, -- the guild id this webhook is for, if any
-    channel_id: Snowflake?, -- the channel id this webhook is for, if any
+    guildId: Snowflake?, -- the guild id this webhook is for, if any
+    channelId: Snowflake?, -- the channel id this webhook is for, if any
     user: UserObject?, -- the user this webhook was created by (not returned when getting a webhook with its token)
     name: string?, -- the default name of the webhook
     avatar: string?, -- the default user avatar hash of the webhook
     token: string?, -- the secure token of the webhook (returned for Incoming Webhooks)
-    application_id: Snowflake?, -- the bot/OAuth2 application that created this webhook
-    source_guild: GuildObject?, -- the guild of the channel that this webhook is following (returned for Channel Follower Webhooks)
-    source_channel: ChannelObject?, -- the channel that this webhook is following (returned for Channel Follower Webhooks)
+    applicationId: Snowflake?, -- the bot/OAuth2 application that created this webhook
+    sourceGuild: GuildObject?, -- the guild of the channel that this webhook is following (returned for Channel Follower Webhooks)
+    sourceChannel: ChannelObject?, -- the channel that this webhook is following (returned for Channel Follower Webhooks)
     url: string?, -- the url used for executing the webhook (returned by the webhooks OAuth2 flow)
 }
 
@@ -1455,7 +1455,7 @@ export type VoiceRegionObject = {
 -- https://discord.com/developers/docs/resources/guild#guild-widget-settings-object
 export type GuildWidgetSettingsObject = {
     enabled: boolean?, -- whether the widget is enabled
-    channel_id: Snowflake?, -- the widget channel id
+    channelId: Snowflake?, -- the widget channel id
 }
 
 -- https://discord.com/developers/docs/resources/guild#guild-widget-object

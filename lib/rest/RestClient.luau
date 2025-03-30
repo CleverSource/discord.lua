@@ -6,6 +6,7 @@ type RequestHandler = RequestHandler.RequestHandler
 
 local processDiscordReaction = require("../util/processDiscordReaction")
 
+local Constants = require("../Constants")
 local ApiTypes = require("../types/apiTypes")
 local RestTypes = require("../types/internal/rest")
 
@@ -461,6 +462,99 @@ function RestClient.editOriginalInteractionResponse(self: RestClient, token: str
         body = options,
         file = options.files,
         authenticated = false
+    })
+end
+
+function RestClient.editOriginalWebhookMessage(self: RestClient, webhookId: string, token: string, options: RestTypes.EditOriginalWebhookRequest): RestTypes.EditOriginalWebhookRequest
+    return self.request:patch(Routes.webhooks.original(webhookId, token, options), {
+        body = {
+            type = Constants.InteractionResponseTypes.UpdateMessage,
+            data = options
+        },
+        files = options.files,
+        authenticated = false
+    })
+end
+
+function RestClient.editOwnVoiceState(self: RestClient, guildId: string, options: RestTypes.ModifyCurrentUserVoiceStateRequest)
+    if options.requestToSpeakTimestamp and typeof(options.requestToSpeakTimestamp) ~= "string" then
+        options.requestToSpeakTimestamp = options.requestToSpeakTimestamp:toIsoDate()
+    end
+
+    self.request:patch(Routes.guilds.voice(guildId), {
+        body = options
+    })
+end
+
+function RestClient.editScheduledEvent(self: RestClient, guildId: string, eventId: string, options: RestTypes.ModifyGuildScheduledEventRequest, reason: string?): RestTypes.ModifyGuildScheduledEventResponse
+    return self.request:patch(Routes.guilds.events.event(guildId, eventId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editRole(self: RestClient, guildId: string, roleId: string, options: RestTypes.ModifyGuildRoleRequest, reason: string?): RestTypes.ModifyGuildRoleResponse
+    return self.request:patch(Routes.guilds.roles.one(guildId, roleId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editRolePositions(self: RestClient, guildId: string, options: RestTypes.ModifyGuildRolePositionsRequest, reason: string?): RestTypes.ModifyGuildRolePositionsResponse
+    return self.request:patch(Routes.guilds.roles.all(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editStageInstance(self: RestClient, channelId: string, topic: string, reason: string?): RestTypes.ModifyStageInstanceResponse
+    return self.request:patch(Routes.channels.stage(channelId), {
+        body = {
+            topic = topic
+        },
+        reason = reason
+    })
+end
+
+function RestClient.editUserVoiceState(self: RestClient, guildId: string, options: RestTypes.ModifyUserVoiceStateRequest)
+    self.request:patch(Routes.guilds.voice(guildId, options.userId), {
+        body = options
+    })
+end
+
+function RestClient.editWebhook(self: RestClient, webhookId: string, options: RestTypes.ModifyWebhookRequest, reason: string?): RestTypes.ModifyWebhookResponse
+    return self.request:patch(Routes.webhooks.id(webhookId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editWebhookMessage(self: RestClient, webhookId: string, token: string, messageId: string, options: RestTypes.EditWebhookMessageRequest): RestTypes.EditWebhookMessageResponse
+    return self.request:patch(Routes.webhooks.message(webhookId, token, messageId, options), {
+        body = options,
+        file = options.files,
+        authenticated = false
+    })
+end
+
+function RestClient.editWebhookWithToken(self: RestClient, webhookId: string, token: string, options: RestTypes.ModifyWebhookRequest): RestTypes.ModifyWebhookResponse
+    return self.request:patch(Routes.webhooks.webhook(webhookId, token), {
+        body = options,
+        authenticated = false
+    })
+end
+
+function RestClient.editWelcomeScreen(self: RestClient, guildId: string, options: RestTypes.ModifyGuildWelcomeScreenRequest, reason: string?): RestTypes.ModifyGuildWelcomeScreenResponse
+    return self.request:patch(Routes.guilds.welcome(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editWidgetSettings(self: RestClient, guildId: string, options: RestTypes.ModifyGuildWidgetRequest, reason: string?): RestTypes.ModifyGuildWidgetResponse
+    return self.request:patch(Routes.guilds.widget(guildId), {
+        body = options,
+        reason = reason
     })
 end
 
