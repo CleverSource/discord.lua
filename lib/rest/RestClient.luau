@@ -558,4 +558,144 @@ function RestClient.editWidgetSettings(self: RestClient, guildId: string, option
     })
 end
 
+function RestClient.executeWebhook(self: RestClient, webhookId: string, token: string, options: RestTypes.ExecuteWebhookRequest): RestTypes.ExecuteWebhookResponse
+    return self.request:post(Routes.webhooks.webhook(webhookId, token, options :: any), {
+        body = options,
+        file = options.files,
+        authenticated = false
+    })
+end
+
+function RestClient.followAnnouncement(self: RestClient, sourceChannelId: string, targetChannelId: string, reason: string?)
+    return self.request:post(Routes.channels.follow(sourceChannelId), {
+        body = {
+            webhookChannelId = targetChannelId
+        },
+        reason = reason
+    })
+end
+
+function RestClient.getActiveThreads(self: RestClient, guildId: string): RestTypes.ListActiveGuildThreadsResponse
+    return self.request:get(Routes.channels.threads.active(guildId))
+end
+
+function RestClient.getApplicationCommandPermission(self: RestClient, guildId: string, commandId: string, options: RestTypes.GetApplicationCommandPermissionRequest): RestTypes.GetApplicationCommandPermissionResponse
+    local restOptions: RequestHandler.CreateRequestOptions = {}
+    local applicationId = options.applicationId or self.applicationId
+
+    if options and options.accessToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.accessToken}`
+        }
+    end
+
+    return self.request:get(Routes.interactions.commands.permission(applicationId, guildId, commandId), restOptions)
+end
+
+function RestClient.getApplicationCommandPermissions(self: RestClient, guildId: string, options: RestTypes.GetApplicationCommandPermissionRequest): RestTypes.GetApplicationCommandPermissionsResponse
+    local restOptions: RequestHandler.CreateRequestOptions = {}
+    local applicationId = options.applicationId or self.applicationId
+
+    if options and options.accessToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.accessToken}`
+        }
+    end
+
+    return self.request:get(Routes.interactions.commands.permissions(applicationId, guildId), restOptions)
+end
+
+function RestClient.getApplicationInfo(self: RestClient): RestTypes.GetCurrentApplicationResponse
+    return self.request:get(Routes.oauth2.application())
+end
+
+function RestClient.editApplicationInfo(self: RestClient, options: RestTypes.EditCurrentApplicationRequest): RestTypes.EditCurrentApplicationResponse
+    return self.request:patch(Routes.application(), {
+        body = options
+    })
+end
+
+function RestClient.getCurrentAuthenticationInfo(self: RestClient, token: string): RestTypes.GetCurrentAuthorization
+    return self.request:get(Routes.oauth2.currentAuthorization(), {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+-- TODO: exchange tokens
+
+function RestClient.getAuditLog(self: RestClient, guildId: string, options: { userId: string?, actionType: number?, before: string?, after: string?, limit: number? }?): RestTypes.GetGuildAuditLogResponse
+    return self.request:get(Routes.guilds.auditlogs(guildId, options))
+end
+
+function RestClient.getAutomodRule(self: RestClient, guildId: string, ruleId: string): RestTypes.GetAutoModerationRuleResponse
+    return self.request:get(Routes.guilds.automod.rule(guildId, ruleId))
+end
+
+function RestClient.getAutomodRules(self: RestClient, guildId: string):  { RestTypes.GetAutoModerationRuleResponse }
+    return self.request:get(Routes.guilds.automod.rules(guildId))
+end
+
+function RestClient.getAvailableVoiceRegions(self: RestClient): RestTypes.GetCurrentUserVoiceStateResponse
+    return self.request:get(Routes.regions())
+end
+
+function RestClient.getBan(self: RestClient, guildId: string, userId: string): RestTypes.GetGuildBanResponse
+    return self.request:get(Routes.guilds.members.ban(guildId, userId))
+end
+
+function RestClient.getBans(self: RestClient, guildId: string, options: { limit: number?, before: string?, after: string? }?): RestTypes.GetGuildBansResponse
+    return self.request:get(Routes.guilds.members.bans(guildId, options))
+end
+
+function RestClient.getChannel(self: RestClient, channelId: string): RestTypes.GetGuildChannelResponse
+    return self.request:get(Routes.channels.channel(channelId))
+end 
+
+function RestClient.getChannelInvites(self: RestClient, channelId: string): RestTypes.GetChannelInvitesResponse
+    return self.request:get(Routes.channels.invites(channelId))
+end
+
+function RestClient.getChannels(self: RestClient, guildId: string): RestTypes.GetGuildChannelsResponse
+    return self.request:get(Routes.guilds.channels(guildId))
+end
+
+function RestClient.getChannelWebhooks(self: RestClient, channelId: string): RestTypes.GetChannelWebhooksResponse
+    return self.request:get(Routes.channels.webhooks(channelId))
+end
+
+function RestClient.getDmChannel(self: RestClient, userId: string): RestTypes.GetDmChannelResponse
+    return self.request:post(Routes.channels.dm(), {
+        body = {
+            recipientId = userId
+        }
+    })
+end
+
+function RestClient.getGroupDmChannel(self: RestClient, options: { accessTokens: { string }, nicks: { [string]: string }? }): RestTypes.GetDmChannelResponse
+    return self.request:post(Routes.channels.dm(), {
+        body = options
+    })
+end
+
+function RestClient.getEmoji(self: RestClient, guildId: string, emojiId: string): RestTypes.GetGuildEmojiResponse
+    return self.request:get(Routes.guilds.emoji(guildId, emojiId))
+end
+
+function RestClient.getApplicationEmoji(self: RestClient, emojiId: string): RestTypes.GetApplicationEmojiResponse
+    return self.request:get(Routes.applicationEmoji(self.applicationId, emojiId))
+end
+
+function RestClient.getEmojis(self: RestClient, guildId: string): RestTypes.GetGuildEmojisResponse
+    return self.request:get(Routes.guilds.emojis(guildId))
+end
+
+function RestClient.getApplicationEmojis(self: RestClient): RestTypes.GetApplicationEmojisResponse
+    return self.request:get(Routes.applicationEmojis(self.applicationId))
+end
+
 return RestClient

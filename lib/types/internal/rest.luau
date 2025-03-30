@@ -31,6 +31,12 @@ export type Request<DATA> = DATA
 
 -- [[ Requests ]] --
 
+-- https://discord.com/developers/docs/interactions/application-commands#get-guild-application-command-permissions and https://discord.com/developers/docs/interactions/application-commands#get-guild-application-command-permissions
+export type GetApplicationCommandPermissionRequest = Request<{
+    accessToken: string,
+    applicationId: objects.Snowflake
+}>
+
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#create-interaction-response
 export type CreateInteractionRequest = Request<objects.InteractionResponseObject>
 
@@ -102,15 +108,15 @@ export type ModifyAutoModerationRuleRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/application#edit-current-application
 export type EditCurrentApplicationRequest = Request<{
-    custom_install_url: string, -- Default custom authorization URL for the app, if enabled
+    customInstallUrl: string, -- Default custom authorization URL for the app, if enabled
     description: string, -- Description of the app
-    role_connections_verification_url: string, -- Role connection verification URL for the app
-    install_params: objects.InstallParamsObject, -- Settings for the app's default in-app authorization link, if enabled
-    integration_types_config: { [objects.IntegrationType]: unknown }, -- In preview. Default scopes and permissions for each supported installation context. Value for each key is an integration type configuration object
+    roleConnectionsVerificationUrl: string, -- Role connection verification URL for the app
+    installParams: objects.InstallParamsObject, -- Settings for the app's default in-app authorization link, if enabled
+    integrationTypesConfig: { number }, -- In preview. Default scopes and permissions for each supported installation context. Value for each key is an integration type configuration object
     flags: number, -- App's public flags
     icon: string?, -- Icon for the app
-    cover_image: string?, -- Default rich presence invite cover image for the app
-    interactions_endpoint_url: string, -- Interactions endpoint URL for the app
+    coverImage: string?, -- Default rich presence invite cover image for the app
+    interactionsEndpointUrl: string, -- Interactions endpoint URL for the app
     tags: { string }, -- List of tags describing the content and functionality of the app (max of 20 characters per tag). Max of 5 tags.
 }>
 
@@ -546,20 +552,19 @@ export type ModifyWebhookRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/webhook#execute-webhook
 export type ExecuteWebhookRequest = Request<{
-    content: string, -- the message contents (up to 2000 characters)
-    username: string, -- override the default username of the webhook
-    avatar_url: string, -- override the default avatar of the webhook
-    tts: boolean, -- true if this is a TTS message
-    embeds: { objects.EmbedObject }, -- embedded rich content
-    allowed_mentions: objects.AllowedMentionObject, -- allowed mentions for the message
-    components: { objects.ComponentObjects }, -- the components to include with the message
-    -- files: { },
-    -- payload_json: string,
-    attachments: { objects.AttachmentObject }, -- attachment objects with filename and description
-    flags: number, -- message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set can be set)
-    thread_name: string, -- name of thread to create (requires the webhook channel to be a forum or media channel)
-    applied_tags: { objects.Snowflake }, -- array of tag ids to apply to the thread (requires the webhook channel to be a forum or media channel)
-    poll: objects.PollObject, -- discord poll
+    content: string?, -- the message contents (up to 2000 characters)
+    username: string?, -- override the default username of the webhook
+    avatarUrl: string?, -- override the default avatar of the webhook
+    tts: boolean?, -- true if this is a TTS message
+    embeds: { objects.EmbedObject }?, -- embedded rich content
+    allowedMentions: objects.AllowedMentionObject?, -- allowed mentions for the message
+    components: { objects.ComponentObjects }?, -- the components to include with the message
+    files: { objects.FileContent }?,
+    threadName: string?, -- name of thread to create (requires the webhook channel to be a forum or media channel)
+    threadId: string?,
+    appliedTags: { objects.Snowflake }?, -- array of tag ids to apply to the thread (requires the webhook channel to be a forum or media channel)
+    poll: objects.PollObject?, -- discord poll,
+    wait: boolean?
 }>
 
 -- https://discord.com/developers/docs/resources/webhook#execute-slackcompatible-webhook
@@ -680,7 +685,15 @@ export type EditApplicationCommandPermissionsRequest = Request<{
 export type EditAutoModerationRuleResponse = Response<objects.AutomoderationRuleObject>
 
 -- https://discord.com/developers/docs/resources/voice#get-current-user-voice-state
-export type GetCurrentUserVoiceStateResponse = Response<objects.VoiceStateObject>
+export type GetCurrentUserVoiceStateResponse = Response<{ objects.VoiceStateObject }>
+
+-- https://discord.com/developers/docs/topics/oauth2#get-current-authorization-information-response-structure
+export type GetCurrentAuthorization = Response<{
+    application: objects.ApplicationObject,
+    user: objects.UserObject?,
+    scopes: { objects.OAuth2Scopes },
+    expires: string
+}>
 
 -- https://discord.com/developers/docs/resources/voice#get-user-voice-state
 export type GetUserVoiceStateResponse = Response<objects.VoiceStateObject>
@@ -727,16 +740,18 @@ export type GetGuildApplicationCommandPermissionsResponse = Response<
 >
 
 -- https://discord.com/developers/docs/interactions/application-commands#get-application-command-permissions
+export type GetApplicationCommandPermissionResponse = Response<objects.GuildApplicationCommandPermissionsObject>
+
 export type GetApplicationCommandPermissionsResponse = Response<{ objects.GuildApplicationCommandPermissionsObject }>
 
 -- https://discord.com/developers/docs/interactions/application-commands#edit-application-command-permissions
 export type EditApplicationCommandPermissionsResponse = Response<objects.GuildApplicationCommandPermissionsObject>
 
 -- https://discord.com/developers/docs/resources/application#get-current-application
-export type GetCurrentApplicationResponse = Response<{ objects.ApplicationObject }>
+export type GetCurrentApplicationResponse = Response<objects.ApplicationObject>
 
 -- https://discord.com/developers/docs/resources/application#edit-current-application
-export type EditCurrentApplicationResponse = Response<{ objects.ApplicationObject }>
+export type EditCurrentApplicationResponse = Response<objects.ApplicationObject>
 
 -- https://discord.com/developers/docs/resources/application-role-connection-metadata#get-application-role-connection-metadata-records
 export type GetApplicationRoleConnectionMetadataRecordsResponse = Response<
@@ -768,6 +783,9 @@ export type DeleteAutoModerationRuleResponse = Response<nil>
 
 -- https://discord.com/developers/docs/resources/channel#get-channel
 export type GetChannelResponse = Response<objects.ChannelObject & (objects.ThreadMemberObject?)>
+
+-- https://discord.com/developers/docs/resources/user#create-dm
+export type GetDmChannelResponse = Response<objects.ChannelObject>
 
 -- https://discord.com/developers/docs/resources/channel#modify-channel
 export type ModifyChannelResponse = Response<objects.ChannelObject>
@@ -900,6 +918,11 @@ export type ListGuildEmojisResponse = Response<{ objects.EmojiObject }>
 
 -- https://discord.com/developers/docs/resources/emoji#get-guild-emoji
 export type GetGuildEmojiResponse = Response<objects.EmojiObject>
+export type GetGuildEmojisResponse = Response<{ objects.EmojiObject }>
+
+-- https://discord.com/developers/docs/resources/emoji#list-application-emojis
+export type GetApplicationEmojiResponse = Response<objects.EmojiObject>
+export type GetApplicationEmojisResponse = Response<{ objects.EmojiObject }>
 
 -- https://discord.com/developers/docs/resources/emoji#create-guild-emoji
 export type CreateGuildEmojiResponse = Response<objects.EmojiObject>
@@ -930,6 +953,9 @@ export type ModifyGuildResponse = Response<objects.GuildObject>
 
 -- https://discord.com/developers/docs/resources/guild#delete-guild
 export type DeleteGuildResponse = Response<nil>
+
+-- https://discord.com/developers/docs/resources/guild#get-guild-channels
+export type GetGuildChannelResponse = Response<objects.ChannelObject>
 
 -- https://discord.com/developers/docs/resources/guild#get-guild-channels
 export type GetGuildChannelsResponse = Response<{ objects.ChannelObject }>

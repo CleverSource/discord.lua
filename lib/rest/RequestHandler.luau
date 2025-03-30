@@ -415,18 +415,18 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                     if delay then
                         task.delay(delay / 1000, function() 
                             callback()
-                            self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
+                            self:makeRequest(method, url, auth, body, file, reason, extraHeaders, route, true):Then(resolve):Catch(reject)
                         end)
                         return
                     else
                         callback()
-                        self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
+                        self:makeRequest(method, url, auth, body, file, reason, extraHeaders, route, true):Then(resolve):Catch(reject)
                         return
                     end
                 elseif response.statusCode == HTTP_BAD_GATEWAY and attempts < 4 then
                     attempts += 1
                     task.delay((math.random() * 1900 + 100) / 1000, function() 
-                        self:makeRequest(method, url, auth, body, file, route, true):Then(resolve):Catch(reject)
+                        self:makeRequest(method, url, auth, body, file, reason, extraHeaders, route, true):Then(resolve):Catch(reject)
                     end)
                     callback()
                     return

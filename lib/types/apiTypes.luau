@@ -651,8 +651,8 @@ export type GuildApplicationCommandPermissionObject = {
 -- https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-guild-application-command-permissions-structure
 export type GuildApplicationCommandPermissionsObject = {
     id: Snowflake, -- ID of the command or the application ID
-    application_id: Snowflake, -- ID of the application the command belongs to
-    guild_id: Snowflake, -- ID of the guild
+    applicationId: Snowflake, -- ID of the application the command belongs to
+    guildId: Snowflake, -- ID of the guild
     permissions: { GuildApplicationCommandPermissionObject }, -- Permissions for the command in the guild, max of 100
 }
 
@@ -808,19 +808,19 @@ export type EntitlementObject = {
 
 -- https://discord.com/developers/docs/resources/voice#voice-state-object
 export type VoiceStateObject = {
-    guild_id: Snowflake?, -- the guild id this voice state is for
-    channel_id: Snowflake?, -- the channel id this user is connected to
-    user_id: Snowflake, -- the user id this voice state is for
+    guildId: Snowflake?, -- the guild id this voice state is for
+    channelId: Snowflake?, -- the channel id this user is connected to
+    userId: Snowflake, -- the user id this voice state is for
     member: GuildMemberObject?, -- the guild member this voice state is for
-    session_id: string, -- the session id for this voice state
+    sessionId: string, -- the session id for this voice state
     deaf: boolean, -- whether this user is deafened by the server
     mute: boolean, -- whether this user is muted by the server
-    self_deaf: boolean, -- whether this user is locally deafened
-    self_mute: boolean, -- whether this user is locally muted
-    self_stream: boolean?, -- whether this user is streaming using "Go Live"
-    self_video: boolean, -- whether this user's camera is enabled
+    selfDeaf: boolean, -- whether this user is locally deafened
+    selfMute: boolean, -- whether this user is locally muted
+    selfStream: boolean?, -- whether this user is streaming using "Go Live"
+    selfVideo: boolean, -- whether this user's camera is enabled
     suppress: boolean, -- whether this user's permission to speak is denied
-    request_to_speak_timestamp: string?, -- the time at which the user requested to speak
+    requestToSpeakTimestamp: string?, -- the time at which the user requested to speak
 }
 
 -- https://discord.com/developers/docs/topics/gateway-events#client-status-object
@@ -888,14 +888,14 @@ export type IntegrationObject = {
     type: IntegrationType, -- integration type (twitch, youtube, discord, or guild_subscription)
     enabled: boolean, -- is this integration enabled
     syncing: boolean?, -- is this integration syncing
-    role_id: Snowflake?, -- id that this integration uses for "subscribers"
-    enable_emoticons: boolean?, -- whether emoticons should be synced for this integration (twitch only currently)
-    expire_behaviour: IntegrationExpireBehaviours?, -- the behavior of expiring subscribers
-    expire_grace_period: number?, -- the grace period (in days) before expiring subscribers
+    roleId: Snowflake?, -- id that this integration uses for "subscribers"
+    enableEmoticons: boolean?, -- whether emoticons should be synced for this integration (twitch only currently)
+    expireBehaviour: IntegrationExpireBehaviours?, -- the behavior of expiring subscribers
+    expireGracePeriod: number?, -- the grace period (in days) before expiring subscribers
     user: UserObject?, -- user for this integration
     account: IntegrationAccountObject, -- integration account information
-    synced_at: string?, -- when this integration was last synced
-    subscriber_count: number?, -- how many subscribers this integration has
+    syncedAt: string?, -- when this integration was last synced
+    subscriberCount: number?, -- how many subscribers this integration has
     revoked: boolean?, -- has this integration been revoked
     application: IntegrationApplicationObject?, -- The bot/OAuth2 application for discord integrations
     scopes: { OAuth2Scopes }?, -- the scopes the application has been authorized for
@@ -1324,34 +1324,34 @@ export type ApplicationCommandObject = {
 
 -- https://discord.com/developers/docs/resources/audit-log#audit-log-change-object
 export type AuditLogChangeObject = {
-    new_value: any?, -- New value of the key
-    old_value: any?, -- Old value of the key
+    newValue: any?, -- New value of the key
+    oldValue: any?, -- Old value of the key
     key: string, -- Name of the changed entity, with a few exceptions
 }
 
 -- https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-optional-audit-entry-info
 export type OptionalAuditEntryInfoObject = {
-    application_id: Snowflake, -- ID of the app whose permissions were targeted
-    auto_moderation_rule_name: string, -- Name of the Auto Moderation rule that was triggered
-    auto_moderation_rule_trigger_type: AutomoderationRuleTriggerType, -- Trigger type of the Auto Moderation rule that was triggered
-    channel_id: Snowflake, -- Channel in which the entities were targeted
+    applicationId: Snowflake, -- ID of the app whose permissions were targeted
+    autoModerationRuleName: string, -- Name of the Auto Moderation rule that was triggered
+    autoModerationRuleTriggerType: AutomoderationRuleTriggerType, -- Trigger type of the Auto Moderation rule that was triggered
+    channelId: Snowflake, -- Channel in which the entities were targeted
     count: string, -- Number of entities that were targeted
-    delete_member_days: string, -- Number of days after which inactive members were kicked
+    deleteMemberDays: string, -- Number of days after which inactive members were kicked
     id: Snowflake, -- ID of the overwritten entity
-    members_removed: string, -- Number of members removed by the prune
-    message_id: Snowflake, -- ID of the message that was targeted
-    role_name: string, -- Name of the role if type is "0" (not present if type is "1")
+    membersRemoved: string, -- Number of members removed by the prune
+    messageId: Snowflake, -- ID of the message that was targeted
+    roleName: string, -- Name of the role if type is "0" (not present if type is "1")
     type: string, -- Type of overwritten entity - role ("0") or member ("1")
-    integration_type: IntegrationType, -- The type of integration which performed the action
+    integrationType: IntegrationType, -- The type of integration which performed the action
 }
 
 -- https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object
 export type AuditLogEntryObject = {
-    target_id: string?, -- ID of the affected entity (webhook, user, role, etc.)
+    targetId: string?, -- ID of the affected entity (webhook, user, role, etc.)
     changes: { AuditLogChangeObject }?, -- Changes made to the target_id
-    user_id: Snowflake?, -- User or app that made the changes
+    userId: Snowflake?, -- User or app that made the changes
     id: Snowflake, -- ID of the entry
-    action_type: AuditLogEventType, -- Type of action that occurred
+    actionType: AuditLogEventType, -- Type of action that occurred
     options: { OptionalAuditEntryInfoObject }?, -- Additional info for certain event types
     reason: string?, -- Reason for the change (1-512 characters)
 }
@@ -1374,10 +1374,10 @@ export type WebhookObject = {
 
 -- https://discord.com/developers/docs/resources/audit-log#audit-log-object
 export type AuditLogObject = {
-    application_commands: { ApplicationCommandObject }, -- List of application commands referenced in the audit log
-    audit_log_entries: { AuditLogEntryObject }, -- List of audit log entries, sorted from most to least recent
-    auto_moderation_rules: { AutomoderationRuleObject }, -- List of auto moderation rules referenced in the audit log
-    guild_scheduled_events: { GuildScheduledEventObject }, -- List of guild scheduled events referenced in the audit log
+    applicationCommands: { ApplicationCommandObject }, -- List of application commands referenced in the audit log
+    auditLogEntries: { AuditLogEntryObject }, -- List of audit log entries, sorted from most to least recent
+    autoModerationRules: { AutomoderationRuleObject }, -- List of auto moderation rules referenced in the audit log
+    guildScheduledEvents: { GuildScheduledEventObject }, -- List of guild scheduled events referenced in the audit log
     integrations: { IntegrationObject }, -- List of partial integration objects
     threads: { ChannelObject }, -- List of threads referenced in the audit log*
     users: { UserObject }, -- List of users referenced in the audit log
@@ -1410,10 +1410,10 @@ export type GuildVanityUrl = {
 -- https://discord.com/developers/docs/resources/invite#invite-metadata-object
 export type InviteMetadataObject = {
     uses: number, -- number of times this invite has been used
-    max_uses: number, -- max number of times this invite can be used
-    max_age: number, -- duration (in seconds) after which the invite expires
+    maxUses: number, -- max number of times this invite can be used
+    maxAge: number, -- duration (in seconds) after which the invite expires
     temporary: boolean, -- whether this invite only grants temporary membership
-    created_at: string, -- when this invite was created
+    createdAt: string, -- when this invite was created
 }
 
 -- https://discord.com/developers/docs/resources/channel#followed-channel-object

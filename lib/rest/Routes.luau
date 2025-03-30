@@ -304,7 +304,7 @@ return {
 
             return path
         end,
-        auditLogs = function(guildId: string, options: { userId: string?, actionType: number?, before: string?, after: string?, limit: number? }?): string
+        auditlogs = function(guildId: string, options: { userId: string?, actionType: number?, before: string?, after: string?, limit: number? }?): string
             local path = `/guilds/{guildId}/audit-logs?`
 
             if options then
