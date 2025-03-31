@@ -1428,11 +1428,11 @@ export type GuildPreviewObject = {
     name: string, -- guild name (2-100 characters)
     icon: string?, -- icon hash
     splash: string?, -- splash hash
-    discovery_splash: string?, -- discovery splash hash
+    discoverySplash: string?, -- discovery splash hash
     emojis: { EmojiObject }, -- custom guild emojis
     features: { GuildFeature }, -- enabled guild features
-    approximate_member_count: number, -- approximate number of members in this guild
-    approximate_presence_count: number, -- approximate number of online members in this guild
+    approximateMemberCount: number, -- approximate number of members in this guild
+    approximatePresenceCount: number, -- approximate number of online members in this guild
     description: string?, -- the description for the guild
     stickers: { StickerObject }, -- custom guild stickers
 }

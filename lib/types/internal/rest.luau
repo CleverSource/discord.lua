@@ -946,6 +946,9 @@ export type CreateGuildResponse = Response<objects.GuildObject>
 export type GetGuildResponse = Response<objects.GuildObject>
 
 -- https://discord.com/developers/docs/resources/guild#get-guild
+export type GetGuildsResponse = Response<{ objects.GuildObject }>
+
+-- https://discord.com/developers/docs/resources/guild#get-guild
 export type GetGuildPreviewResponse = Response<objects.GuildPreviewObject>
 
 -- https://discord.com/developers/docs/resources/guild#modify-guild

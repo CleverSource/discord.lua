@@ -698,4 +698,53 @@ function RestClient.getApplicationEmojis(self: RestClient): RestTypes.GetApplica
     return self.request:get(Routes.applicationEmojis(self.applicationId))
 end
 
+function RestClient.getFollowupMessage(self: RestClient, token: string, messageId: string): RestTypes.GetFollowupMessageResponse
+    return self.request:get(Routes.interactions.responses.message(self.applicationId, token, messageId), {
+        authenticated = false
+    })
+end
+
+function RestClient.getGlobalApplicationCommand(self: RestClient, commandId: string): RestTypes.GetGlobalApplicationCommandResponse
+    return self.request:get(Routes.interactions.commands.command(self.applicationId, commandId))
+end
+
+function RestClient.getGlobalApplicationCommands(self: RestClient): RestTypes.GetGlobalApplicationCommandsResponse
+    return self.request:get(Routes.interactions.commands.commands(self.applicationId))
+end
+
+function RestClient.getGuild(self: RestClient, guildId: string, options: { count: boolean }?): RestTypes.GetGuildResponse
+    return self.request:get(Routes.guilds.guild(guildId, options and options.count or true))
+end
+
+function RestClient.getGuilds(self: RestClient, token: string, options: { before: string?, after: string?, limit: number?, withCounts: boolean? }?): RestTypes.GetGuildsResponse
+     local restOptions: RequestHandler.CreateRequestOptions = token and {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+     } or {}
+
+     return self.request:get(Routes.guilds.userGuilds(options), restOptions)
+end
+
+function RestClient.getGuildApplicationCommand(self: RestClient, commandId: string, guildId: string): RestTypes.GetGuildApplicationCommandResponse
+    return self.request:get(Routes.interactions.commands.guilds.one(self.applicationId, guildId, commandId))
+end
+
+function RestClient.getGuildApplicationCommands(self: RestClient, guildId: string): RestTypes.GetGuildApplicationCommandsResponse
+    return self.request:get(Routes.interactions.commands.guilds.all(self.applicationId, guildId))
+end
+
+function RestClient.getGuildPreview(self: RestClient, guildId: string): RestTypes.GetGuildPreviewResponse
+    return self.request:get(Routes.guilds.preview(guildId))
+end
+
+function RestClient.getGuildTemplate(self: RestClient, templateCode: string): RestTypes.GetGuildTemplateResponse
+    return self.request:get(Routes.guilds.templates.code(templateCode))
+end
+
+function RestClient.getGuildTemplates(self: RestClient, guildId: string): RestTypes.GetGuildTemplatesResponse
+    return self.request:get(Routes.guilds.templates.all(guildId))
+end
+
 return RestClient
