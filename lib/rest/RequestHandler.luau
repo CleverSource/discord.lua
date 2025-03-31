@@ -398,7 +398,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 
             if response.statusCode ~= HTTP_TOO_MANY_REQUESTS then
                 local content = if typeof(body) == "table" then body.content else ""
-                self.logger:debug(`{content or ""}{now} {route} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
+                self.logger:debug(`{content or ""}{now} {url} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
             end
 
             if response.statusCode >= HTTP_MULTIPLE_CHOICES then
@@ -470,42 +470,33 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 end
 
 function RequestHandler.getRatelimitBucketIdFromUrl(self: RequestHandler, url: string, method: net.HttpMethod): string
-    local route = url:gsub("/([a-z-]+)/([0-9]{17,19})", function(match, p)
-        return (p == "channels" or p == "guilds" or p == "webhooks") and match or `/{p}/:id`
-    end)
-    :gsub("/reactions/[^/]+", "/reactions/:id")
-    :gsub("/reactions/:id/[^/]+", "/reactions/:id/:userId")
-    :gsub("^/webhooks/(%d+)/[A-Za-z0-9-_]{64,}", "/webhooks/%1/:token")
-
-    if method == "DELETE" and route:sub(-16) == "/messages/:id" then
-        local messageId = url:match("/messages/([0-9]+)$")
-        local prefixedMethod = method
-
-        if messageId then
-            local createdAt = snowflakeCreatedAt(messageId)
-            local currentTime = datetime.now().unixTimestampMillis
-            local adjustedTime = currentTime - self.latencyRef.latency
-            
-            if adjustedTime - createdAt >= 1000 * 60 * 60 * 24 * 14 then
-                method = prefixedMethod .. "_OLD"
-            elseif adjustedTime - createdAt <= 1000 * 10 then
-                method = prefixedMethod .. "_NEW"
-            end
-        end
-
-        route = prefixedMethod .. route
-    elseif method == "GET" and route:match("/guilds/[0-9]+/channels$") then
-        route = "/guilds/:id/channels"
+    local parts = {}
+    for part in url:gmatch("[^/]+") do
+        table.insert(parts, part)
     end
 
-    if method == "PUT" or method == "DELETE" then
-        local index = route:find("/reactions")
-        if index then
-            route = "MODIFY" .. route:sub(1, index + 9)
-        end
+    local secondLastPart = parts[#parts - 1]
+    
+    if secondLastPart == "channels" or secondLastPart == "guilds" then
+        return secondLastPart
     end
 
-    return route
+    if secondLastPart == "reactions" or parts[#parts] == "@me" then
+        table.remove(parts, (#parts - 1))
+        parts[#parts] = "reactions"
+    else
+        parts[#parts] = "x"
+    end
+
+    if parts[#parts - 2] == "reactions" then
+        table.remove(parts, (#parts - 1))
+    end
+
+    if method == "DELETE" and secondLastPart == "messages" then
+        return "D" .. table.concat(parts, "/")
+    end
+
+    return table.concat(parts, "/")
 end
 
 return RequestHandler

@@ -101,7 +101,6 @@ function Client.new(options: ClientOptions): Client
 end
 
 function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Payload<any>)
-    -- print(packet)
 end
 
 function Client.connect(self: Client)
