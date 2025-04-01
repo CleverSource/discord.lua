@@ -845,4 +845,113 @@ function RestClient.getGuildStickers(self: RestClient, guildId: string): RestTyp
     return self.request:get(Routes.guilds.stickers(guildId))
 end
 
+function RestClient.getThreadMember(self: RestClient, channelId: string, userId: string, options: { withMember: boolean? }?): RestTypes.GetThreadMemberResponse
+    return self.request:get(Routes.channels.threads.getUser(channelId, userId, options))
+end
+
+function RestClient.getThreadMembers(self: RestClient, channelId: string, options: { withMember: boolean?, after: string?, limit: number? }?): RestTypes.ListThreadMembersResponse
+    return self.request:get(Routes.channels.threads.members(channelId, options))
+end
+
+function RestClient.getReactions(self: RestClient, channelId: string, messageId: string, reaction: string, options: { type: number, after: string?, limit: number? }?): RestTypes.GetReactionsResponse
+    return self.request:get(Routes.channels.reactions.message(channelId, messageId, reaction, options))
+end
+
+function RestClient.getUser(self: RestClient, userId: string): RestTypes.GetUserResponse
+    return self.request:get(Routes.user(userId))
+end
+
+function RestClient.getCurrentUser(self: RestClient, token: string): RestTypes.GetCurrentUserResponse
+    return self.request:get(Routes.currentUser(), {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+function RestClient.getUserConnections(self: RestClient, token: string): RestTypes.GetCurrentUserConnectionResponse
+    return self.request:get(Routes.oauth2.connections(), {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+function RestClient.getUserApplicationRoleConnection(self: RestClient, token: string, applicationId: string): RestTypes.GetCurrentUserApplicationRoleConnectionResponse
+    return self.request:get(Routes.oauth2.roleConnections(applicationId), {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+function RestClient.getVanityUrl(self: RestClient, guildId: string): RestTypes.GetGuildVanityUrlResponse
+    return self.request:get(Routes.guilds.vanity(guildId))
+end
+
+function RestClient.getVoiceRegions(self: RestClient, guildId: string): RestTypes.GetGuildVoiceRegionsResponse
+    return self.request:get(Routes.guilds.regions(guildId))
+end
+
+function RestClient.getWebhook(self: RestClient, webhookId: string): RestTypes.GetWebhookResponse
+    return self.request:get(Routes.webhooks.id(webhookId))
+end
+
+function RestClient.getWebhookMessage(self: RestClient, webhookId: string, token: string, messageId: string, options: { threadId: string? }?): RestTypes.GetWebhookMessageResponse
+    return self.request:get(Routes.webhooks.message(webhookId, token, messageId, options), {
+        authenticated = false
+    })
+end
+
+function RestClient.getWebhookWithToken(self: RestClient, webhookId: string, token: string): RestTypes.GetWebhookWithTokenResponse
+    return self.request:get(Routes.webhooks.webhook(webhookId, token), {
+        authenticated = false
+    })
+end
+
+function RestClient.getWelcomeScreen(self: RestClient, guildId: string): RestTypes.GetGuildWelcomeScreenResponse
+    return self.request:get(Routes.guilds.welcome(guildId))
+end
+
+function RestClient.getWidget(self: RestClient, guildId: string): RestTypes.GetGuildWidgetResponse
+    return self.request:get(Routes.guilds.widgetJson(guildId))
+end
+
+function RestClient.getWidgetSettings(self: RestClient, guildId: string): RestTypes.GetGuildWidgetSettingsResponse
+    return self.request:get(Routes.guilds.widget(guildId))
+end
+
+function RestClient.joinThread(self: RestClient, channelId: string)
+    self.request:put(Routes.channels.threads.me(channelId))
+end
+
+function RestClient.leaveGuild(self: RestClient, guildId: string)
+    self.request:delete(Routes.guilds.leave(guildId))
+end
+
+function RestClient.leaveThread(self: RestClient, channelId: string)
+    self.request:delete(Routes.channels.threads.me(channelId))
+end
+
+function RestClient.publishMessage(self: RestClient, channelId: string, messageId: string): RestTypes.CrosspostMessageResponse
+    return self.request:post(Routes.channels.crosspost(channelId, messageId))
+end
+
+function RestClient.removeRole(self: RestClient, guildId: string, userId: string, roleId: string, reason: string?)
+    return self.request:delete(Routes.guilds.roles.member(guildId, userId, roleId), {
+        reason = reason
+    })
+end
+
+function RestClient.removeThreadMember(self: RestClient, channelId: string, userId: string)
+    self.request:delete(Routes.channels.threads.user(channelId, userId))
+end
+
+function RestClient.removeDmRecipient(self: RestClient, channelId: string, userId: string)
+    self.request:delete(Routes.channels.dmRecipient(channelId, userId))
+end
+
 return RestClient

@@ -1272,9 +1272,9 @@ export type ApplicationRoleConnectionMetadataObject = {
     type: ApplicationRoleConnectionMetadataType, -- type of metadata value
     key: string, -- dictionary key for the metadata field (must be a-z, 0-9, or _ characters; 1-50 characters)
     name: string, -- name of the metadata field (1-100 characters)
-    name_localizations: { [LanguageLocales]: string }?, -- translations of the name
+    nameLocalizations: { [LanguageLocales]: string }?, -- translations of the name
     description: string, -- description of the metadata field (1-200 characters)
-    description_localizations: { [LanguageLocales]: string }?, -- translations of the description
+    descriptionLocalizations: { [LanguageLocales]: string }?, -- translations of the description
 }
 
 -- https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
@@ -1462,10 +1462,10 @@ export type GuildWidgetSettingsObject = {
 export type GuildWidgetObject = {
     id: Snowflake, -- guild id
     name: string, -- guild name (2-100 characters)
-    instant_invite: string?, -- instant invite for the guilds specified widget invite channel
+    instantInvite: string?, -- instant invite for the guilds specified widget invite channel
     channels: { ChannelObject }, -- voice and stage channels which are accessible by @everyone
     members: { UserObject }, -- special widget user objects that includes users presence (Limit 100)
-    presence_count: number, -- number of online members in this guild
+    presenceCount: number, -- number of online members in this guild
 }
 
 -- https://discord.com/developers/docs/resources/guild#guild-onboarding-object-prompt-option-structure
@@ -1551,16 +1551,16 @@ export type ConnectionObject = {
     revoked: boolean?, -- whether the connection is revoked
     integrations: { IntegrationObject }?, -- an array of partial server integrations
     verified: boolean, -- whether the connection is verified
-    friend_sync: boolean, -- whether friend sync is enabled for this connection
-    show_Activity: boolean, -- whether activities related to this connection will be shown in presence updates
-    two_way_link: boolean, -- whether this connection has a corresponding third party OAuth2 token
+    friendSync: boolean, -- whether friend sync is enabled for this connection
+    showActivity: boolean, -- whether activities related to this connection will be shown in presence updates
+    twoWayLink: boolean, -- whether this connection has a corresponding third party OAuth2 token
     visibility: ConnectionVisibilityTypes, -- visibility of this connection
 }
 
 -- https://discord.com/developers/docs/resources/user#application-role-connection-object
 export type ApplicationRoleConnectionObject = {
-    platform_name: string?, -- the vanity name of the platform a bot has connected (max 50 characters)
-    platform_username: string?, -- the username on the platform a bot has connected (max 100 characters)
+    platformName: string?, -- the vanity name of the platform a bot has connected (max 50 characters)
+    platformUsername: string?, -- the username on the platform a bot has connected (max 100 characters)
     metadata: ApplicationRoleConnectionMetadataObject, -- object mapping application role connection metadata keys to their string-ified value (max 100 characters) for the user on the platform a bot has connected
 }
 
