@@ -685,7 +685,7 @@ export type EditApplicationCommandPermissionsRequest = Request<{
 export type EditAutoModerationRuleResponse = Response<objects.AutomoderationRuleObject>
 
 -- https://discord.com/developers/docs/resources/voice#get-current-user-voice-state
-export type GetCurrentUserVoiceStateResponse = Response<{ objects.VoiceStateObject }>
+export type GetCurrentUserVoiceStateResponse = Response<objects.VoiceStateObject>
 
 -- https://discord.com/developers/docs/topics/oauth2#get-current-authorization-information-response-structure
 export type GetCurrentAuthorization = Response<{
@@ -896,21 +896,21 @@ export type ListThreadMembersResponse = Response<{ objects.ThreadMemberObject }>
 export type ListPublicArchivedThreadsResponse = Response<{
     threads: { objects.ChannelObject }, -- the public, archived threads
     members: { objects.ThreadMemberObject }, -- a thread member object for each returned thread the current user has joined
-    has_more: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
+    hasMore: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
 }>
 
 -- https://discord.com/developers/docs/resources/channel#list-private-archived-threads
 export type ListPrivateArchivedThreadsResponse = Response<{
     threads: { objects.ChannelObject }, -- the public, archived threads
     members: { objects.ThreadMemberObject }, -- a thread member object for each returned thread the current user has joined
-    has_more: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
+    hasMore: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
 }>
 
 -- https://discord.com/developers/docs/resources/channel#list-joined-private-archived-threads
 export type ListJoinedPrivateArchivedThreadsResponse = Response<{
     threads: { objects.ChannelObject }, -- the public, archived threads
     members: { objects.ThreadMemberObject }, -- a thread member object for each returned thread the current user has joined
-    has_more: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
+    hasMore: boolean, -- whether there are potentially additional threads that could be returned on a subsequent call
 }>
 
 -- https://discord.com/developers/docs/resources/emoji#list-guild-emojis
@@ -1095,11 +1095,18 @@ export type ModifyUserVoiceStateResponse = Response<unknown>
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#list-scheduled-events-for-guild
 export type ListScheduledEventsForGuildResponse = Response<{ objects.GuildScheduledEventObject }>
 
+-- https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
+export type ListScheduledEventUsersResponse = Response<{ {
+    user: objects.UserObject,
+    member: objects.GuildMemberObject?
+} }>
+
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 export type CreateGuildScheduledEventResponse = Response<objects.GuildScheduledEventObject>
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event
 export type GetGuildScheduledEventResponse = Response<objects.GuildScheduledEventObject>
+export type GetGuildScheduledEventsResponse = Response<{ objects.GuildScheduledEventObject }>
 
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#modify-guild-scheduled-event
 export type ModifyGuildScheduledEventResponse = Response<objects.GuildScheduledEventObject>
@@ -1158,6 +1165,9 @@ export type DeleteStageInstanceResponse = Response<nil>
 
 -- https://discord.com/developers/docs/resources/sticker#get-sticker
 export type GetStickerResponse = Response<objects.StickerObject>
+
+-- https://discord.com/developers/docs/resources/sticker#sticker-pack-object-sticker-pack-structure
+export type GetStickerPacksResponse = Response<{ objects.StickerPackObject }>
 
 -- https://discord.com/developers/docs/resources/sticker#list-sticker-packs
 export type ListStickerPacksResponse = Response<{

@@ -747,4 +747,102 @@ function RestClient.getGuildTemplates(self: RestClient, guildId: string): RestTy
     return self.request:get(Routes.guilds.templates.all(guildId))
 end
 
+function RestClient.getGuildWebhooks(self: RestClient, guildId: string): RestTypes.GetGuildWebhooksResponse
+    return self.request:get(Routes.guilds.webhooks(guildId))
+end
+
+function RestClient.getIntegrations(self: RestClient, guildId: string): RestTypes.GetGuildIntegrationsResponse
+    return self.request:get(Routes.guilds.integrations(guildId))
+end
+
+function RestClient.getInvite(self: RestClient, inviteCode: string, options: { withCounts: boolean?, withExpiration: boolean?, scheduledEventId: string? }?): RestTypes.GetInviteResponse
+    return self.request:get(Routes.guilds.invite(inviteCode, options))
+end
+
+function RestClient.getInvites(self: RestClient, guildId: string): RestTypes.GetGuildInvitesResponse
+    return self.request:get(Routes.guilds.invites(guildId))
+end
+
+function RestClient.getMessage(self: RestClient, channelId: string, messageId: string): RestTypes.GetChannelMessageResponse
+    return self.request:get(Routes.channels.message(channelId, messageId))
+end
+
+function RestClient.getMessages(self: RestClient, channelId: string, options: { limit: number?, after: string?, before: string?, around: string? }?): RestTypes.GetChannelMessagesResponse
+    return self.request:get(Routes.channels.messages(channelId, options))
+end
+
+function RestClient.getStickerPacks(self: RestClient): RestTypes.GetStickerPacksResponse
+    return self.request:get(Routes.stickerPacks())
+end
+
+function RestClient.getOriginalInteractionResponse(self: RestClient, token: string): RestTypes.GetOriginalInteractionResponse
+    return self.request:get(Routes.interactions.responses.original(self.applicationId, token), {
+        authenticated = false
+    })
+end
+
+function RestClient.getPinnedMessages(self: RestClient, channelId: string): RestTypes.GetPinnedMessagesResponse
+    return self.request:get(Routes.channels.pins(channelId))
+end
+
+function RestClient.getPrivateArchivedThreads(self: RestClient, channelId: string, options: { before: number?, limit: number? }?): RestTypes.ListPrivateArchivedThreadsResponse
+    return self.request:get(Routes.channels.threads.private(channelId, options))
+end
+
+function RestClient.getPrivateJoinedArchivedThreads(self: RestClient, channelId: string, options: { before: number?, limit: number? }?): RestTypes.ListJoinedPrivateArchivedThreadsResponse
+    return self.request:get(Routes.channels.threads.joined(channelId, options))
+end
+
+function RestClient.getPruneCount(self: RestClient, guildId: string, options: { days: number?, includeRoles: (string | { string })? }?): RestTypes.GetGuildPruneCountResponse
+    return self.request:get(Routes.guilds.prune(guildId, options))
+end
+
+function RestClient.getPublicArchivedThreads(self: RestClient, channelId: string, options: { before: number?, limit: number? }?): RestTypes.ListPublicArchivedThreadsResponse
+    return self.request:get(Routes.channels.threads.public(channelId, options))
+end
+
+function RestClient.getRoles(self: RestClient, guildId: string): RestTypes.GetGuildRolesResponse
+    return self.request:get(Routes.guilds.roles.all(guildId)) 
+end
+
+function RestClient.getRole(self: RestClient, guildId: string, roleId: string): RestTypes.GetGuildRoleResponse
+    return self.request:get(Routes.guilds.roles.one(guildId, roleId))
+end
+
+function RestClient.getScheduledEvent(self: RestClient, guildId: string, eventId: string, options: { withUserCount: boolean? }?): RestTypes.GetGuildScheduledEventResponse
+    return self.request:get(Routes.guilds.events.event(guildId, eventId, options and options.withUserCount))
+end
+
+function RestClient.getScheduledEvents(self: RestClient, guildId: string, options: { withUserCount: boolean? }?): RestTypes.GetGuildScheduledEventsResponse
+    return self.request:get(Routes.guilds.events.events(guildId, options and options.withUserCount))
+end
+
+function RestClient.getScheduledEventUsers(self: RestClient, guildId: string, eventId: string, options: { limit: number?, withMember: boolean?, before: string?, after: string? }?): RestTypes.ListScheduledEventUsersResponse
+    return self.request:get(Routes.guilds.events.users(guildId, eventId, options))
+end
+
+function RestClient.getStageInstance(self: RestClient, channelId: string): RestTypes.GetStageInstanceResponse
+    return self.request:get(Routes.channels.stage(channelId))
+end
+
+function RestClient.getOwnVoiceState(self: RestClient, guildId: string): RestTypes.GetCurrentUserVoiceStateResponse
+    return self.request:get(Routes.guilds.voice(guildId))
+end
+
+function RestClient.getUserVoiceState(self: RestClient, guildId: string, userId: string): RestTypes.GetUserVoiceStateResponse
+    return self.request:get(Routes.guilds.voice(guildId, userId))
+end
+
+function RestClient.getSticker(self: RestClient, stickerId: string): RestTypes.GetStickerResponse
+    return self.request:get(Routes.sticker(stickerId))
+end
+
+function RestClient.getGuildSticker(self: RestClient, guildId: string, stickerId: string): RestTypes.GetGuildStickerResponse
+    return self.request:get(Routes.guilds.sticker(guildId, stickerId))
+end
+
+function RestClient.getGuildStickers(self: RestClient, guildId: string): RestTypes.GetGuildStickerResponse
+    return self.request:get(Routes.guilds.stickers(guildId))
+end
+
 return RestClient

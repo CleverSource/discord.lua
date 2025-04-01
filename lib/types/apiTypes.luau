@@ -1528,10 +1528,10 @@ export type StickerPackObject = {
     id: Snowflake, -- id of the sticker pack
     stickers: { StickerObject }, -- the stickers in the pack
     name: string, -- name of the sticker pack
-    sku_id: Snowflake, -- id of the pack's SKU
-    cover_sticker_id: Snowflake?, -- id of a sticker in the pack which is shown as the pack's icon
+    skuId: Snowflake, -- id of the pack's SKU
+    coverStickerId: Snowflake?, -- id of a sticker in the pack which is shown as the pack's icon
     description: string, -- description of the sticker pack
-    banner_asset_id: Snowflake?, -- id of the sticker pack's banner image
+    bannerAssetId: Snowflake?, -- id of the sticker pack's banner image
 }
 
 -- https://discord.com/developers/docs/resources/guild#integration-application-object
