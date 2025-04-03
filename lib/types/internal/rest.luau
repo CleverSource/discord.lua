@@ -150,15 +150,15 @@ export type CreateMessageRequest = Request<{
     nonce: (string | number)?, -- Can be used to verify a message was sent (up to 25 characters). Value will appear in the Message Create event.
     tts: boolean?, -- true if this is a TTS message
     embeds: { objects.EmbedObject }?, -- Up to 10 rich embeds (up to 6000 characters)
-    allowed_mentions: objects.AllowedMentionObject?, -- Allowed mentions for the message
-    message_reference: objects.MessageReferenceObject?, -- Include to make your message a reply or a forward
+    allowedMentions: objects.AllowedMentionObject?, -- Allowed mentions for the message
+    messageReference: objects.MessageReferenceObject?, -- Include to make your message a reply or a forward
     components: { objects.ComponentObjects }?, -- Components to include with the message
-    sticker_ids: { objects.Snowflake }?, -- IDs of up to 3 stickers in the server to send in the message
-    -- files: { },
+    stickerIds: { objects.Snowflake }?, -- IDs of up to 3 stickers in the server to send in the message
+    files: { objects.FileContent },
     -- payload_json: string,
     attachments: { objects.AttachmentObject }?, -- Attachment objects with filename and description. See Uploading Files
     flags: number?, -- Message flags combined as a bitfield (only SUPPRESS_EMBEDS and SUPPRESS_NOTIFICATIONS can be set)
-    enforce_nonce: boolean?, -- If true and nonce is present, it will be checked for uniqueness in the past few minutes. If another message was created by the same author with the same nonce, that message will be returned and no new message will be created.
+    enforceNonce: boolean?, -- If true and nonce is present, it will be checked for uniqueness in the past few minutes. If another message was created by the same author with the same nonce, that message will be returned and no new message will be created.
     poll: objects.PollObject?, -- The discord poll object
 }>
 

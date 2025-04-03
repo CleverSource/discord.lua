@@ -404,7 +404,7 @@ end
 function RestClient.editFollowupMessage(self: RestClient, token: string, messageId: string, options: RestTypes.EditFollowupMessageRequest): RestTypes.EditFollowupMessageResponse
     return self.request:patch(Routes.interactions.responses.message(self.applicationId, token, messageId), {
         body = options,
-        files = options.files,
+        file = options.files,
         authenticated = false
     })
 end
@@ -471,7 +471,7 @@ function RestClient.editOriginalWebhookMessage(self: RestClient, webhookId: stri
             type = Constants.InteractionResponseTypes.UpdateMessage,
             data = options
         },
-        files = options.files,
+        file = options.files,
         authenticated = false
     })
 end
@@ -952,6 +952,31 @@ end
 
 function RestClient.removeDmRecipient(self: RestClient, channelId: string, userId: string)
     self.request:delete(Routes.channels.dmRecipient(channelId, userId))
+end
+
+function RestClient.sendFollowupMessage(self: RestClient, token: string, options: RestTypes.CreateFollowupMessageRequest): RestTypes.CreateFollowupMessageResponse
+    return self.request:post(Routes.webhooks.webhook(self.applicationId, token), {
+        body = options,
+        file = options.files,
+        authenticated = false
+    })
+end
+
+function RestClient.sendInteractionResponse(self: RestClient, interactionId: string, token: string, options: RestTypes.CreateInteractionRequest, params: { withResponse: boolean? }?): RestTypes.CreateInteractionResponse
+    local optionsDataAvailable = options and options.data
+    return self.request:post(Routes.interactions.responses.callback(interactionId, token, params), {
+        body = options,
+        file = optionsDataAvailable and options.data.files,
+        -- skip queue
+        authenticated = false
+    })
+end
+
+function RestClient.sendMessage(self: RestClient, channelId: string, options: RestTypes.CreateMessageRequest): RestTypes.CreateMessageResponse
+    return self.request:post(Routes.channels.messages(channelId), {
+        body = options,
+        file = options.files
+    })
 end
 
 return RestClient

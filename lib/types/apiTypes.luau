@@ -1598,7 +1598,7 @@ export type InteractionCallbackAutocompleteObject = {
 
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-interaction-callback-data-structure
 export type InteractionCallbackModalObject = {
-    custom_id: string?, -- Developer-defined identifier for the modal, max 100 characters
+    customId: string?, -- Developer-defined identifier for the modal, max 100 characters
     title: string?, -- Title of the popup modal, max 45 characters
     components: { ComponentObjects }, -- Between 1 and 5 (inclusive) components that make up the modal
 }

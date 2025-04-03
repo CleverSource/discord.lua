@@ -12,7 +12,6 @@ local camelize = require("../util/snakeCaseToCamel")
 local snakize = require("../util/camelCaseToSnake")
 local calculateBitwise = require("../util/calculateBitwise")
 local FormData = require("FormData")
-local snowflakeCreatedAt = require("../util/snowflakeCreatedAt")
 local OrderedBucket = require("../ratelimit/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
 type LatencyRef = OrderedBucket.LatencyRef
