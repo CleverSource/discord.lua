@@ -979,4 +979,165 @@ function RestClient.sendMessage(self: RestClient, channelId: string, options: Re
     })
 end
 
+function RestClient.startThreadWithMessage(self: RestClient, channelId: string, messageId: string, options: RestTypes.StartThreadFromMessageRequest, reason: string?): RestTypes.StartThreadFromMessageResponse
+    return self.request:post(Routes.channels.threads.message(channelId, messageId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.startThreadWithoutMessage(self: RestClient, channelId: string, options: RestTypes.StartThreadWithoutMessageRequest, reason: string?): RestTypes.StartThreadWithoutMessageResponse
+    return self.request:post(Routes.channels.threads.all(channelId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.getPollAnswerVoters(self: RestClient, channelId: string, messageId: string, answerId: string, options: { after: string?, limit: number? }?): RestTypes.GetAnswerVotersResponse
+    return self.request:get(Routes.channels.polls.votes(channelId, messageId, answerId, options))
+end
+
+function RestClient.endPoll(self: RestClient, channelId: string, messageId: string): RestTypes.EndPollResponse
+    return self.request:post(Routes.channels.polls.expire(channelId, messageId))
+end
+
+function RestClient.syncGuildTemplate(self: RestClient, guildId: string): RestTypes.SyncGuildTemplateResponse
+    return self.request:put(Routes.guilds.templates.all(guildId))
+end
+
+function RestClient.banMember(self: RestClient, guildId: string, userId: string, options: RestTypes.CreateGuildBanRequest, reason: string?)
+    self.request:put(Routes.guilds.members.ban(guildId, userId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.bulkBanMembers(self: RestClient, guildId: string, options: RestTypes.BulkGuildBanRequest, reason: string?): RestTypes.BulkGuildBanResponse
+    return self.request:put(Routes.guilds.members.bulkBan(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editBotMember(self: RestClient, guildId: string, options: RestTypes.ModifyCurrentMemberRequest, reason: string?): RestTypes.ModifyCurrentMemberResponse
+    return self.request:patch(Routes.guilds.members.bot(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.editMember(self: RestClient, guildId: string, userId: string, options: RestTypes.ModifyGuildMemberRequest, reason: string?): RestTypes.ModifyGuildMemberResponse
+    return self.request:patch(Routes.guilds.members.member(guildId, userId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.getMember(self: RestClient, guildId: string, userId: string): RestTypes.GetGuildMemberResponse
+    return self.request:get(Routes.guilds.members.member(guildId, userId))
+end
+
+function RestClient.getCurrentMember(self: RestClient, guildId: string, token: string): RestTypes.GetCurrentUserGuildMemberResponse
+    return self.request:get(Routes.guilds.members.currentMember(guildId), {
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+function RestClient.getMembers(self: RestClient, guildId: string, options: { limit: number?, after: string? }?): RestTypes.ListGuildMembersResponse
+    return self.request:get(Routes.guilds.members.members(guildId, options))
+end
+
+function RestClient.getApplicationActivityInstance(self: RestClient, applicationId: string, instanceId: string): RestTypes.GetActivityInstanceResponse
+    return self.request:get(Routes.applicationActivityInstance(applicationId, instanceId))
+end
+
+function RestClient.kickMember(self: RestClient, guildId: string, userId: string, reason: string?)
+    self.request:delete(Routes.guilds.members.member(guildId, userId), {
+        reason = reason
+    })
+end
+
+function RestClient.pinMessage(self: RestClient, channelId: string, messageId: string, reason: string?)
+    self.request:put(Routes.channels.pin(channelId, messageId), {
+        reason = reason
+    })
+end
+
+function RestClient.pruneMember(self: RestClient, guildId: string, options: RestTypes.BeginGuildPruneRequest, reason: string?): RestTypes.BeginGuildPruneResponse
+    return self.request:post(Routes.guilds.members.prune(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.searchMembers(self: RestClient, guildId: string, query: string, options: { limit: number? }?): RestTypes.SearchGuildMembersResponse
+    return self.request:get(Routes.guilds.members.search(guildId, query, options))
+end
+
+function RestClient.getGuildOnboarding(self: RestClient, guildId: string): RestTypes.GetGuildOnboardingResponse
+    return self.request:get(Routes.guilds.onboarding(guildId))
+end
+
+function RestClient.editGuildOnboarding(self: RestClient, guildId: string, options: RestTypes.ModifyGuildOnboardingRequest, reason: string?): RestTypes.ModifyGuildOnboardingResponse
+    return self.request:put(Routes.guilds.onboarding(guildId), {
+        body = options,
+        reason = reason
+    })
+end
+
+function RestClient.modifyGuildIncidentActions(self: RestClient, guildId: string, options: RestTypes.ModifyGuildIncidentActionsRequest): RestTypes.IncidentsDataResponse
+    return self.request:put(Routes.guilds.incidentActions(guildId), {
+        body = options
+    })
+end
+
+function RestClient.unbanMember(self: RestClient, guildId: string, userId: string, reason: string?)
+    self.request:delete(Routes.guilds.members.ban(guildId, userId), {
+        reason = reason
+    })
+end
+
+function RestClient.unpinMessage(self: RestClient, channelId: string, messageId: string, reason: string?)
+    self.request:delete(Routes.channels.pin(channelId, messageId), {
+        reason = reason
+    })
+end
+
+function RestClient.triggerTypingIndicator(self: RestClient, channelId: string)
+    self.request:post(Routes.channels.typing(channelId))
+end
+
+function RestClient.upsertGlobalApplicationCommands(self: RestClient, command: RestTypes.EditGlobalApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.EditGlobalApplicationCommandResponse
+    local restOptions: RequestHandler.CreateRequestOptions = {
+        body = command
+    }
+
+    if options and options.bearerToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.bearerToken}`
+        }
+    end
+
+    return self.request:put(Routes.interactions.commands.commands(self.applicationId), restOptions)
+end
+
+function RestClient.upsertGuildApplicationCommands(self: RestClient, guildId: string, command: RestTypes.EditGuildApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.EditGuildApplicationCommandResponse
+    local restOptions: RequestHandler.CreateRequestOptions = {
+        body = command
+    }
+
+    if options and options.bearerToken then
+        restOptions.authenticated = false
+        restOptions.headers = {
+            authorization = `Bearer {options.bearerToken}`
+        }
+    end
+
+    return self.request:put(Routes.interactions.commands.guilds.all(self.applicationId, guildId), restOptions)
+end
+
 return RestClient

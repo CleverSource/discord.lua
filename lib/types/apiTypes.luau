@@ -1471,12 +1471,12 @@ export type GuildWidgetObject = {
 -- https://discord.com/developers/docs/resources/guild#guild-onboarding-object-prompt-option-structure
 export type PromptOptionObject = {
     id: Snowflake?, -- ID of the prompt option
-    channel_ids: { Snowflake }, -- IDs for channels a member is added to when the option is selected
-    role_ids: { Snowflake }, -- IDs for roles assigned to a member when the option is selected
+    channelIds: { Snowflake }, -- IDs for channels a member is added to when the option is selected
+    roleIds: { Snowflake }, -- IDs for roles assigned to a member when the option is selected
     emoji: EmojiObject | nil, -- Emoji of the option (see below)
-    emoji_id: Snowflake?, -- Emoji ID of the option (see below)
-    emoji_name: string?, -- Emoji name of the option (see below)
-    emoji_animated: boolean?, -- Whether the emoji is animated (see below)
+    emojiId: Snowflake?, -- Emoji ID of the option (see below)
+    emojiName: string?, -- Emoji name of the option (see below)
+    emojiAnimated: boolean?, -- Whether the emoji is animated (see below)
     title: string?, -- Title of the option
     description: string?, -- Description of the option
 }
@@ -1487,16 +1487,16 @@ export type OnboardingPromptObject = {
     type: PromptTypes?, -- Type of prompt
     options: { PromptOptionObject }, -- Options available within the prompt
     title: string?, -- Title of the prompt
-    single_select: boolean?, -- Indicates whether users are limited to selecting one option for the prompt
+    singleSelect: boolean?, -- Indicates whether users are limited to selecting one option for the prompt
     required: boolean?, -- Indicates whether the prompt is required before a user completes the onboarding flow
-    in_onboarding: boolean?, -- Indicates whether the prompt is present in the onboarding flow. If false, the prompt will only appear in the Channels & Roles tab
+    inOnboarding: boolean?, -- Indicates whether the prompt is present in the onboarding flow. If false, the prompt will only appear in the Channels & Roles tab
 }
 
 -- https://discord.com/developers/docs/resources/guild#guild-onboarding-object
 export type GuildOnboardingObject = {
-    guild_id: Snowflake, -- ID of the guild this onboarding is part of
+    guildId: Snowflake, -- ID of the guild this onboarding is part of
     prompts: { OnboardingPromptObject }, -- Prompts shown during onboarding and in customize community
-    default_channel_ids: { Snowflake }, -- Channel IDs that members get opted into automatically
+    defaultChannelIds: { Snowflake }, -- Channel IDs that members get opted into automatically
     enabled: boolean, -- Whether onboarding is enabled in the guild
     mode: OnboardingMode, -- Current mode of onboarding
 }
@@ -1555,6 +1555,14 @@ export type ConnectionObject = {
     showActivity: boolean, -- whether activities related to this connection will be shown in presence updates
     twoWayLink: boolean, -- whether this connection has a corresponding third party OAuth2 token
     visibility: ConnectionVisibilityTypes, -- visibility of this connection
+}
+
+-- https://discord.com/developers/docs/resources/application#get-application-activity-instance-activity-location-object
+export type ActivityLocationObject = {
+    id: string,
+    kind: "gc" | "pc",
+    channelId: Snowflake,
+    guildId: Snowflake?
 }
 
 -- https://discord.com/developers/docs/resources/user#application-role-connection-object

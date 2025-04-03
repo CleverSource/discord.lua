@@ -190,6 +190,20 @@ export type BulkDeleteMessagesRequest = Request<{
     messages: { objects.Snowflake },
 }>
 
+-- https://discord.com/developers/docs/resources/guild#incidents-data-object-incidents-data-structure
+export type IncidentsDataResponse = Response<{
+    invitesDisabledUntil: string,
+    dmsDisabledUntil: string,
+    dmSpamDetectedAt: string?,
+    raidDetectedAt: string?
+}>
+
+-- https://discord.com/developers/docs/resources/guild#modify-guild-incident-actions-json-params
+export type ModifyGuildIncidentActionsRequest = Request<{
+    invitesDisabledUntil: string?,
+    dmsDisabledUntil: string?
+}>
+
 -- https://discord.com/developers/docs/resources/channel#follow-announcement-channel
 export type FollowAnnouncementChannelRequest = Request<{
     webhook_channel_id: objects.Snowflake, -- id of target channel
@@ -204,17 +218,17 @@ export type GroupDMAddRecipientRequest = Request<{
 -- https://discord.com/developers/docs/resources/channel#start-thread-from-message
 export type StartThreadFromMessageRequest = Request<{
     name: string, -- 1-100 character channel name
-    auto_archive_duration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
-    rate_limit_per_user: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
+    autoArchiveDuration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
+    rateLimitPerUser: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
 }>
 
 -- https://discord.com/developers/docs/resources/channel#start-thread-without-message
 export type StartThreadWithoutMessageRequest = Request<{
     name: string, -- 1-100 character channel name
-    auto_archive_duration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
+    autoArchiveDuration: number?, -- the thread will stop showing in the channel list after auto_archive_duration minutes of inactivity, can be set to: 60, 1440, 4320, 10080
     type: objects.ChannelType?, -- the type of thread to create
     invitable: boolean?, -- whether non-moderators can add other non-moderators to a thread; only available when creating a private thread
-    rate_limit_per_user: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
+    rateLimitPerUser: number?, -- amount of seconds a user has to wait before sending another message (0-21600)
 }>
 
 -- https://discord.com/developers/docs/resources/channel#start-thread-in-forum-or-media-channel
@@ -345,8 +359,8 @@ export type ModifyGuildMemberRequest = Request<{
     roles: { objects.Snowflake }?, -- array of role ids the member is assigned
     mute: boolean?, -- whether the user is muted in voice channels. Will throw a 400 error if the user is not in a voice channel
     deaf: boolean?, -- whether the user is deafened in voice channels. Will throw a 400 error if the user is not in a voice channel
-    channel_id: (objects.Snowflake | boolean)?, -- id of channel to move user to (if they are connected to voice)
-    communication_disabled_until: string?, -- when the user's timeout will expire and the user will be able to communicate in the guild again (up to 28 days in the future), set to null to remove timeout. Will throw a 403 error if the user has the ADMINISTRATOR permission or is the owner of the guild
+    channelId: (objects.Snowflake | boolean)?, -- id of channel to move user to (if they are connected to voice)
+    communicationDisabledUntil: string?, -- when the user's timeout will expire and the user will be able to communicate in the guild again (up to 28 days in the future), set to null to remove timeout. Will throw a 403 error if the user has the ADMINISTRATOR permission or is the owner of the guild
     flags: objects.GuildMemberFlags?, -- guild member flags
 }>
 
@@ -357,14 +371,14 @@ export type ModifyCurrentMemberRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/guild#create-guild-ban
 export type CreateGuildBanRequest = Request<{
-    delete_message_days: number?, -- number of days to delete messages for (0-7) (deprecated)
-    delete_message_seconds: number?, -- number of seconds to delete messages for, between 0 and 604800 (7 days)
+    deleteMessageDays: number?, -- number of days to delete messages for (0-7) (deprecated)
+    deleteMessageSeconds: number?, -- number of seconds to delete messages for, between 0 and 604800 (7 days)
 }>
 
 -- https://discord.com/developers/docs/resources/guild#bulk-guild-ban
 export type BulkGuildBanRequest = Request<{
-    user_ids: { objects.Snowflake }, -- list of user ids to ban (max 200)
-    delete_message_seconds: number?, -- number of seconds to delete messages for, between 0 and 604800 (7 days)
+    userIds: { objects.Snowflake }, -- list of user ids to ban (max 200)
+    deleteMessageSeconds: number?, -- number of seconds to delete messages for, between 0 and 604800 (7 days)
 }>
 
 -- https://discord.com/developers/docs/resources/guild#create-guild-role
@@ -403,8 +417,8 @@ export type ModifyGuildMFALevelRequest = Request<{
 -- https://discord.com/developers/docs/resources/guild#begin-guild-prune
 export type BeginGuildPruneRequest = Request<{
     days: number, -- number of days to prune (1-30)
-    compute_prune_count: boolean, -- whether pruned is returned, discouraged for large guilds
-    include_ruoles: { objects.Snowflake }, -- role(s) to include
+    computePruneCount: boolean, -- whether pruned is returned, discouraged for large guilds
+    includeRuoles: { objects.Snowflake }, -- role(s) to include
     reason: string?, -- reason for the prune (deprecated)
 }>
 
@@ -418,7 +432,7 @@ export type ModifyGuildWelcomeScreenRequest = Request<{
 -- https://discord.com/developers/docs/resources/guild#modify-guild-onboarding
 export type ModifyGuildOnboardingRequest = Request<{
     prompts: { objects.OnboardingPromptObject }?, -- Prompts shown during onboarding and in customize community
-    default_channel_ids: { objects.Snowflake }?, -- Channel IDs that members get opted into automatically
+    defaultChannelIds: { objects.Snowflake }?, -- Channel IDs that members get opted into automatically
     enabled: boolean?, -- Whether onboarding is enabled in the guild
     mode: objects.OnboardingMode?, -- Current mode of onboarding
 }>
@@ -1016,9 +1030,18 @@ export type RemoveGuildBanResponse = Response<nil>
 
 -- https://discord.com/developers/docs/resources/guild#bulk-guild-ban
 export type BulkGuildBanResponse = Response<{
-    banned_users: { objects.Snowflake },
-    failed_users: { objects.Snowflake },
+    bannedUsers: { objects.Snowflake },
+    failedUsers: { objects.Snowflake },
 }>
+
+-- https://discord.com/developers/docs/resources/application#get-application-activity-instance-activity-instance-object
+export type GetActivityInstanceResponse = {
+    applicationId: objects.Snowflake,
+    instanceId: objects.Snowflake,
+    launchId: objects.Snowflake,
+    location: objects.ActivityLocationObject,
+    users: { objects.Snowflake }
+}
 
 -- https://discord.com/developers/docs/resources/guild#get-guild-roles
 export type GetGuildRolesResponse = Response<{ objects.GuildRoleObject }>
