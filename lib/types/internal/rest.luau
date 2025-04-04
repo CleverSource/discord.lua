@@ -346,7 +346,7 @@ export type ModifyGuildChannelPositionsRequest = Request<
 
 -- https://discord.com/developers/docs/resources/guild#add-guild-member
 export type AddGuildMemberRequest = Request<{
-    access_token: string, -- an oauth2 access token granted with the guilds.join to the bot's application for the user you want to add to the guild
+    accessToken: string, -- an oauth2 access token granted with the guilds.join to the bot's application for the user you want to add to the guild
     nick: string?, -- value to set user's nickname to
     roles: { objects.Snowflake }?, -- array of role ids the member is assigned
     mute: boolean?, -- whether the user is muted in voice channels
@@ -464,6 +464,21 @@ export type CreateGuildScheduledEventRequest = Request<{
     image: string?, -- the cover image of the scheduled event
 }>
 
+-- https://discord.com/developers/docs/monetization/entitlements#create-test-entitlement-json-params
+export type CreateEntitlementRequest = Request<{
+    skuId: objects.Snowflake,
+    ownerId: objects.Snowflake,
+    ownerType: objects.CreateEntitlementOwnerType
+}>
+
+export type CreateEntitlementResponse = Response<objects.EntitlementObject>
+
+export type ListSkusResponse = Response<{ objects.SkuObject }>
+
+export type ListDefaultSoundboardSoundsResponse = Response<{ objects.SoundboardSoundObject }>
+
+export type GetGuildSoundboardSoundResponse = Response<{ items: objects.SoundboardSoundObject }>
+
 -- https://discord.com/developers/docs/resources/guild-scheduled-event#modify-guild-scheduled-event
 export type ModifyGuildScheduledEventRequest = Request<{
     channelId: objects.Snowflake?, -- the channel id of the scheduled event.
@@ -546,8 +561,8 @@ export type CreateGroupDMRequest = Request<{
 
 -- https://discord.com/developers/docs/resources/user#update-current-user-application-role-connection
 export type UpdateCurrentUserApplicationRoleConnectionRequest = Request<{
-    platform_name: string?, -- the vanity name of the platform a bot has connected (max 50 characters)
-    platform_username: string?, -- the username on the platform a bot has connected (max 100 characters)
+    platformName: string?, -- the vanity name of the platform a bot has connected (max 50 characters)
+    platformUsername: string?, -- the username on the platform a bot has connected (max 100 characters)
     metadata: objects.ApplicationRoleConnectionMetadataObject?, -- object mapping application role connection metadata keys to their string-ified value (max 100 characters) for the user on the platform a bot has connected
 }>
 
@@ -782,6 +797,9 @@ export type GetGuildAuditLogResponse = Response<objects.AuditLogObject>
 
 -- https://discord.com/developers/docs/resources/auto-moderation#list-auto-moderation-rules-for-guild
 export type ListAutoModerationRulesForGuildResponse = Response<{ objects.AutomoderationRuleObject }>
+
+export type ListEntitlementsResponse = Response<{ objects.EntitlementObject }>
+export type GetEntitlementResponse = Response<objects.EntitlementObject>
 
 -- https://discord.com/developers/docs/resources/auto-moderation#get-auto-moderation-rule
 export type GetAutoModerationRuleResponse = Response<objects.AutomoderationRuleObject>

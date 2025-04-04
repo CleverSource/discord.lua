@@ -180,6 +180,8 @@ export type MutableGuildFeatures = "COMMUNITY" | "DISCOVERABLE" | "INVITES_DISAB
 -- https://discord.com/developers/docs/resources/sticker#sticker-object-sticker-types
 export type StickerType = number
 
+export type CreateEntitlementOwnerType = number
+
 -- https://discord.com/developers/docs/resources/sticker#sticker-object-sticker-format-types
 export type StickerFormatType = number
 
@@ -609,6 +611,18 @@ export type InstallParamsObject = {
     permissions: string, -- Permissions to request for the bot role
 }
 
+-- https://discord.com/developers/docs/resources/soundboard#soundboard-sound-object-soundboard-sound-structure
+export type SoundboardSoundObject = {
+    name: string,
+    soundId: Snowflake,
+    volume: number,
+    emojiId: Snowflake?,
+    emojiName: string,
+    guildId: Snowflake?,
+    available: boolean,
+    user: UserObject?
+}
+
 -- https://discord.com/developers/docs/resources/application#application-object
 export type ApplicationObject = {
     id: Snowflake, -- ID of the app
@@ -639,6 +653,16 @@ export type ApplicationObject = {
     installParams: InstallParamsObject?, -- Settings for the app's default in-app authorization link, if enabled
     integrationTypesConfig: { [ApplicationIntegrationType]: boolean }?, -- In preview. Default scopes and permissions for each supported installation context. Value for each key is an integration type configuration object
     customInstallUrl: string?, -- Default custom authorization URL for the app, if enabled
+}
+
+-- https://discord.com/developers/docs/resources/sku#sku-object-sku-structure
+export type SkuObject = {
+    id: Snowflake,
+    type: number,
+    applicationId: Snowflake,
+    name: string,
+    slug: string,
+    flags: number
 }
 
 -- https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure
@@ -795,14 +819,14 @@ export type ChannelObject = {
 -- https://discord.com/developers/docs/monetization/entitlements#entitlement-object
 export type EntitlementObject = {
     id: Snowflake, -- ID of the entitlement
-    sku_id: Snowflake, -- ID of the SKU
-    application_id: Snowflake, -- ID of the parent application
-    user_id: Snowflake?, -- ID of the user that is granted access to the entitlement's sku
+    skuId: Snowflake, -- ID of the SKU
+    applicationId: Snowflake, -- ID of the parent application
+    userId: Snowflake?, -- ID of the user that is granted access to the entitlement's sku
     type: EntitlementType, -- Type of entitlement
     deleted: boolean, -- Entitlement was deleted
-    starts_at: string?, -- Start date at which the entitlement is valid. Not present when using test entitlements.
-    ends_at: string?, -- Date at which the entitlement is no longer valid. Not present when using test entitlements.
-    guild_id: Snowflake?, -- ID of the guild that is granted access to the entitlement's sku
+    startsAt: string?, -- Start date at which the entitlement is valid. Not present when using test entitlements.
+    endsAt: string?, -- Date at which the entitlement is no longer valid. Not present when using test entitlements.
+    guildId: Snowflake?, -- ID of the guild that is granted access to the entitlement's sku
     consumed: boolean?, -- For consumable items, whether or not the entitlement has been consumed
 }
 

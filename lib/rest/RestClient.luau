@@ -1140,4 +1140,62 @@ function RestClient.upsertGuildApplicationCommands(self: RestClient, guildId: st
     return self.request:put(Routes.interactions.commands.guilds.all(self.applicationId, guildId), restOptions)
 end
 
+function RestClient.editUserApplicationRoleConnection(self: RestClient, token: string, applicationId: string, options: RestTypes.UpdateCurrentUserApplicationRoleConnectionRequest): RestTypes.UpdateCurrentUserApplicationRoleConnectionResponse
+    return self.request:put(Routes.oauth2.roleConnections(applicationId), {
+        body = options,
+        headers = {
+            authorization = `Bearer {token}`
+        },
+        authenticated = false
+    })
+end
+
+function RestClient.addGuildMember(self: RestClient, guildId: string, userId: string, options: RestTypes.AddGuildMemberRequest): RestTypes.AddGuildMemberResponse
+    return self.request:put(Routes.guilds.members.member(guildId, userId), {
+        body = options
+    })
+end
+
+function RestClient.createTestEntitlement(self: RestClient, applicationId: string, options: RestTypes.CreateEntitlementRequest): RestTypes.CreateEntitlementResponse
+    return self.request:post(Routes.monetization.entitlements(applicationId), {
+        body = options
+    })
+end
+
+function RestClient.listEntitlements(self: RestClient, applicationId: string, options: { userId: string?, skuIds: { string }?, before: string?, after: string?, limit: number?, guildId: string?, excludeEnded: boolean?, excludeDeleted: boolean? }?): RestTypes.ListEntitlementsResponse
+    return self.request:get(Routes.monetization.entitlements(applicationId, options))
+end
+
+function RestClient.getEntitlement(self: RestClient, applicationId: string, entitlementId: string): RestTypes.GetEntitlementResponse
+    return self.request:get(Routes.monetization.entitlement(applicationId, entitlementId))
+end
+
+function RestClient.deleteTestEntitlement(self: RestClient, applicationId: string, entitlementId: string)
+    self.request:delete(Routes.monetization.entitlement(applicationId, entitlementId))
+end
+
+function RestClient.consumeEntitlement(self: RestClient, applicationId: string, entitlementId: string)
+    self.request:post(Routes.monetization.consumeEntitlement(applicationId, entitlementId))
+end
+
+function RestClient.listSkus(self: RestClient, applicationId: string): RestTypes.ListSkusResponse
+    return self.request:get(Routes.monetization.skus(applicationId))
+end
+
+-- list & get subscriptions
+
+function RestClient.sendSoundboardSound(self: RestClient, channelId: string, options: { soundId: string, sourceGuildId: string? })
+    self.request:post(Routes.soundboard.sendSound(channelId), {
+        body = options
+    })
+end
+
+function RestClient.listDefaultSoundboardSounds(self: RestClient): RestTypes.ListDefaultSoundboardSoundsResponse
+    return self.request:get(Routes.soundboard.listDefault())
+end
+
+function RestClient.getGuildSoundboardSound(self: RestClient, guildId: string, soundId: string): RestTypes.GetGuildSoundboardSoundResponse
+    return self.request:get(Routes.soundboard.guildSound(guildId, soundId))
+end
+
 return RestClient
