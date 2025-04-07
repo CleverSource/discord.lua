@@ -520,6 +520,25 @@ export type CreateStageInstanceRequest = Request<{
     guildScheduledEventId: objects.Snowflake?, -- The guild scheduled event associated with this Stage instance
 }>
 
+-- https://discord.com/developers/docs/resources/soundboard#create-guild-soundboard-sound-json-params
+export type CreateGuildSoundboardSoundRequest = Request<{
+    name: string,
+    sound: string,
+    volume: number?,
+    emojiId: objects.Snowflake?,
+    emojiName: string?
+}>
+
+export type ModifyGuildSoundboardSoundRequest = Request<{
+    name: string,
+    volume: number?,
+    emojiId: objects.Snowflake?,
+    emojiName: string?
+}>
+
+export type CreateGuildSoundboardSoundResponse = Response<objects.SoundboardSoundObject>
+export type ModifyGuildSoundboardSoundResponse = Response<objects.SoundboardSoundObject>
+
 -- https://discord.com/developers/docs/resources/stage-instance#modify-stage-instance
 export type ModifyStageInstanceRequest = Request<{
     topic: string, -- The topic of the Stage instance (1-120 characters)
@@ -784,12 +803,16 @@ export type EditCurrentApplicationResponse = Response<objects.ApplicationObject>
 
 -- https://discord.com/developers/docs/resources/application-role-connection-metadata#get-application-role-connection-metadata-records
 export type GetApplicationRoleConnectionMetadataRecordsResponse = Response<
-    objects.ApplicationRoleConnectionMetadataObject
+    { objects.ApplicationRoleConnectionMetadataObject }
 >
 
 -- https://discord.com/developers/docs/resources/application-role-connection-metadata#update-application-role-connection-metadata-records
 export type UpdateApplicationRoleConnectionMetadataRecordsResponse = Response<
-    objects.ApplicationRoleConnectionMetadataObject
+    { objects.ApplicationRoleConnectionMetadataObject }
+>
+
+export type UpdateApplicationRoleConnectionMetadataRecordsRequest = Request<
+    { objects.ApplicationRoleConnectionMetadataObject }
 >
 
 -- https://discord.com/developers/docs/resources/audit-log#get-guild-audit-log

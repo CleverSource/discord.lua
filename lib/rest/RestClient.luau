@@ -1198,4 +1198,34 @@ function RestClient.getGuildSoundboardSound(self: RestClient, guildId: string, s
     return self.request:get(Routes.soundboard.guildSound(guildId, soundId))
 end
 
+function RestClient.createGuildSoundboardSound(self: RestClient, guildId: string, options: RestTypes.CreateGuildSoundboardSoundRequest, reason: string?): RestTypes.CreateGuildSoundboardSoundResponse
+    return self.request:post(Routes.soundboard.guildSounds(guildId), {
+        body = options,
+        reason = reason,
+    })
+end
+
+function RestClient.modifyGuildSoundboardSound(self: RestClient, guildId: string, soundId: string, options: RestTypes.ModifyGuildSoundboardSoundRequest, reason: string?): RestTypes.ModifyGuildSoundboardSoundResponse
+    return self.request:post(Routes.soundboard.guildSound(guildId, soundId), {
+        body = options,
+        reason = reason,
+    })
+end
+
+function RestClient.deleteGuildSoundboardSound(self: RestClient, guildId: string, soundId: string, reason: string?)
+    return self.request:delete(Routes.soundboard.guildSound(guildId, soundId), {
+        reason = reason,
+    })
+end
+
+function RestClient.listApplicationRoleConnectionsMetadataRecords(self: RestClient, applicationId: string): RestTypes.GetApplicationRoleConnectionMetadataRecordsResponse
+    return self.request:get(Routes.applicationRoleConnectionMetadata(applicationId))
+end
+
+function RestClient.updateApplicationRoleConnectionsMetadataRecords(self: RestClient, applicationId: string, options: RestTypes.UpdateApplicationRoleConnectionMetadataRecordsResponse): RestTypes.UpdateApplicationRoleConnectionMetadataRecordsResponse
+    return self.request:put(Routes.applicationRoleConnectionMetadata(applicationId), {
+        body = options
+    })
+end
+
 return RestClient
