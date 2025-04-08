@@ -169,6 +169,36 @@ return {
         GuildMedia = 16
     },
 
+    MediaSortOrder = {
+        LatestActivity = 0,
+        CreationDate = 1,
+    },
+
+    ForumSortOrder = {
+        LatestActivity = 0,
+        CreationDate = 1,
+    },
+
+    ForumLayout = {
+        NotSet = 0,
+        ListView = 1,
+        GalleryView = 2,
+    },
+
+    VideoQualityMode = {
+        Auto = 1,
+        Full = 2,
+    },
+
+    SelectMenuType = {
+        String = 3,
+        Text = 4,
+        User = 5,
+        Role = 6,
+        Mentionable = 7,
+        Channel = 8,
+    },
+
     OverwriteTypes = {
         Role = 0,
         Member = 1
@@ -292,6 +322,271 @@ return {
         UserInstall = 1
     },
 
+    InteractionType = {
+        Ping = 1,
+        ApplicationCommand = 2,
+        MessageComponent = 3,
+        ApplicationCommandAutocomplete = 4,
+        ModalSubmit = 5,
+    },
+
+    ApplicationCommandOptionType = {
+        SubCommand = 1,
+        SubCommandGroup = 2,
+        String = 3,
+        Integer = 4,
+        Boolean = 5,
+        User = 6,
+        Channel = 7,
+        Role = 8,
+        Mentionable = 9,
+        Number = 10,
+        Attachment = 11,
+    },
+
+    ApplicationCommandType = {
+        ChatInput = 1,
+        User = 2,
+        Message = 3,
+        PrimaryEntryPoiant = 4,
+    },
+
+    ComponentType = {
+        ActionRow = 1,
+        Button = 2,
+        StringSelect = 3,
+        TextInput = 4,
+        UserSelect = 5,
+        RoleSelect = 6,
+        MentionableSelect = 7,
+        ChannelSelect = 8,
+    },
+
+    VerificationLevel = {
+        None = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3,
+        VeryHigh = 4,   
+    },
+
+    DefaultMessageNotification = {
+        AllMessages = 0,
+        OnlyMentions = 1
+    },
+
+    ExplicitContentFilterLevel = {
+        Disabled = 0,
+        MembersWithoutRoles = 1,
+        AllMembers = 2,
+    },
+
+    NSFWLevel = {
+        Default = 0,
+        Explicit = 1,
+        Safe = 2,
+        AgeRestricted = 3,
+    },
+
+    PremiumTier = {
+        None = 0,
+        Tier1 = 1,
+        Tier2 = 2,
+        Tier3 = 3,
+    },
+
+    MFALevel = {
+        None = 0,
+        Elevated = 1,
+    },
+
+    InviteType = {
+        Guild = 0,
+        GroupDM = 1,
+        Friend = 2,
+    },
+
+    InviteTargetType = {
+        Stream = 1,
+        EmbeddedApplication = 2,
+    },
+
+    ScheduledEventPrivacyLevel = {
+        GuildOnly = 2
+    },
+
+    ScheduledEventEntityType = {
+        StageInstance = 1,
+        Voice = 2,
+        External = 3,
+    },
+
+    ScheduledEventStatus = {
+        Scheduled = 1,
+        Active = 2,
+        Completed = 3,
+        Cancelled = 4
+    },
+
+    IntegrationType = {
+        Twitch = "twitch",
+        YouTube = "youtube",
+        Discord = "discord",
+        GuildSubscription = "guild_subscription",
+    },
+
+    IntegrationExpireBehavior = {
+        RemoveRole = 0,
+        Kick = 1,
+    },
+
+    OnboardingPromptType = {
+        MultipleChoice = "MULTIPLE_CHOICE",
+        Dropdown = "DROPDOWN",
+    },
+
+    OnboardingMode = {
+        Default = "ONBOARDING_DEFAULT",
+        Advanced = "ONBOARDING_ADVANCED",
+    },
+
+    OverwriteType = {
+        Role = 0,
+        Member = 1
+    },
+
+    TriggerType = {
+        Keyword = 1,
+        Spam = 3,
+        KeywordPreset = 4,
+        MentionSpam = 5,
+        MemberProfile = 6,
+    },
+
+    KeywordPresetType = {
+        Profanity = 1,
+        SexualContent = 2,
+        Slurs = 3,
+    },
+
+    EventType = {
+        MessageSend = 1,
+        MemberUpdate = 2,
+    },
+
+    ActionType = {
+        BlockMessage = 1,
+        SendAlertMessage = 2,
+        Timeout = 3,
+        BlockMemberInteraction = 4,
+    },
+
+    AuditLogEvent = {
+        GuildUpdate = 1,
+        ChannelCreate = 10,
+        ChannelUpdate = 11,
+        ChannelDelete = 12,
+        ChannelOverwriteCreate = 13,
+        ChannelOverwriteUpdate = 14,
+        ChannelOverwriteDelete = 15,
+        MemberKick = 20,
+        MemberPrune = 21,
+        MemberBanAdd = 22,
+        MemberBanRemove = 23,
+        MemberUpdate = 24,
+        MemberRoleUpdate = 25,
+        MemberMove = 26,
+        MemberDisconnect = 27,
+        BotAdd = 28,
+        RoleCreate = 30,
+        RoleUpdate = 31,
+        RoleDelete = 32,
+        InviteCreate = 40,
+        InviteUpdate = 41,
+        InviteDelete = 42,
+        WebhookCreate = 50,
+        WebhookUpdate = 51,
+        WebhookDelete = 52,
+        EmojiCreate = 60,
+        EmojiUpdate = 61,
+        EmojiDelete = 62,
+        MessageDelete = 72,
+        MessageBulkDelete = 73,
+        MessagePin = 74,
+        MessageUnpin = 75,
+        IntegrationCreate = 80,
+        IntegrationUpdate = 81,
+        IntegrationDelete = 82,
+        StageInstanceCreate = 83,
+        StageInstanceUpdate = 84,
+        StageInstanceDelete = 85,
+        StickerCreate = 90,
+        StickerUpdate = 91,
+        StickerDelete = 92,
+        GuildScheduledEventCreate = 100,
+        GuildScheduledEventUpdate = 101,
+        GuildScheduledEventDelete = 102,
+        ThreadCreate = 110,
+        ThreadUpdate = 111,
+        ThreadDelete = 112,
+        ApplicationCommandPermissionUpdate = 121,
+        SoundboardSoundCreate = 130,
+        SoundboardSoundUpdate = 131,
+        SoundboardSoundDelete = 132,
+        AutoModerationRuleCreate = 140,
+        AutoModerationRuleUpdate = 141,
+        AutoModerationRuleDelete = 142,
+        AutoModerationBlockMessage = 143,
+        AutoModerationFlagToChannel = 144,
+        AutoModerationUserCommunicationDisabled = 145,
+        CreatorMonetizationRequestCreated = 150,
+        CreatorMonetizationTermsAccepted = 151,
+        OnboardingPromptCreate = 163,
+        OnboardingPromptUpdate = 164,
+        OnboardingPromptDelete = 165,
+        OnboardingCreate = 166,
+        OnboardingUpdate = 167,
+        HomeSettingsCreate = 190,
+        HomeSettingsUpdate = 191,
+    },
+
+    EntitlementType = {
+        Purchase = 1,
+        PremiumSubscription = 2,
+        DeveloperGift = 3,
+        TestModePurchase = 4,
+        FreePurchase = 5,
+        UserGift = 6,
+        PremiumPurchase = 7,
+        ApplicationSubscription = 8,
+    },
+
+    EmbedType = {
+        Rich = "rich",
+        Image = "image",
+        Video = "video",
+        Gifv = "gifv",
+        Article = "article",
+        Link = "link",
+        PollResult = "poll_result",
+    },
+
+    ActivityType = {
+        Game = 0,
+        Streaming = 1,
+        Listening = 2,
+        Watching = 3,
+        Competing = 5,
+    },
+
+    Status = {
+        Online = "online",
+        DoNotDisturb = "dnd",
+        Idle = "idle",
+        Invisible = "invisible",
+        Offline = "offline",
+    },
+
     InteractionContextType = {
         Guild = 0,
         BotDm = 1,
@@ -313,5 +608,109 @@ return {
         Modal = 9,
         PremiumRequired = 10,
         LaunchActivity = 12,
+    },
+
+    WebhookType = {
+        Incoming = 1,
+        ChannelFollower = 2,
+        Application = 3
+    },
+
+    NitroType = {
+        None = 0,
+        NitroClassic = 1,
+        Nitro = 2,
+        NitroBasic = 3,
+    },
+
+    StickerType = {
+        Standard = 1,
+        Guild = 2,
+    },
+
+    StickerFormatType = {
+        PNG = 1,
+        APNG = 2,
+        LOTTIE = 3,
+        GIF = 4
+    },
+
+    MessageType = {
+        Default = 0,
+        RecipientAdd = 1,
+        RecipientRemove = 2,
+        Call = 3,
+        ChannelNameChange = 4,
+        ChannelIconChange = 5,
+        ChannelPinnedMessage = 6,
+        UserJoin = 7,
+        GuildBoost = 8,
+        GuildBoostTier1 = 9,
+        GuildBoostTier2 = 10,
+        GuildBoostTier3 = 11,
+        ChannelFollowAdd = 12,
+        GuildDiscoveryDisqualified = 14,
+        GuildDiscoveryRequalified = 15,
+        GuildDiscoveryGracePeriodInitialWarning = 16,
+        GuildDiscoveryGracePeriodFinalWarning = 17,
+        ThreadCreated = 18,
+        Reply = 19,
+        ChatInputCommand = 20,
+        ThreadStarterMessage = 21,
+        GuildInviteReminder = 22,
+        ContextMenuCommand = 23,
+        AutoModerationAction = 24,
+        RoleSubscriptionPurchase = 25,
+        InteractionPremiumUpsell = 26,
+        StageStart = 27,
+        StageEnd = 28,
+        StageSpeaker = 29,
+        StageTopic = 31,
+        GuildApplicationPremiumSubscription = 32,
+        GuildIncidentAlertModeEnabled = 36,
+        GuildIncidentAlertModeDisabled = 37,
+        GuildIncidentReportRaid = 38,
+        GuildIncidentReportFalseAlarm = 39,
+        PurchaseNotification = 44,
+        PollResult = 46,
+    },
+
+    MessageActivityType = {
+        Join = 1,
+        Spectate = 2,
+        Listen = 3,
+        JoinRequest = 5
+    },
+
+    MessageReferenceType = {
+        Default = 0,
+        Forward = 1
+    },
+
+    ButtonStyle = {
+        Blurple = 1,
+        Grey = 2,
+        Green = 3,
+        Red = 4,
+    },
+
+    TextInputStyle = {
+        Short = 1,
+        Paragraph = 2
+    },
+
+    SelectDefaultValueType = {
+        Role = "role",
+        User = "user",
+        Channel = "channel",
+    },
+
+    PollLayoutType = {
+        Default = 1
+    },
+
+    ReactionType = {
+        Normal = 0,
+        Burst = 1
     }
 }
