@@ -40,6 +40,10 @@ function RestClient.new(options: RestClientOptions): RestClient
     return self
 end
 
+function RestClient.setApplicationId(self: RestClient, applicationId: string)
+    self.applicationId = applicationId
+end
+
 function RestClient.getGateway(self: RestClient): RestTypes.GetGatewayResponse
     return self.request:get(Routes.gateway(), {
         authenticated = false
@@ -1182,7 +1186,7 @@ function RestClient.listSkus(self: RestClient, applicationId: string): RestTypes
     return self.request:get(Routes.monetization.skus(applicationId))
 end
 
--- list & get subscriptions
+-- TODO: list & get subscriptions
 
 function RestClient.sendSoundboardSound(self: RestClient, channelId: string, options: { soundId: string, sourceGuildId: string? })
     self.request:post(Routes.soundboard.sendSound(channelId), {

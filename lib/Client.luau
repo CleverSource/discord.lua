@@ -5,11 +5,32 @@ type GatewayHandler = GatewayHandler.GatewayHandler
 local Constants = require("Constants")
 local Shard = require("gateway/Shard")
 type Shard = Shard.Shard
+local ApiTypes = require("types/apiTypes")
+local camelize = require("util/snakeCaseToCamel")
 
 local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
 
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
+
+export type Event = "ready" | "webhooksUpdate" | "channelCreate" | "channelDelete"
+export type Events = {
+    ready: (({
+        shardId: number,
+        v: number,
+        user: ApiTypes.UserObject,
+        guilds: { string },
+        sessionId: string,
+        shard: { number },
+        applicationId: string
+    }) -> ())?,
+    webhooksUpdate: (({
+        channelId: string,
+        guildId: string
+    }) -> ())?,
+    channelCreate: ((ApiTypes.ChannelObject) -> ())?,
+    channelDelete: ((ApiTypes.ChannelObject) -> ())?,
+}
 
 local GatewayTypes = require("types/internal/gateway")
 
@@ -26,7 +47,8 @@ export type ClientOptions = {
     preferSnakeCase: boolean?,
     intents: { number | Constants.Intents }?,
     restOptions: RestClient.RestClientOptions?,
-    gatewayOptions: GatewayHandler.GatewayHandlerOptions?
+    gatewayOptions: GatewayHandler.GatewayHandlerOptions?,
+    events: Events?
 }
 
 export type Client = typeof(setmetatable({} :: {
@@ -34,7 +56,10 @@ export type Client = typeof(setmetatable({} :: {
     logger: Logger,
     gateway: GatewayHandler,
     rest: RestClient,
-    constants: typeof(Constants)
+    constants: typeof(Constants),
+    events: Events,
+    id: string,
+    preferSnakeCase: boolean,
 }, Client))
 
 function Client.new(options: ClientOptions): Client
@@ -97,11 +122,67 @@ function Client.new(options: ClientOptions): Client
     self.gateway = GatewayHandler.new(gatewayOptions)
     self.rest = RestClient.new(restOptions)
 
+    self.preferSnakeCase = preferSnakeCase or false
+
+    self.events = options.events or {}
+
     return self
 end
 
+function Client._callEvent(self: Client, event: Event, ...: any)
+    if not self.events[event] then
+        self.logger:warn("Event " .. event .. " not found")
+        return
+    end
+
+    if self.events[event] then
+        if typeof(self.events[event]) == "table" then
+            for _, callback in ipairs(self.events[event]) do
+                callback(self.preferSnakeCase and ... or camelize(...))
+            end
+        else
+            self.events[event](self.preferSnakeCase and ... or camelize(...))
+        end
+    end
+end
+
 function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Payload<any>)
-    print(event, packet)
+    if event == "READY" then
+        local data = packet.d
+        self:_callEvent("ready", {
+            shardId = shard.id,
+            v = data.v,
+            user = data.user,
+            guilds = data.guilds,
+            sessionId = data.session_id,
+            shard = data.shard,
+            applicationId = data.application.id
+        })
+
+        self.id = data.user.id
+        self.rest:setApplicationId(data.application.id)
+    end
+
+    if event == "WEBHOOKS_UPDATE" then
+        local data = packet.d
+        self:_callEvent("webhooksUpdate", {
+            channelId = data.channel_id,
+            guildId = data.guild_id
+        })
+    elseif event == "CHANNEL_CREATE" then
+        local data = packet.d
+        self:_callEvent("channelCreate", data)
+    elseif event == "CHANNEL_DELETE" then
+        local data = packet.d
+        self:_callEvent("channelDelete", data)
+    end
+end
+
+function Client.on(self: Client, event: Event, callback: (any) -> ())
+    if not self.events[event] then
+        self.events[event] = {}
+    end
+    table.insert(self.events[event], callback)
 end
 
 function Client.connect(self: Client)
