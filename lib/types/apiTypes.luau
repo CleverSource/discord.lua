@@ -22,6 +22,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+local datetime = require("@lune/datetime")
+
 export type Partial<T> = any
 
 export type Snowflake = string
@@ -757,7 +759,7 @@ export type GuildMemberObject = {
 export type ThreadMemberObject = {
     id: Snowflake?, -- ID of the thread
     userId: Snowflake?, -- ID of the user
-    joinTimestamp: string, -- Time the user last joined the thread
+    joinTimestamp: datetime.DateTime, -- Time the user last joined the thread
     flags: number, -- Any user-thread settings, currently only used for notifications
     member: GuildMemberObject?, -- Additional information about the user
 }

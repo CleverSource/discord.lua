@@ -6,14 +6,30 @@ local Constants = require("Constants")
 local Shard = require("gateway/Shard")
 type Shard = Shard.Shard
 local ApiTypes = require("types/apiTypes")
-local camelize = require("util/snakeCaseToCamel")
+
+local datetime = require("@lune/datetime")
 
 local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
+local camelize = require("util/snakeCaseToCamel")
 
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
 
-export type Event = "ready" | "webhooksUpdate" | "channelCreate" | "channelDelete"
+export type Event = "ready" 
+                    | "webhooksUpdate" 
+                    | "channelCreate" 
+                    | "channelDelete" 
+                    | "channelPinsUpdate"
+                    | "channelUpdate"
+                    | "stageInstanceCreate" 
+                    | "stageInstanceDelete" 
+                    | "stageInstanceUpdate"
+                    | "threadCreate"
+                    | "threadDelete"
+                    | "threadListSync"
+                    | "threadMembersUpdate"
+                    | "threadMemberUpdate"
+                    | "threadUpdate"
 export type Events = {
     ready: (({
         shardId: number,
@@ -24,12 +40,61 @@ export type Events = {
         shard: { number },
         applicationId: string
     }) -> ())?,
+    
     webhooksUpdate: (({
         channelId: string,
         guildId: string
     }) -> ())?,
+
     channelCreate: ((ApiTypes.ChannelObject) -> ())?,
     channelDelete: ((ApiTypes.ChannelObject) -> ())?,
+    channelPinsUpdate: (({
+        guildId: string,
+        channelId: string,
+        lastPinTimestamp: datetime.DateTime?
+    }) -> ())?,
+    channelUpdate: ((ApiTypes.ChannelObject) -> ())?,
+
+    stageInstanceCreate: (({
+        id: string,
+        guildId: string,
+        channelId: string,
+        topic: string
+    }) -> ())?,
+    stageInstanceDelete: (({
+        id: string,
+        guildId: string,
+        channelId: string,
+        topic: string
+    }) -> ())?,
+    stageInstanceUpdate: (({
+        id: string,
+        guildId: string,
+        channelId: string,
+        topic: string
+    }) -> ())?,
+
+    threadCreate: ((ApiTypes.ChannelObject) -> ())?,
+    threadDelete: ((ApiTypes.ChannelObject) -> ())?,
+    threadListSync: (({
+        guildId: string,
+        channelIds: { string }?,
+        threads: { ApiTypes.ChannelObject },
+        members: { ApiTypes.ThreadMemberObject }
+    }) -> ())?,
+    threadMembersUpdate: (({
+        id: string,
+        guildId: string,
+        addedMembers: { ApiTypes.ThreadMemberObject },
+        removedMemberIds: { string }
+    }) -> ())?,
+    threadMemberUpdate: (({
+        id: string,
+        guildId: string,
+        joinedAt: datetime.DateTime,
+        flags: number
+    }) -> ())?,
+    threadUpdate: ((ApiTypes.ChannelObject) -> ())?
 }
 
 local GatewayTypes = require("types/internal/gateway")
@@ -52,13 +117,14 @@ export type ClientOptions = {
 }
 
 export type Client = typeof(setmetatable({} :: {
+    Constants: typeof(Constants),
+    
     token: string,
     logger: Logger,
     gateway: GatewayHandler,
     rest: RestClient,
-    constants: typeof(Constants),
     events: Events,
-    id: string,
+    id: string?,
     preferSnakeCase: boolean,
 }, Client))
 
@@ -131,7 +197,6 @@ end
 
 function Client._callEvent(self: Client, event: Event, ...: any)
     if not self.events[event] then
-        self.logger:warn("Event " .. event .. " not found")
         return
     end
 
@@ -175,6 +240,95 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "CHANNEL_DELETE" then
         local data = packet.d
         self:_callEvent("channelDelete", data)
+    elseif event == "CHANNEL_PINS_UPDATE" then
+        local data = packet.d
+        self:_callEvent("channelPinsUpdate", {
+            guildId = data.guild_id,
+            channelId = data.channel_id,
+            lastPinTimestamp = data.last_pin_timestamp and datetime.fromIsoDate(data.last_pin_timestamp) or nil
+        })
+    elseif event == "CHANNEL_UPDATE" then
+        local data = packet.d
+        self:_callEvent("channelUpdate", data)
+    elseif event == "STAGE_INSTANCE_CREATE" then
+        local data = packet.d
+        self:_callEvent("stageInstanceCreate", {
+            id = data.id,
+            guildId = data.guild_id,
+            channelId = data.channel_id,
+            topic = data.topic
+        })
+    elseif event == "STAGE_INSTANCE_DELETE" then
+        local data = packet.d
+        self:_callEvent("stageInstanceDelete", {
+            id = data.id,
+            guildId = data.guild_id,
+            channelId = data.channel_id,
+            topic = data.topic
+        })
+    elseif event == "STAGE_INSTANCE_UPDATE" then
+        local data = packet.d
+        self:_callEvent("stageInstanceUpdate", {
+            id = data.id,
+            guildId = data.guild_id,
+            channelId = data.channel_id,
+            topic = data.topic
+        })
+    elseif event == "THREAD_CREATE" then
+        local data = packet.d
+        self:_callEvent("threadCreate", data)
+    elseif event == "THREAD_DELETE" then
+        local data = packet.d
+        self:_callEvent("threadDelete", data)
+    elseif event == "THREAD_LIST_SYNC" then
+        local data = packet.d
+
+        local eventData = {
+            guildId = data.guild_id,
+            channelIds = data.channel_ids,
+            threads = data.threads,
+            members = data.members
+        }
+        if eventData.members then
+            for _, member in ipairs(eventData.members) do
+                member.userId = member.user_id
+                member.user_id = nil
+                member.joinTimestamp = datetime.fromIsoDate(member.join_timestamp)
+                member.join_timestamp = nil
+            end
+        end
+
+        self:_callEvent("threadListSync", eventData)
+    elseif event == "THREAD_MEMBERS_UPDATE" then
+        local data = packet.d
+
+        local eventData = {
+            id = data.id,
+            guildId = data.guild_id,
+            addedMembers = data.added_members,
+            removedMemberIds = data.removed_member_ids
+        }
+        if eventData.addedMembers then
+            for _, member in ipairs(eventData.addedMembers) do
+                member.userId = member.user_id
+                member.user_id = nil
+                member.joinTimestamp = datetime.fromIsoDate(member.join_timestamp)
+                member.join_timestamp = nil
+            end
+        end
+
+        self:_callEvent("threadMembersUpdate", eventData)
+    elseif event == "THREAD_MEMBER_UPDATE" then
+        local data = packet.d
+        self:_callEvent("threadMemberUpdate", {
+            id = data.id,
+            guildId = data.guild_id,
+            joinedAt = datetime.fromIsoDate(data.joined_at),
+            flags = data.flags
+        })
+    elseif event == "THREAD_UPDATE" then
+        local data = packet.d
+        self:_callEvent("threadUpdate", data)
     end
 end
 

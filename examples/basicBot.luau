@@ -14,8 +14,10 @@ bot.events.ready = function(data)
     print("Bot is ready!")
 end
 
-bot:on("channelCreate", function(channel) 
-    print(channel.name .. " was created!")
-end :: typeof(bot.events.channelCreate))
+bot.events.channelCreate = function(data)
+    bot.rest:sendMessage(data.id, {
+        content = `Wow! {data.name} was created!`
+    })
+end
 
 bot:connect()
