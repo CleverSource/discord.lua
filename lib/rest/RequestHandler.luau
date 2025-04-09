@@ -268,7 +268,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
                 for _, value in data:finish() do
                     bodyObject = bodyObject .. value
                 end
-            else
+            elseif body then
                 headers["content-type"] = "application/json"
                 bodyObject = net.jsonEncode(body)
             end

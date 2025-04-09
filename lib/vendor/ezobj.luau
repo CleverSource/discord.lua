@@ -65,7 +65,7 @@ export type InheritedObject<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject2<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 type InheritedObject2<T,I> = (T
@@ -73,7 +73,7 @@ type InheritedObject2<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject3<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 type InheritedObject3<T,I> =( T 
@@ -81,7 +81,7 @@ type InheritedObject3<T,I> =( T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject4<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 
@@ -90,7 +90,7 @@ type InheritedObject4<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject5<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 type InheritedObject5<T,I> = (T 
@@ -98,7 +98,7 @@ type InheritedObject5<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject6<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 type InheritedObject6<T,I> = (T 
@@ -106,7 +106,7 @@ type InheritedObject6<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> InheritedObject7<T & N,T>;
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 type InheritedObject7<T,I> = (T 
@@ -114,7 +114,7 @@ type InheritedObject7<T,I> = (T
         new: (T?) -> T & {super: I};
         extend: <N>(T,N) -> any; -- will not work with autocomplete and will no longer be type-safe
         type: () -> T & {super: I};
-        super: I;
+        super: any;
     }) & (T? | any?) -> T & {super: I}
 
 -- Extend function to create a subclass
