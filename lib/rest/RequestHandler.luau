@@ -62,7 +62,7 @@ type FileContent = ApiTypes.FileContent
 
 export type CreateRequestOptions = {
     authenticated: boolean?,
-    body: { [string]: any }?,
+    body: { [any]: any }?,
     headers: { [string]: string }?,
     file: FileContent? | { FileContent }?,
     reason: string?

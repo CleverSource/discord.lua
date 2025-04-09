@@ -1114,7 +1114,7 @@ function RestClient.triggerTypingIndicator(self: RestClient, channelId: string)
     self.request:post(Routes.channels.typing(channelId))
 end
 
-function RestClient.upsertGlobalApplicationCommands(self: RestClient, command: RestTypes.EditGlobalApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.EditGlobalApplicationCommandResponse
+function RestClient.upsertGlobalApplicationCommands(self: RestClient, commands: { RestTypes.EditGlobalApplicationCommandRequest }, options: { bearerToken: string }?): RestTypes.EditGlobalApplicationCommandResponse
     local restOptions: RequestHandler.CreateRequestOptions = {
         body = command
     }
@@ -1129,7 +1129,7 @@ function RestClient.upsertGlobalApplicationCommands(self: RestClient, command: R
     return self.request:put(Routes.interactions.commands.commands(self.applicationId), restOptions)
 end
 
-function RestClient.upsertGuildApplicationCommands(self: RestClient, guildId: string, command: RestTypes.EditGuildApplicationCommandRequest, options: { bearerToken: string }?): RestTypes.EditGuildApplicationCommandResponse
+function RestClient.upsertGuildApplicationCommands(self: RestClient, guildId: string, commands: { RestTypes.EditGuildApplicationCommandRequest }, options: { bearerToken: string }?): RestTypes.EditGuildApplicationCommandResponse
     local restOptions: RequestHandler.CreateRequestOptions = {
         body = command
     }
