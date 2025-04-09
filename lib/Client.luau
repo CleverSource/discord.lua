@@ -30,6 +30,35 @@ export type Event = "ready"
                     | "threadMembersUpdate"
                     | "threadMemberUpdate"
                     | "threadUpdate"
+                    | "guildEmojisUpdate"
+                    | "entitlementCreate"
+                    | "entitlementDelete"
+                    | "entitlementUpdate"
+                    | "automodActionExecution"
+                    | "automodRuleCreate"
+                    | "automodRuleDelete"
+                    | "automodRuleUpdate"
+                    | "scheduledEventCreate"
+                    | "scheduledEventDelete"
+                    | "scheduledEventUpdate"
+                    | "scheduledEventUserAdd"
+                    | "scheduledEventUserRemove"
+                    | "guildAuditLogEntryCreate"
+                    | "guildBanAdd"
+                    | "guildBanRemove"
+                    | "guildCreate"
+                    | "guildUnavailable"
+                    | "guildDelete"
+                    | "integrationUpdate"
+                    | "guildStickersUpdate"
+                    | "guildUpdate"
+                    | "integrationCreate"
+                    | "integrationDelete"
+                    | "integrationUpdate"
+                    | "applicationCommandPermissionsUpdate"
+                    | "interactionCreate"
+                    | "inviteCreate"
+                    | "inviteDelete"
 export type Events = {
     ready: (({
         shardId: number,
@@ -94,7 +123,63 @@ export type Events = {
         joinedAt: datetime.DateTime,
         flags: number
     }) -> ())?,
-    threadUpdate: ((ApiTypes.ChannelObject) -> ())?
+    threadUpdate: ((ApiTypes.ChannelObject) -> ())?,
+
+    guildEmojisUpdate: (({
+        guildId: string,
+        emojis: { ApiTypes.EmojiObject }
+    }) -> ())?,
+
+    entitlementCreate: ((ApiTypes.EntitlementObject) -> ())?,
+    entitlementDelete: ((ApiTypes.EntitlementObject) -> ())?,
+    entitlementUpdate: ((ApiTypes.EntitlementObject) -> ())?,
+
+    automodActionExecution: ((ApiTypes.AutomoderationActionObject) -> ())?,
+    automodRuleCreate: ((ApiTypes.AutomoderationRuleObject) -> ())?,
+    automodRuleDelete: ((ApiTypes.AutomoderationRuleObject) -> ())?,
+    automodRuleUpdate: ((ApiTypes.AutomoderationRuleObject) -> ())?,
+
+    scheduledEventCreate: ((ApiTypes.GuildScheduledEventObject) -> ())?,
+    scheduledEventDelete: ((ApiTypes.GuildScheduledEventObject) -> ())?,
+    scheduledEventUpdate: ((ApiTypes.GuildScheduledEventObject) -> ())?,
+    scheduledEventUserAdd: (({
+        guildScheduledEventId: string,
+        guildId: string,
+        userId: string
+    }) -> ())?,
+    scheduledEventUserRemove: (({
+        guildScheduledEventId: string,
+        guildId: string,
+        userId: string
+    }) -> ())?,
+
+    guildAuditLogEntryCreate: ((ApiTypes.AuditLogEntryObject, string) -> ())?,
+    guildBanAdd: ((ApiTypes.UserObject, string) -> ())?,
+    guildBanRemove: ((ApiTypes.UserObject, string) -> ())?,
+    guildCreate: ((ApiTypes.GuildObject) -> ())?,
+    guildUnavailable: ((string, number) -> ())?,
+    guildDelete: ((string, number) -> ())?,
+    guildStickersUpdate: (({
+        guildId: string,
+        stickers: { ApiTypes.StickerObject }
+    }) -> ())?,
+    guildUpdate: ((ApiTypes.GuildObject) -> ())?,
+
+    integrationCreate: ((ApiTypes.IntegrationObject) -> ())?,
+    integrationDelete: (({
+        id: string,
+        guildId: string,
+        applicationId: string
+    }) -> ())?,
+    integrationUpdate: (({
+        guildId: string
+    }) -> ())?,
+
+    interactionCreate: ((ApiTypes.InteractionObject) -> ())?,
+    applicationCommandPermissionsUpdate: ((ApiTypes.GuildApplicationCommandPermissionsObject) -> ())?,
+
+    inviteCreate: ((ApiTypes.InviteObject) -> ())?,
+    inviteDelete: ((ApiTypes.InviteObject) -> ())?
 }
 
 local GatewayTypes = require("types/internal/gateway")
@@ -109,7 +194,6 @@ export type ClientOptions = {
     applicationId: string?,
     debug: boolean?,
     compression: boolean?,
-    preferSnakeCase: boolean?,
     intents: { number | Constants.Intents }?,
     restOptions: RestClient.RestClientOptions?,
     gatewayOptions: GatewayHandler.GatewayHandlerOptions?,
@@ -125,7 +209,6 @@ export type Client = typeof(setmetatable({} :: {
     rest: RestClient,
     events: Events,
     id: string?,
-    preferSnakeCase: boolean,
 }, Client))
 
 function Client.new(options: ClientOptions): Client
@@ -134,7 +217,6 @@ function Client.new(options: ClientOptions): Client
     self.token = options.token
 
     local logger = Logger.new(options.debug or false)
-    local preferSnakeCase = options.preferSnakeCase
 
     if options.intents then
         local intents = 0
@@ -152,10 +234,9 @@ function Client.new(options: ClientOptions): Client
 
     local intentsBit = options.intents or Constants.Intents.AllNonPrivileged
     
-    -- Converting snake_case to camelCase is inexpensive for REST API responses
     local restOptions = options.restOptions or {
         token = options.token,
-        preferSnakeCase = preferSnakeCase or false,
+        preferSnakeCase = false,
         logger = logger
     }
 
@@ -165,8 +246,6 @@ function Client.new(options: ClientOptions): Client
         restOptions.applicationId = options.applicationId
     end
 
-    -- Converting snake_case to camelCase is expensive for constant gateway events, 
-    -- so we should prefer snake_case for gateway events
     local gatewayOptions = options.gatewayOptions or {
         token = options.token,
         events = {
@@ -178,7 +257,7 @@ function Client.new(options: ClientOptions): Client
                 self:handleDispatch(packet.t, shard, packet)
             end
         },
-        preferSnakeCase = preferSnakeCase or true,
+        preferSnakeCase = true,
         logger = logger,
         intents = intentsBit,
         compress = options.compression or false
@@ -187,8 +266,6 @@ function Client.new(options: ClientOptions): Client
     self.logger = logger
     self.gateway = GatewayHandler.new(gatewayOptions)
     self.rest = RestClient.new(restOptions)
-
-    self.preferSnakeCase = preferSnakeCase or false
 
     self.events = options.events or {}
 
@@ -203,17 +280,21 @@ function Client._callEvent(self: Client, event: Event, ...: any)
     if self.events[event] then
         if typeof(self.events[event]) == "table" then
             for _, callback in ipairs(self.events[event]) do
-                callback(self.preferSnakeCase and ... or camelize(...))
+                callback(camelize(...))
             end
         else
-            self.events[event](self.preferSnakeCase and ... or camelize(...))
+            self.events[event](camelize(...))
         end
     end
 end
 
 function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Payload<any>)
+    local data = packet.d
+    
     if event == "READY" then
-        local data = packet.d
+        self.id = data.user.id
+        self.rest:setApplicationId(data.application.id)
+        
         self:_callEvent("ready", {
             shardId = shard.id,
             v = data.v,
@@ -223,75 +304,106 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
             shard = data.shard,
             applicationId = data.application.id
         })
-
-        self.id = data.user.id
-        self.rest:setApplicationId(data.application.id)
     end
 
     if event == "WEBHOOKS_UPDATE" then
-        local data = packet.d
         self:_callEvent("webhooksUpdate", data)
     elseif event == "CHANNEL_CREATE" then
-        local data = packet.d
         self:_callEvent("channelCreate", data)
     elseif event == "CHANNEL_DELETE" then
-        local data = packet.d
         self:_callEvent("channelDelete", data)
     elseif event == "CHANNEL_PINS_UPDATE" then
-        local data = packet.d
-        data.last_pin_timestamp = data.last_pin_timestamp and datetime.fromIsoDate(data.last_pin_timestamp) or nil
         self:_callEvent("channelPinsUpdate", data)
     elseif event == "CHANNEL_UPDATE" then
-        local data = packet.d
         self:_callEvent("channelUpdate", data)
     elseif event == "STAGE_INSTANCE_CREATE" then
-        local data = packet.d
         self:_callEvent("stageInstanceCreate", data)
     elseif event == "STAGE_INSTANCE_DELETE" then
-        local data = packet.d
         self:_callEvent("stageInstanceDelete", data)
     elseif event == "STAGE_INSTANCE_UPDATE" then
-        local data = packet.d
         self:_callEvent("stageInstanceUpdate", data)
     elseif event == "THREAD_CREATE" then
-        local data = packet.d
         self:_callEvent("threadCreate", data)
     elseif event == "THREAD_DELETE" then
-        local data = packet.d
         self:_callEvent("threadDelete", data)
     elseif event == "THREAD_LIST_SYNC" then
-        local data = packet.d
-
-        if data.members then
-            for _, member in ipairs(data.members) do
-                member.join_timestamp = datetime.fromIsoDate(member.join_timestamp)
-            end
-        end
-
         self:_callEvent("threadListSync", data)
     elseif event == "THREAD_MEMBERS_UPDATE" then
-        local data = packet.d
-
-        if data.members then
-            for _, member in ipairs(data.members) do
-                member.join_timestamp = datetime.fromIsoDate(member.join_timestamp)
-            end
-        end
-
         self:_callEvent("threadMembersUpdate", data)
     elseif event == "THREAD_MEMBER_UPDATE" then
-        local data = packet.d
-        data.joined_at = datetime.fromIsoDate(data.joined_at)
         self:_callEvent("threadMemberUpdate", data)
     elseif event == "THREAD_UPDATE" then
-        local data = packet.d
         self:_callEvent("threadUpdate", data)
+    elseif event == "GUILD_EMOJIS_UPDATE" then
+        self:_callEvent("guildEmojisUpdate", data)
+    elseif event == "ENTITLEMENT_CREATE" then
+        self:_callEvent("entitlementCreate", data)
+    elseif event == "ENTITLEMENT_DELETE" then
+        self:_callEvent("entitlementDelete", data)
+    elseif event == "ENTITLEMENT_UPDATE" then
+        self:_callEvent("entitlementUpdate", data)
+    elseif event == "AUTO_MODERATION_ACTION_EXECUTION" then
+        self:_callEvent("automodActionExecution", data)
+    elseif event == "AUTO_MODERATION_RULE_CREATE" then
+        self:_callEvent("automodRuleCreate", data)
+    elseif event == "AUTO_MODERATION_RULE_DELETE" then
+        self:_callEvent("automodRuleDelete", data)
+    elseif event == "AUTO_MODERATION_RULE_UPDATE" then
+        self:_callEvent("automodRuleUpdate", data)
+    elseif event == "GUILD_SCHEDULED_EVENT_CREATE" then
+        self:_callEvent("scheduledEventCreate", data)
+    elseif event == "GUILD_SCHEDULED_EVENT_DELETE" then
+        self:_callEvent("scheduledEventDelete", data)
+    elseif event == "GUILD_SCHEDULED_EVENT_UPDATE" then
+        self:_callEvent("scheduledEventUpdate", data)
+    elseif event == "GUILD_SCHEDULED_EVENT_USER_ADD" then
+        self:_callEvent("scheduledEventUserAdd", data)
+    elseif event == "GUILD_SCHEDULED_EVENT_USER_REMOVE" then
+        self:_callEvent("scheduledEventUserRemove", data)
+    elseif event == "GUILD_AUDIT_LOG_ENTRY_CREATE" then
+        self:_callEvent("guildAuditLogEntryCreate", data, data.guildId)
+    elseif event == "GUILD_BAN_ADD" then
+        self:_callEvent("guildBanAdd", data, data.guildId)
+    elseif event == "GUILD_BAN_REMOVE" then
+        self:_callEvent("guildBanRemove", data, data.guildId)
+    elseif event == "GUILD_CREATE" then
+        self:_callEvent("guildCreate", data)
+    elseif event == "GUILD_DELETE" then
+        if data.unavailable then
+            self:_callEvent("guildUnavailable", data.id, shard.id)
+            return
+        end
+        self:_callEvent("guildDelete", data.id, shard.id)
+    elseif event == "GUILD_INTEGRATIONS_UPDATE" then
+        self:_callEvent("integrationUpdate", data)
+    elseif event == "GUILD_STICKERS_UPDATE" then
+        self:_callEvent("guildStickersUpdate", data)
+    elseif event == "GUILD_UPDATE" then
+        self:_callEvent("guildUpdate", data)
+    elseif event == "INTEGRATION_CREATE" then
+        self:_callEvent("integrationCreate", data)
+    elseif event == "INTEGRATION_DELETE" then
+        self:_callEvent("integrationDelete", data)
+    elseif event == "INTEGRATION_UPDATE" then
+        self:_callEvent("integrationUpdate", data)
+    elseif event == "APPLICATION_COMMAND_PERMISSIONS_UPDATE" then
+        self:_callEvent("applicationCommandPermissionsUpdate", data)
+    elseif event == "INTERACTION_CREATE" then
+        self:_callEvent("interactionCreate", data)
+    elseif event == "INVITE_CREATE" then
+        self:_callEvent("inviteCreate", data)
+    elseif event == "INVITE_DELETE" then
+        self:_callEvent("inviteDelete", data)
     end
 end
 
 function Client.on(self: Client, event: Event, callback: (any) -> ())
     if not self.events[event] then
         self.events[event] = {}
+    elseif self.events[event] and typeof(self.events[event]) ~= "table" then
+        local oldCallback = self.events[event]
+        self.events[event] = {}
+        table.insert(self.events[event], oldCallback)
     end
     table.insert(self.events[event], callback)
 end

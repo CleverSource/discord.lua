@@ -16,6 +16,7 @@ local OrderedBucket = require("../ratelimit/OrderedBucket")
 type OrderedBucket = OrderedBucket.OrderedBucket
 type LatencyRef = OrderedBucket.LatencyRef
 
+local Constants = require("../Constants")
 local ApiTypes = require("../types/apiTypes")
 
 local Logger = require("../log/Logger")
@@ -42,8 +43,7 @@ local HTTP_BAD_GATEWAY = 502
 local STICKERS_ROUTE = "/stickers"
 local REACTIONS_ROUTE = "/reactions/:id"
 
-local API_VERSION = 10
-local BASE_URL = "https://discord.com/api/v" .. API_VERSION
+local BASE_URL = `{Constants.DefaultRestUrl}{Constants.ApiVersion}`
 
 local RequestHandler = {}
 RequestHandler.__index = RequestHandler
@@ -108,6 +108,8 @@ function RequestHandler.new(options: RequestHandlerOptions): RequestHandler
     }
     self.globalBlock = false
     self.readyQueue = {}
+
+    self.logger:debug(`[Rest] RequestHandler created (disableLatencyCompensation: {self.options.disableLatencyCompensation}, latencyThreshold: {self.options.latencyThreshold}, ratelimiterOffset: {self.options.ratelimiterOffset}, requestTimeout: {self.options.requestTimeout})`)
 
     return self
 end
@@ -397,7 +399,7 @@ function RequestHandler.makeRequest(self: RequestHandler, method: net.HttpMethod
 
             if response.statusCode ~= HTTP_TOO_MANY_REQUESTS then
                 local content = if typeof(body) == "table" then body.content else ""
-                self.logger:debug(`{content or ""}{now} {url} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
+                self.logger:debug(`[Rest] {content or ""}{now} {url} {response.statusCode}: {latency}ms ({self.latencyRef.latency}ms avg) | {self.ratelimits[route].remaining}/{self.ratelimits[route].limit} left | Reset {self.ratelimits[route].reset} ({self.ratelimits[route].reset - now}ms left)`)
             end
 
             if response.statusCode >= HTTP_MULTIPLE_CHOICES then

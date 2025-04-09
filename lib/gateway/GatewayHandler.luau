@@ -118,12 +118,11 @@ function GatewayHandler.calculateShardId(self: GatewayHandler, guildId: string, 
     end
 
     if totalShards == 1 then
-        self.logger:debug("[Gateway] calculateShardId (1 shard)")
+        self.logger:debug("[Gateway] Only one shard in use - assigning shardId 0")
         return 0
     end
 
-    self.logger:debug(`[Gateway] calculateShardId (guildId: {guildId}, totalShards: {totalShards})`)
-
+    self.logger:debug(`[Gateway] shardId calculated using guildId: {guildId}, with total shards: {totalShards}`)
     local shardId = getDiscordEpoch(guildId) % totalShards :: number
     return shardId
 end
@@ -149,7 +148,7 @@ end
 
 function GatewayHandler.calculateWorkerId(self: GatewayHandler, shardId: number): number
     local workerId = math.min(math.floor(shardId / self.shardsPerWorker), self.totalWorkers - 1)
-    self.logger:debug(`[Gateway] Calculating workerId: Shard: {shardId} -> Worker: {workerId} -> Per Worker {self.shardsPerWorker} -> Total: {self.totalWorkers}`)
+    self.logger:debug(`[Gateway] Worker allocation for shard {shardId}: worker {workerId} (Max workers: {self.totalWorkers}, Shards/worker: {self.shardsPerWorker})`)
     return workerId
 end
 
@@ -199,7 +198,7 @@ end
 
 function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
     local shard = self.shards[tostring(shardId)]
-    self.logger:debug(`[Gateway] Identifying {shard and "existing" or "new"} shard ({shardId})`)
+    self.logger:debug(`[Gateway] Starting identification of shard #{shardId} ({shard and "reusing" or "creating"})`)
 
     if not shard then
         shard = Shard.new({
@@ -230,12 +229,12 @@ function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
 
     local bucket = self.buckets[tostring(shardId % self.sessionStartLimit.maxConcurrency)]
     table.insert(bucket.identifyRequests, shardId)
-    self.logger:debug(`[Gateway] Identifying Shard #{shardId}`)
+    self.logger:debug(`[Gateway] Shard #{shardId} added to identify queue`)
     return shard:identify()
 end
 
 function GatewayHandler.tellWorkerToIdentify(self: GatewayHandler, workerId: number, shardId: number, bucketId: string): Promise
-    self.logger:debug(`[Gateway] Telling worker to identify ({workerId}, {shardId}, {bucketId})`)
+    self.logger:debug(`[Gateway] Requesting worker #{workerId} to handle shard #{shardId} in bucket #{bucketId}`)
     return self:identify(shardId)
 end
 
@@ -256,7 +255,7 @@ function GatewayHandler.spawnShards(self: GatewayHandler)
     end
     Promise.All(promises):Await()
     
-    self.logger:debug("[Gateway] All shards spawned")
+    self.logger:debug("[Gateway] All shard processes have now been initialized")
 end
 
 function GatewayHandler.shutdown(self: GatewayHandler, code: number)
@@ -276,10 +275,10 @@ end
 function GatewayHandler.kill(self: GatewayHandler, shardId: number)
     local shard = self.shards[tostring(shardId)]
     if not shard then
-        error(`[Gateway] A kill for Shard #{shardId} was requested, but the shard was not found`)
+        error(`[Gateway] Cannot terminate shard #{shardId} — not found`)
     end
 
-    self.logger:debug(`[Gateway] Killing Shard #{shardId}`)
+    self.logger:debug(`[Gateway] Shard #{shardId} is being terminated`)
     self.shards[tostring(shardId)] = nil
     shard:shutdown()
 end
@@ -287,7 +286,7 @@ end
 function GatewayHandler.joinVoiceChannel(self: GatewayHandler, guildId: string, channelId: string, options: { selfMute: boolean?, selfDeaf: boolean? }?)
     local shardId = self:calculateShardId(guildId)
     
-    self.logger:debug(`[Gateway] Joining voice channel (guildId: {guildId} channelId: {channelId})`)
+    self.logger:debug(`[Gateway] Requesting voice channel exit for guild {guildId}`)
 
     self:sendPayload(shardId, {
         op = Constants.GatewayOpCodes.VoiceStateUpdate,

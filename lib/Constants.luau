@@ -85,6 +85,9 @@ return {
     DefaultGateway = "wss://gateway.discord.gg",
     GatewayVersion = 10,
 
+    DefaultRestUrl = "https://discord.com/api/v",
+    ApiVersion = 10,
+
     GatewayOpCodes = {
         Dispatch = 0,
         Heartbeat = 1,

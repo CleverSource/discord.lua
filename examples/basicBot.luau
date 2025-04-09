@@ -14,4 +14,8 @@ bot.events.ready = function(data)
     print("Bot is ready!")
 end
 
+bot:on("channelCreate", function(channel)
+    print("Channel created: " .. channel.name)
+end :: typeof(bot.events.channelCreate))
+
 bot:connect()
