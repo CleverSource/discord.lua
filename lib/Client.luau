@@ -290,7 +290,7 @@ export type Events = {
         animationId: number?,
         soundId: string?,
         soundVolume: number?
-    }) -> ())?
+    }) -> ())?,
     voiceServerUpdate: (({
         token: string,
         endpoint: string?,
@@ -298,7 +298,7 @@ export type Events = {
     }) -> ())?,
     voiceStateUpdate: ((ApiTypes.VoiceStateObject) -> ())?,
 
-    presenceUpdate: ((ApiTypes.PresenceUpdateObject) -> ())?
+    presenceUpdate: ((ApiTypes.PresenceUpdateObject) -> ())?,
     typingStart: (({
         guildId: string?,
         channelId: string,
