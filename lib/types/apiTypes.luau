@@ -1272,11 +1272,11 @@ export type InteractionDataObject = {
     type: number, -- the type of the invoked command
     resolved: ResolvedDataStructure?, -- converted users + roles + channels + attachments
     options: { ApplicationCommandInteractionDataOptionObject }?, -- the params + values from the user
-    guild_id: Snowflake?, -- the id of the guild the command is registered to
-    target_id: Snowflake?, -- id of the user or message targeted by a user or message command,
+    guildId: Snowflake?, -- the id of the guild the command is registered to
+    targetId: Snowflake?, -- id of the user or message targeted by a user or message command,
 
-    custom_id: string?, -- custom_id of the component
-    component_type: number?, -- type of the component
+    customId: string?, -- custom_id of the component
+    componentType: number?, -- type of the component
     values: { SelectOptionObject }?, -- Values the user selected in a select menu component
 
     components: { ComponentObjects }?, -- Resolved entities from selected options
@@ -1285,23 +1285,23 @@ export type InteractionDataObject = {
 -- https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 export type InteractionObject = {
     id: Snowflake, -- ID of the interaction
-    application_id: Snowflake, -- ID of the application this interaction is for
+    applicationId: Snowflake, -- ID of the application this interaction is for
     type: InteractionType, -- Type of interaction
     data: InteractionDataObject?, -- Interaction data payload
     guild: GuildObject?, -- Guild that the interaction was sent from
-    guild_id: Snowflake?, -- Guild that the interaction was sent from
+    guildId: Snowflake?, -- Guild that the interaction was sent from
     channel: ChannelObject?, -- Channel that the interaction was sent from
-    channel_id: Snowflake?, -- Channel that the interaction was sent from
+    channelId: Snowflake?, -- Channel that the interaction was sent from
     member: GuildMemberObject?, -- Guild member data for the invoking user, including permissions
     user: UserObject?, -- User object for the invoking user, if invoked in a DM
     token: string, -- Continuation token for responding to the interaction
     version: number, -- Read-only property, always 1
     message: MessageObject?, -- For components, the message they were attached to
-    app_permissions: string, -- Bitwise set of permissions the app has in the source location of the interaction
+    appPermissions: string, -- Bitwise set of permissions the app has in the source location of the interaction
     locale: LanguageLocales?, -- Selected language of the invoking user
-    guild_locale: LanguageLocales?, -- Guild's preferred locale, if invoked in a guild
+    guildLocale: LanguageLocales?, -- Guild's preferred locale, if invoked in a guild
     entitlements: { EntitlementObject }, -- For monetized apps, any entitlements for the invoking user, representing access to premium SKUs
-    authorizing_integration_owners: { IntegrationType }, -- Mapping of installation contexts that the interaction was authorized for to related user or guild IDs. See Authorizing Integration Owners Object for details
+    authorizingIntegrationOwners: { IntegrationType }, -- Mapping of installation contexts that the interaction was authorized for to related user or guild IDs. See Authorizing Integration Owners Object for details
     context: InteractionContextType, -- Context where the interaction was triggered from
 }
 
