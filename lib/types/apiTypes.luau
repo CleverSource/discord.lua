@@ -387,10 +387,10 @@ export type ActivityPartyObject = {
 
 -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-assets
 export type ActivityAssetsObject = {
-    large_image: string, -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
-    large_text: string, -- Text displayed when hovering over the large image of the activity
-    small_image: string, -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
-    small_text: string, -- Text displayed when hovering over the small image of the activity
+    largeImage: string, -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
+    largeText: string, -- Text displayed when hovering over the large image of the activity
+    smallImage: string, -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-asset-image
+    smallText: string, -- Text displayed when hovering over the small image of the activity
 }
 
 -- https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-secrets
@@ -411,9 +411,9 @@ export type ActivityObject = {
     name: string, -- Activity's name
     type: number, -- Activity's type
     url: string?, -- Stream URL, is validated when type is 1
-    created_at: number, -- Unix timestamp (in milliseconds) of when the activity was added to the user's session
+    createdAt: number, -- Unix timestamp (in milliseconds) of when the activity was added to the user's session
     timestamps: ActivityTimestampObject, -- Unix timestamps for start and/or end of the game
-    application_id: Snowflake, -- Application ID for the game
+    applicationId: Snowflake, -- Application ID for the game
     details: string?, -- What the player is currently doing
     state: string?, -- User's current party status, or text used for a custom status
     emoji: ActivityEmojiObject?, -- Emoji used for a custom status
@@ -857,10 +857,10 @@ export type ClientStatusObject = {
 -- https://discord.com/developers/docs/topics/gateway-events#presence-update
 export type PresenceUpdateObject = {
     user: UserObject, -- User whose presence is being updated
-    guild_id: Snowflake, -- ID of the guild
+    guildId: Snowflake, -- ID of the guild
     status: string, -- Either "idle", "dnd", "online", or "offline"
     activities: { ActivityObject }, -- User's current activities
-    client_status: ClientStatusObject, -- User's platform-dependent status
+    clientStatus: ClientStatusObject, -- User's platform-dependent status
 }
 
 -- https://discord.com/developers/docs/resources/stage-instance#stage-instance-object
@@ -897,6 +897,20 @@ export type GuildScheduledEventObject = {
     creator: UserObject?, -- the user that created the scheduled event
     userCount: number, -- the number of users subscribed to the scheduled event
     image: string?, -- the cover image hash of the scheduled event
+}
+
+export type SubscriptionStatus = number
+export type SubscriptionObject = {
+    id: Snowflake,
+    userId: Snowflake,
+    skuIds: { Snowflake },
+    entitlementIds: { Snowflake },
+    renewalSkuIds: { Snowflake }?,
+    currentPeriodStart: number,
+    currentPeriodEnd: number,
+    status: SubscriptionStatus,
+    canceledAt: number,
+    country: string?
 }
 
 -- https://discord.com/developers/docs/resources/guild#integration-account-object
@@ -1029,11 +1043,11 @@ export type ReactionCountDetailsObject = {
 -- https://discord.com/developers/docs/resources/channel#reaction-object
 export type ReactionObject = {
     count: number, -- Total number of times this emoji has been used to react (including super reacts)
-    count_details: ReactionCountDetailsObject, -- Reaction count details object
+    countDetails: ReactionCountDetailsObject, -- Reaction count details object
     me: boolean, -- Whether the current user reacted using this emoji
-    me_burst: boolean, -- Whether the current user super-reacted using this emoji
+    meBurst: boolean, -- Whether the current user super-reacted using this emoji
     emoji: EmojiObject, -- emoji information
-    burst_colors: { string }, -- HEX colors used for super reaction
+    burstColors: { string }, -- HEX colors used for super reaction
 }
 
 -- https://discord.com/developers/docs/resources/channel#message-object-message-activity-structure

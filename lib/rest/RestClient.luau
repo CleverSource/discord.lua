@@ -1116,7 +1116,7 @@ end
 
 function RestClient.upsertGlobalApplicationCommands(self: RestClient, commands: { RestTypes.EditGlobalApplicationCommandRequest }, options: { bearerToken: string }?): RestTypes.EditGlobalApplicationCommandResponse
     local restOptions: RequestHandler.CreateRequestOptions = {
-        body = command
+        body = commands
     }
 
     if options and options.bearerToken then
@@ -1131,7 +1131,7 @@ end
 
 function RestClient.upsertGuildApplicationCommands(self: RestClient, guildId: string, commands: { RestTypes.EditGuildApplicationCommandRequest }, options: { bearerToken: string }?): RestTypes.EditGuildApplicationCommandResponse
     local restOptions: RequestHandler.CreateRequestOptions = {
-        body = command
+        body = commands
     }
 
     if options and options.bearerToken then

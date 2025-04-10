@@ -3,7 +3,7 @@ local bit64 = require("vendor/bit64")
 local Intents = {
     Guilds = bit32.lshift(1, 0),
     GuildMembers = bit32.lshift(1, 1),
-    GuildBans = bit32.lshift(1, 2),
+    GuildModeration = bit32.lshift(1, 2),
     GuildExpressions = bit32.lshift(1, 3),
     GuildIntegrations = bit32.lshift(1, 4),
     GuildWebhooks = bit32.lshift(1, 5),
@@ -26,7 +26,7 @@ local Intents = {
 
 Intents.AllNonPrivileged = bit32.bor(
     Intents.Guilds,
-    Intents.GuildBans,
+    Intents.GuildModeration,
     Intents.GuildExpressions,
     Intents.GuildIntegrations,
     Intents.GuildWebhooks,
@@ -48,7 +48,8 @@ Intents.AllNonPrivileged = bit32.bor(
 Intents.AllPrivileged = bit32.bor(
     Intents.GuildPresences,
     Intents.GuildMembers,
-    Intents.GuildVoiceStates
+    Intents.GuildVoiceStates,
+    Intents.MessageContent
 )
 
 Intents.All = bit32.bor(
@@ -715,5 +716,16 @@ return {
     ReactionType = {
         Normal = 0,
         Burst = 1
+    },
+
+    SubscriptionStatus = {
+        Active = 0,
+        Ending = 1,
+        Inactive = 2
+    },
+
+    VoiceChannelEffectAnimationType = {
+        Premium = 0,
+        Basic = 1
     }
 }

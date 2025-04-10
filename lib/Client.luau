@@ -59,6 +59,36 @@ export type Event = "ready"
                     | "interactionCreate"
                     | "inviteCreate"
                     | "inviteDelete"
+                    | "guildMemberAdd"
+                    | "guildMemberRemove"
+                    | "guildMemberUpdate"
+                    | "messageCreate"
+                    | "messageDelete"
+                    | "messageDeleteBulk"
+                    | "reactionAdd"
+                    | "reactionRemove"
+                    | "reactionRemoveAll"
+                    | "reactionRemoveEmoji"
+                    | "messageUpdate"
+                    | "messagePollVoteAdd"
+                    | "messagePollVoteRemove"
+                    | "roleCreate"
+                    | "roleDelete"
+                    | "roleUpdate"
+                    | "soundboardSoundsUpdate"
+                    | "soundboardSoundCreate"
+                    | "soundboardSoundDelete"
+                    | "soundboardSoundUpdate"
+                    | "soundboardSounds"
+                    | "subscriptionCreate"
+                    | "subscriptionDelete"
+                    | "subscriptionUpdate"
+                    | "voiceChannelEffectSend"
+                    | "voiceServerUpdate"
+                    | "voiceStateUpdate"
+                    | "presenceUpdate"
+                    | "typingStart"
+                    | "botUpdate"
 export type Events = {
     ready: (({
         shardId: number,
@@ -153,12 +183,12 @@ export type Events = {
         userId: string
     }) -> ())?,
 
-    guildAuditLogEntryCreate: ((ApiTypes.AuditLogEntryObject, string) -> ())?,
-    guildBanAdd: ((ApiTypes.UserObject, string) -> ())?,
-    guildBanRemove: ((ApiTypes.UserObject, string) -> ())?,
+    guildAuditLogEntryCreate: ((ApiTypes.AuditLogEntryObject) -> ())?,
+    guildBanAdd: ((ApiTypes.UserObject) -> ())?,
+    guildBanRemove: ((ApiTypes.UserObject) -> ())?,
     guildCreate: ((ApiTypes.GuildObject) -> ())?,
-    guildUnavailable: ((string, number) -> ())?,
-    guildDelete: ((string, number) -> ())?,
+    guildUnavailable: ((string) -> ())?,
+    guildDelete: ((string) -> ())?,
     guildStickersUpdate: (({
         guildId: string,
         stickers: { ApiTypes.StickerObject }
@@ -179,7 +209,104 @@ export type Events = {
     applicationCommandPermissionsUpdate: ((ApiTypes.GuildApplicationCommandPermissionsObject) -> ())?,
 
     inviteCreate: ((ApiTypes.InviteObject) -> ())?,
-    inviteDelete: ((ApiTypes.InviteObject) -> ())?
+    inviteDelete: ((ApiTypes.InviteObject) -> ())?,
+
+    guildMemberAdd: ((ApiTypes.GuildMemberObject) -> ())?,
+    guildMemberDelete: ((ApiTypes.UserObject) -> ())?,
+    guildMemberUpdate: ((ApiTypes.GuildMemberObject) -> ())?,
+
+    messageCreate: ((ApiTypes.MessageObject) -> ())?,
+    messageDelete: (({
+        id: string,
+        channelId: string,
+        guildId: string?
+    }) -> ())?,
+    messageDeleteBulk: ((
+        ids: { string },
+        channelId: string,
+        guildId: string?
+    ) -> ())?,
+    messageUpdate: ((ApiTypes.MessageObject) -> ())?,
+    reactionAdd: ((ApiTypes.ReactionObject) -> ())?,
+    reactionRemove: ((ApiTypes.ReactionObject) -> ())?,
+    reactionRemoveAll: (({
+        channelId: string,
+        messageId: string,
+        guildId: string?
+    }) -> ())?,
+    reactionRemoveEmoji: (({
+        channelId: string,
+        messageId: string,
+        guildId: string?,
+        emoji: ApiTypes.EmojiObject
+    }) -> ())?,
+
+    messagePollVoteAdd: (({
+        userId: string,
+        channelId: string,
+        messageId: string,
+        guildId: string?,
+        answerId: number
+    }) -> ())?,
+    messagePollVoteRemove: (({
+        userId: string,
+        channelId: string,
+        messageId: string,
+        guildId: string?,
+        answerId: number
+    }) -> ())?,
+
+    roleCreate: ((ApiTypes.GuildRoleObject) -> ())?,
+    roleDelete: (({
+        guildId: string,
+        roleId: string
+    }) -> ())?,
+    roleUpdate: ((ApiTypes.GuildRoleObject) -> ())?,
+
+    soundboardSoundsUpdate: (({
+        soundboardSounds: { ApiTypes.SoundboardSoundObject },
+        guildId: string
+    }) -> ())?,
+    soundboardSoundCreate: ((ApiTypes.SoundboardSoundObject) -> ())?,
+    soundboardSoundDelete: (({
+        soundId: string,
+        guildId: string
+    }) -> ())?,
+    soundboardSoundUpdate: ((ApiTypes.SoundboardSoundObject) -> ())?,
+    soundboardSounds: (({
+        soundboardSounds: { ApiTypes.SoundboardSoundObject },
+        guildId: string
+    }) -> ())?,
+    
+    subscriptionCreate: ((ApiTypes.SubscriptionObject) -> ())?,
+    subscriptionDelete: ((ApiTypes.SubscriptionObject) -> ())?,
+    subscriptionUpdate: ((ApiTypes.SubscriptionObject) -> ())?,
+    voiceChannelEffectSend: (({
+        channelId: string,
+        guildId: string,
+        userId: string,
+        emoji: ApiTypes.EmojiObject?,
+        animationType: number?,
+        animationId: number?,
+        soundId: string?,
+        soundVolume: number?
+    }) -> ())?
+    voiceServerUpdate: (({
+        token: string,
+        endpoint: string?,
+        guildId: string
+    }) -> ())?,
+    voiceStateUpdate: ((ApiTypes.VoiceStateObject) -> ())?,
+
+    presenceUpdate: ((ApiTypes.PresenceUpdateObject) -> ())?
+    typingStart: (({
+        guildId: string?,
+        channelId: string,
+        userId: string,
+        timestamp: number,
+        member: ApiTypes.GuildMemberObject?
+    }) -> ())?,
+    botUpdate: ((ApiTypes.UserObject) -> ())?
 }
 
 local GatewayTypes = require("types/internal/gateway")
@@ -361,19 +488,19 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "GUILD_SCHEDULED_EVENT_USER_REMOVE" then
         self:_callEvent("scheduledEventUserRemove", data)
     elseif event == "GUILD_AUDIT_LOG_ENTRY_CREATE" then
-        self:_callEvent("guildAuditLogEntryCreate", data, data.guildId)
+        self:_callEvent("guildAuditLogEntryCreate", data)
     elseif event == "GUILD_BAN_ADD" then
-        self:_callEvent("guildBanAdd", data, data.guildId)
+        self:_callEvent("guildBanAdd", data)
     elseif event == "GUILD_BAN_REMOVE" then
-        self:_callEvent("guildBanRemove", data, data.guildId)
+        self:_callEvent("guildBanRemove", data)
     elseif event == "GUILD_CREATE" then
         self:_callEvent("guildCreate", data)
     elseif event == "GUILD_DELETE" then
         if data.unavailable then
-            self:_callEvent("guildUnavailable", data.id, shard.id)
+            self:_callEvent("guildUnavailable", data.id)
             return
         end
-        self:_callEvent("guildDelete", data.id, shard.id)
+        self:_callEvent("guildDelete", data.id)
     elseif event == "GUILD_INTEGRATIONS_UPDATE" then
         self:_callEvent("integrationUpdate", data)
     elseif event == "GUILD_STICKERS_UPDATE" then
@@ -394,6 +521,70 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
         self:_callEvent("inviteCreate", data)
     elseif event == "INVITE_DELETE" then
         self:_callEvent("inviteDelete", data)
+    elseif event == "GUILD_MEMBERS_CHUNK" then
+        -- TODO
+    elseif event == "GUILD_MEMBER_ADD" then
+        self:_callEvent("guildMemberAdd", data)
+    elseif event == "GUILD_MEMBER_REMOVE" then
+        self:_callEvent("guildMemberRemove", data)
+    elseif event == "GUILD_MEMBER_UPDATE" then
+        self:_callEvent("guildMemberUpdate", data)
+    elseif event == "MESSAGE_CREATE" then
+        self:_callEvent("messageCreate", data)
+    elseif event == "MESSAGE_DELETE" then
+        self:_callEvent("messageDelete", data)
+    elseif event == "MESSAGE_DELETE_BULK" then
+        self:_callEvent("messageDeleteBulk", data)
+    elseif event == "MESSAGE_REACTION_ADD" then
+        self:_callEvent("reactionAdd", data)
+    elseif event == "MESSAGE_REACTION_REMOVE" then
+        self:_callEvent("reactionRemove", data)
+    elseif event == "MESSAGE_REACTION_REMOVE_ALL" then
+        self:_callEvent("reactionRemoveAll", data)
+    elseif event == "MESSAGE_REACTION_REMOVE_EMOJI" then
+        self:_callEvent("reactionRemoveEmoji", data)
+    elseif event == "MESSAGE_UPDATE" then
+        if not data.edited_timestamp then return end
+        self:_callEvent("messageUpdate", data)
+    elseif event == "MESSAGE_POLL_VOTE_ADD" then
+        self:_callEvent("messagePollVoteAdd", data)
+    elseif event == "MESSAGE_POLL_VOTE_REMOVE" then
+        self:_callEvent("messagePollVoteRemove", data)
+    elseif event == "GUILD_ROLE_CREATE" then
+        self:_callEvent("roleCreate", data)
+    elseif event == "GUILD_ROLE_DELETE" then
+        self:_callEvent("roleDelete", data)
+    elseif event == "GUILD_ROLE_UPDATE" then
+        self:_callEvent("roleUpdate", data)
+    elseif event == "GUILD_SOUNDBOARD_SOUNDS_UPDATE" then
+        self:_callEvent("soundboardSoundsUpdate", data)
+    elseif event == "GUILD_SOUNDBOARD_SOUND_CREATE" then
+        self:_callEvent("soundboardSoundCreate", data)
+    elseif event == "GUILD_SOUNDBOARD_SOUND_DELETE" then
+        self:_callEvent("soundboardSoundDelete", data)
+    elseif event == "GUILD_SOUNDBOARD_SOUND_UPDATE" then
+        self:_callEvent("soundboardSoundUpdate", data)
+    elseif event == "SOUNDBOARD_SOUNDS" then
+        self:_callEvent("soundboardSounds", data)
+    elseif event == "SUBSCRIPTION_CREATE" then
+        self:_callEvent("subscriptionCreate", data)
+    elseif event == "SUBSCRIPTION_DELETE" then
+        self:_callEvent("subscriptionDelete", data)
+    elseif event == "SUBSCRIPTION_UPDATE" then
+        self:_callEvent("subscriptionUpdate", data)
+    elseif event == "VOICE_CHANNEL_EFFECT_SEND" then
+        self:_callEvent("voiceChannelEffectSend", data)
+    elseif event == "VOICE_SERVER_UPDATE" then
+        self:_callEvent("voiceServerUpdate", data)
+    elseif event == "VOICE_STATE_UPDATE" then
+        if not data.guild_id then return end
+        self:_callEvent("voiceStateUpdate", data)
+    elseif event == "PRESENCE_UPDATE" then
+        self:_callEvent("presenceUpdate", data)
+    elseif event == "TYPING_START" then
+        self:_callEvent("typingStart", data)
+    elseif event == "USER_UPDATE" then
+        self:_callEvent("botUpdate", data)
     end
 end
 
