@@ -11,6 +11,12 @@ local VALID_EXTENSIONS = {
     json = true
 }
 
+--[=[
+@class FormData
+@private
+
+A class that represents form data for HTTP requests, supporting file attachments and various data types.
+]=]
 local FormData = {}
 FormData.__index = FormData
 
@@ -19,6 +25,15 @@ export type FormData = typeof(setmetatable({} :: {
     data: { string },
 }, FormData))
 
+--[=[
+@function new
+@within FormData
+@tag Constructor
+
+Creates a new FormData instance.
+
+@return FormData -- The constructed FormData instance.
+]=]
 function FormData.new(): FormData
     local self = setmetatable({}, FormData) :: FormData
 
@@ -28,6 +43,16 @@ function FormData.new(): FormData
     return self
 end
 
+--[=[
+@method attach
+@within FormData
+
+Attaches a field to the form data with optional file handling based on the provided filename.
+
+@param fieldName string -- The name of the field.
+@param data string | table -- The data associated with the field, either as a string or a table to be serialized to JSON.
+@param filename string? -- Optional filename for file data.
+]=]
 function FormData.attach(self: FormData, fieldName: string, data: string, filename: string)
     local str = "\r\n--" .. self.boundary .. "\r\nContent-Disposition: form-data; name=\"" .. fieldName .. "\""
     local contentType = ""
@@ -62,6 +87,14 @@ function FormData.attach(self: FormData, fieldName: string, data: string, filena
     table.insert(self.data, data)
 end
 
+--[=[
+@method finish
+@within FormData
+
+Finishes the form data by adding the closing boundary and returning the complete form data.
+
+@return { string } -- A list of strings representing the complete form data, including the boundary.
+]=]
 function FormData.finish(self: FormData): { string }
     table.insert(self.data, "\r\n--" .. self.boundary .. "--")
     return self.data
