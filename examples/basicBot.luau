@@ -16,7 +16,7 @@ local bot = Client.new({
 })
 
 -- Events are functional in nature with proper types
-bot.events.ready = function(data)
+bot.events.ready = function()
     print("Bot is ready!")
 end
 

@@ -61,4 +61,28 @@ function TextChannel.sendMessage(self: TextChannel, optionsOrContent: string | R
     return self._client:sendMessage(self.id, optionsOrContent)
 end
 
+function TextChannel.startThread(self: TextChannel, options: RestTypes.StartThreadWithoutMessageRequest): RestTypes.StartThreadWithoutMessageResponse
+    return self._client:startThreadWithoutMessage(self.id, options)
+end
+
+function TextChannel.startThreadWithMessage(self: TextChannel, messageId: string, options: RestTypes.StartThreadFromMessageRequest): RestTypes.StartThreadFromMessageRequest
+    return self._client:startThreadWithMessage(self.id, messageId, options)
+end
+
+function TextChannel.createWebhook(self: TextChannel, options: RestTypes.CreateWebhookRequest, reason: string?): RestTypes.CreateWebhookResponse
+    return self._client:createWebhook(self.id, options, reason)
+end
+
+function TextChannel.deleteMessage(self: TextChannel, messageId: string, reason: string?)
+    self._client:deleteMessage(self.id, messageId, reason)
+end
+
+function TextChannel.deleteMessages(self: TextChannel, messageIds: { string }, reason: string?)
+    self._client:deleteMessages(self.id, messageIds, reason)
+end
+
+function TextChannel.editMessage(self: TextChannel, messageId: string, options: RestTypes.EditMessageRequest): RestTypes.EditMessageResponse
+    return self._client:editMessage(self.id, messageId, options)
+end
+
 return TextChannel

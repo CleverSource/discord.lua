@@ -286,7 +286,7 @@ function RestClient.deleteMessages(self: RestClient, channelId: string, messageI
         body = {
             messages = messageIds
         },
-        reason
+        reason = reason
     })
 end
 
