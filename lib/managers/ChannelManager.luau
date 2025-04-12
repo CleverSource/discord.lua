@@ -1,16 +1,18 @@
 local RestClient = require("../rest/RestClient")
 
-local Channel = require("../structures/Channel")
+local BaseChannel = require("../structures/BaseChannel")
 local TextChannel = require("../structures/TextChannel")
 
 local Constants = require("../Constants")
+
+export type AnyChannel = BaseChannel.BaseChannel & TextChannel.TextChannel
 
 local ChannelManager = {}
 ChannelManager.__index = ChannelManager
 
 export type ChannelManager = typeof(setmetatable({} :: {
     client: RestClient.RestClient,
-    cache: { [string]: Channel.Channel }, -- NOTE: this type is wrong but we don't care
+    cache: { [string]: BaseChannel.BaseChannel }, -- NOTE: this type is wrong but we don't care
 }, ChannelManager))
 
 function ChannelManager.new(client: RestClient.RestClient): ChannelManager
@@ -28,7 +30,7 @@ function ChannelManager.getTextChannel(self: ChannelManager, id: string): TextCh
 end
 
 -- Type hacks for better interfacing with the library
-function ChannelManager.get(self: ChannelManager, id: string): (Channel.Channel & TextChannel.TextChannel)?
+function ChannelManager.get(self: ChannelManager, id: string): AnyChannel?
     return self.cache[id] :: any
 end
 
@@ -40,7 +42,7 @@ function ChannelManager.add(self: ChannelManager, data: any)
         if data.type == Constants.ChannelTypes.GuildText then
             channel = TextChannel.new(self.client, data)
         else
-            channel = Channel.new(self.client, data)
+            channel = BaseChannel.new(self.client, data)
         end
         self.cache[data.id] = channel
     end

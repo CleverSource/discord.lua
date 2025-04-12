@@ -12,14 +12,13 @@ local datetime = require("@lune/datetime")
 local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
 local camelize = require("util/snakeCaseToCamel")
 
+local ChannelManager = require("managers/ChannelManager")
 local GuildManager = require("managers/GuildManager")
 
 local Guild = require("structures/Guild")
-local Channel = require("structures/Channel")
-local TextChannel  = require("structures/TextChannel")
 
 -- NOTE: Type hack to make the channel type good when used in events
-type AnyChannel = Channel.Channel & TextChannel.TextChannel & { guild: Guild.Guild }
+type AnyChannel = ChannelManager.AnyChannel & { guild: Guild.Guild }
 
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
@@ -103,7 +102,7 @@ export type Events = {
         shardId: number,
         v: number,
         user: ApiTypes.UserObject,
-        guilds: { string },
+        guilds: { Guild.Guild },
         sessionId: string,
         shard: { number },
         applicationId: string
@@ -431,11 +430,19 @@ end
 
 function Client.handleDispatch(self: Client, event: string, shard: Shard, packet: GatewayTypes.Payload<any>)
     local data = packet.d
-    
+
     if event == "READY" then
         self.id = data.user.id
         self.rest:setApplicationId(data.application.id)
 
+        if data.guilds then
+            for i, guildData in data.guilds do
+                guildData.shard_id = shard.id
+                local guild = self.guilds:add(guildData)
+                data.guilds[i] = guild
+            end
+        end
+        
         self:_callEvent("ready", {
             shardId = shard.id,
             v = data.v,
