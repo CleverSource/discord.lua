@@ -12,6 +12,15 @@ local datetime = require("@lune/datetime")
 local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
 local camelize = require("util/snakeCaseToCamel")
 
+local GuildManager = require("managers/GuildManager")
+
+local Guild = require("structures/Guild")
+local Channel = require("structures/Channel")
+local TextChannel  = require("structures/TextChannel")
+
+-- NOTE: Type hack to make the channel type good when used in events
+type AnyChannel = Channel.Channel & TextChannel.TextChannel & { guild: Guild.Guild }
+
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
 
@@ -105,14 +114,14 @@ export type Events = {
         guildId: string
     }) -> ())?,
 
-    channelCreate: ((ApiTypes.ChannelObject) -> ())?,
-    channelDelete: ((ApiTypes.ChannelObject) -> ())?,
+    channelCreate: ((AnyChannel) -> ())?,
+    channelDelete: ((AnyChannel) -> ())?,
+    channelUpdate: ((ApiTypes.ChannelObject) -> ())?,
     channelPinsUpdate: (({
         guildId: string,
         channelId: string,
         lastPinTimestamp: datetime.DateTime?
     }) -> ())?,
-    channelUpdate: ((ApiTypes.ChannelObject) -> ())?,
 
     stageInstanceCreate: (({
         id: string,
@@ -186,14 +195,14 @@ export type Events = {
     guildAuditLogEntryCreate: ((ApiTypes.AuditLogEntryObject) -> ())?,
     guildBanAdd: ((ApiTypes.UserObject) -> ())?,
     guildBanRemove: ((ApiTypes.UserObject) -> ())?,
-    guildCreate: ((ApiTypes.GuildObject) -> ())?,
+    guildCreate: ((Guild.Guild) -> ())?,
     guildUnavailable: ((string) -> ())?,
     guildDelete: ((string) -> ())?,
     guildStickersUpdate: (({
         guildId: string,
         stickers: { ApiTypes.StickerObject }
     }) -> ())?,
-    guildUpdate: ((ApiTypes.GuildObject) -> ())?,
+    guildUpdate: ((Guild.Guild) -> ())?,
 
     integrationCreate: ((ApiTypes.IntegrationObject) -> ())?,
     integrationDelete: (({
@@ -212,7 +221,7 @@ export type Events = {
     inviteDelete: ((ApiTypes.InviteObject) -> ())?,
 
     guildMemberAdd: ((ApiTypes.GuildMemberObject) -> ())?,
-    guildMemberDelete: ((ApiTypes.UserObject) -> ())?,
+    guildMemberRemove: ((ApiTypes.UserObject) -> ())?,
     guildMemberUpdate: ((ApiTypes.GuildMemberObject) -> ())?,
 
     messageCreate: ((ApiTypes.MessageObject) -> ())?,
@@ -227,6 +236,7 @@ export type Events = {
         guildId: string?
     ) -> ())?,
     messageUpdate: ((ApiTypes.MessageObject) -> ())?,
+
     reactionAdd: ((ApiTypes.ReactionObject) -> ())?,
     reactionRemove: ((ApiTypes.ReactionObject) -> ())?,
     reactionRemoveAll: (({
@@ -329,6 +339,8 @@ export type ClientOptions = {
 
 export type Client = typeof(setmetatable({} :: {
     Constants: typeof(Constants),
+
+    guilds: GuildManager.GuildManager,
     
     token: string,
     logger: Logger,
@@ -396,6 +408,8 @@ function Client.new(options: ClientOptions): Client
 
     self.events = options.events or {}
 
+    self.guilds = GuildManager.new(self.rest)
+
     return self
 end
 
@@ -407,10 +421,10 @@ function Client._callEvent(self: Client, event: Event, ...: any)
     if self.events[event] then
         if typeof(self.events[event]) == "table" then
             for _, callback in ipairs(self.events[event]) do
-                callback(camelize(...))
+                callback(...)
             end
         else
-            self.events[event](camelize(...))
+            self.events[event](...)
         end
     end
 end
@@ -421,7 +435,7 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     if event == "READY" then
         self.id = data.user.id
         self.rest:setApplicationId(data.application.id)
-        
+
         self:_callEvent("ready", {
             shardId = shard.id,
             v = data.v,
@@ -434,10 +448,28 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     end
 
     if event == "WEBHOOKS_UPDATE" then
-        self:_callEvent("webhooksUpdate", data)
+        self:_callEvent("webhooksUpdate", camelize(data))
     elseif event == "CHANNEL_CREATE" then
-        self:_callEvent("channelCreate", data)
+        local guild = self.guilds:get(data.guild_id)
+        if guild then
+            local channel = guild.channels:add(data)
+            channel.guild = guild
+
+            self:_callEvent("channelCreate", channel)
+        end
     elseif event == "CHANNEL_DELETE" then
+        -- TODO: dm channels
+        if data.guild_id then
+            local guild = self.guilds:get(data.guild_id)
+            if guild then
+                local channel = guild.channels:get(data.id)
+                if channel then
+                    guild.channels:remove(data.id)
+                    self:_callEvent("channelDelete", channel)
+                    return
+                end
+            end
+        end
         self:_callEvent("channelDelete", data)
     elseif event == "CHANNEL_PINS_UPDATE" then
         self:_callEvent("channelPinsUpdate", data)
@@ -494,19 +526,27 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "GUILD_BAN_REMOVE" then
         self:_callEvent("guildBanRemove", data)
     elseif event == "GUILD_CREATE" then
-        self:_callEvent("guildCreate", data)
+        local guild = self.guilds:add(data)
+        self:_callEvent("guildCreate", guild)
     elseif event == "GUILD_DELETE" then
         if data.unavailable then
             self:_callEvent("guildUnavailable", data.id)
             return
         end
+        self.guilds:remove(data.id)
         self:_callEvent("guildDelete", data.id)
     elseif event == "GUILD_INTEGRATIONS_UPDATE" then
         self:_callEvent("integrationUpdate", data)
     elseif event == "GUILD_STICKERS_UPDATE" then
         self:_callEvent("guildStickersUpdate", data)
     elseif event == "GUILD_UPDATE" then
-        self:_callEvent("guildUpdate", data)
+        local guild = self.guilds:get(data.id)
+        if guild then
+            guild:update(data)
+        else
+            guild = self.guilds:add(data)
+        end
+        self:_callEvent("guildUpdate", guild)
     elseif event == "INTEGRATION_CREATE" then
         self:_callEvent("integrationCreate", data)
     elseif event == "INTEGRATION_DELETE" then

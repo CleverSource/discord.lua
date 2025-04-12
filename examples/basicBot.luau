@@ -9,6 +9,7 @@ local bot = Client.new({
         -- Intents can be specified as a list of strings or numbers
         "AllNonPrivileged",
         -- Constants are provided for all intents
+        -- If testing, ensure you have the correct intents enabled in the developer portal
         Client.Constants.Intents.MessageContent
     },
     compression = false
@@ -19,42 +20,24 @@ bot.events.ready = function(data)
     print("Bot is ready!")
 end
 
+bot.events.messageCreate = function(message)
+    if message.content == "!ping" then
+        -- Directly interact with the rest client
+        -- or choose to use the `message` object to send a message
+        -- e.g. message:reply("Pong!")
+        bot.rest:sendMessage(message.channelId, {
+            content = "Pong!",
+            messageReference = {
+                messageId = message.id
+            }
+        })
+    end
+end
+
 -- Typing is lost here, so you can use `typeof` to get the type of the event
 bot:on("channelCreate", function(channel)
-    bot.rest:sendMessage(channel.id, {
-        content = `This channel named \`{channel.name}\` is cool!`
-    })
+    -- This is a channel object, so you can use the methods available on it
+    channel:sendMessage(`This channel named \`{channel.name}\` is cool!`)
 end :: typeof(bot.events.channelCreate))
-
--- Application commands
-local commands = {
-    {
-        name = "ping",
-        description = "Ping the bot",
-        type = Client.Constants.ApplicationCommandTypes.ChatInput,
-        options = {}
-    }
-}
-
-local currentCommands = bot.rest:getGlobalApplicationCommands()
-for i, command in commands do
-    if command.name ~= currentCommands[i].name then
-        bot.rest:upsertGlobalApplicationCommands(commands)
-        break
-    end
-end
-
-bot.events.interactionCreate = function(interaction)
-    if interaction.type == Client.Constants.InteractionType.ApplicationCommand then
-        if interaction.data.name == "ping" then
-            bot.rest:sendInteractionResponse(interaction.id, interaction.token, {
-                type = Client.Constants.InteractionResponseTypes.ChannelMessageWithSource,
-                data = {
-                    content = "Pong!"
-                }
-            })
-        end
-    end
-end
 
 bot:connect()
