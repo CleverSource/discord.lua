@@ -17,9 +17,6 @@ export type BaseGuild = typeof(setmetatable({} :: {
     features: { string },
     createdTimestamp: number,
     createdAt: datetime.DateTime,
-    nameAcronym: string,
-    partnered: boolean,
-    verified: boolean
 }, {} :: typeof({ __index = BaseGuild }))) & Base.Base
 
 function BaseGuild.new(client: RestClient.RestClient, data: any): BaseGuild
@@ -33,16 +30,23 @@ function BaseGuild.new(client: RestClient.RestClient, data: any): BaseGuild
     self.createdTimestamp = snowflakeCreatedAt(self.id)
     self.createdAt = datetime.fromUnixTimestamp(self.createdTimestamp / 1000)
     
-    self.nameAcronym = self.name and self.name:gsub("'s ", " "):gsub("%w+", function(word: string) 
-        return word:sub(1, 1)
-    end):gsub("%s+", "")
-    
-    self.partnered = self.features and table.find(self.features, Constants.GuildFeature.Partnered) ~= nil
-    self.verified = self.features and table.find(self.features, Constants.GuildFeature.Verified) ~= nil
-
     -- TODO: icon url
 
     return self
+end
+
+function BaseGuild.getNameAcronym(self: BaseGuild): string
+    return self.name and self.name:gsub("'s ", " "):gsub("%w+", function(word: string) 
+        return word:sub(1, 1)
+    end):gsub("%s+", "")
+end
+
+function BaseGuild.isPartnered(self: BaseGuild): boolean
+    return self.features and table.find(self.features, Constants.GuildFeature.Partnered) ~= nil
+end
+
+function BaseGuild.isVerified(self: BaseGuild): boolean
+    return self.features and table.find(self.features, Constants.GuildFeature.Verified) ~= nil
 end
 
 return BaseGuild

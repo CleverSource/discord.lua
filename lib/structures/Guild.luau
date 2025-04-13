@@ -3,7 +3,7 @@ local datetime = require("@lune/datetime")
 local RestClient = require("../rest/RestClient")
 local AnonymousGuild = require("AnonymousGuild")
 
-local ChannelManager = require("../managers/ChannelManager")
+local ChannelCache = require("../cache/ChannelCache")
 
 local ApiTypes = require("../types/apiTypes")
 
@@ -12,7 +12,7 @@ Guild.__index = Guild
 setmetatable(Guild, { __index = AnonymousGuild })
 
 export type Guild = typeof(setmetatable({} :: {
-    channels: ChannelManager.ChannelManager,
+    channels: ChannelCache.ChannelCache,
 
     shardId: number,
 
@@ -50,7 +50,7 @@ export type Guild = typeof(setmetatable({} :: {
 function Guild.new(client: RestClient.RestClient, data: any): Guild
     local self: Guild = setmetatable(AnonymousGuild.new(client, data, false) :: any, Guild)
 
-    self.channels = ChannelManager.new(client)
+    self.channels = ChannelCache.new(client)
 
     if data.unavailable then
         self.available = false
@@ -91,7 +91,7 @@ function Guild.update(self: Guild, data: any)
     self.widgetChannelId = data.widget_channel_id
     self.explicitContentFilter = data.explicit_content_filter
     self.mfaLevel = data.mfa_level
-    self.joinedTimestamp = datetime.fromIsoDate(data.joined_at)
+    self.joinedTimestamp = data.joined_at and datetime.fromIsoDate(data.joined_at)
     self.defaultMessageNotifications = data.default_message_notifications
     self.systemChannelFlags = data.system_channel_flags -- TODO
     self.maximumMembers = data.max_members

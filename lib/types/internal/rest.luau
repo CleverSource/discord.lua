@@ -123,25 +123,25 @@ export type EditCurrentApplicationRequest = Request<{
 -- https://discord.com/developers/docs/resources/channel#modify-channel
 export type ModifyChannelRequest = Request<{
     name: string?, -- 1-100 character channel name
-    type: objects.ChannelType, -- the type of channel; only conversion between text and announcement is supported and only in guilds with the "NEWS" feature
+    type: objects.ChannelType?, -- the type of channel; only conversion between text and announcement is supported and only in guilds with the "NEWS" feature
     icon: string?, -- (if a group DM, the base64 encoded icon for the group DM)
     position: number?, -- the position of the channel in the left-hand listing (channels with the same position are sorted by id)
     topic: string?, -- 0-1024 character channel topic (0-4096 characters for GUILD_FORUM and GUILD_MEDIA channels)
     nsfw: boolean?, -- whether the channel is nsfw
-    rate_limit_per_user: number?, -- amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected
+    rateLimitPerUser: number?, -- amount of seconds a user has to wait before sending another message (0-21600); bots, as well as users with the permission manage_messages or manage_channel, are unaffected
     bitrate: number?, -- the bitrate (in bits) of the voice or stage channel; min 8000
-    user_limit: number?, -- the user limit of the voice or stage channel, max 99 for voice channels and 10,000 for stage channels (0 refers to no limit)
-    permission_overwrites: { objects.OverwriteObject }?, -- channel or category-specific permissions
-    parent_id: objects.Snowflake?, -- id of the new parent category for a channel
-    rtc_region: string?, -- channel voice region id, automatic when set to null
-    video_quality_mode: objects.VideoQualityMode, -- the camera video quality mode of the voice channel
-    default_auto_archive_duration: number?, -- the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity
+    userLimit: number?, -- the user limit of the voice or stage channel, max 99 for voice channels and 10,000 for stage channels (0 refers to no limit)
+    permissionOverwrites: { objects.OverwriteObject }?, -- channel or category-specific permissions
+    parentId: objects.Snowflake?, -- id of the new parent category for a channel
+    rtcRegion: string?, -- channel voice region id, automatic when set to null
+    videoQualityMode: objects.VideoQualityMode?, -- the camera video quality mode of the voice channel
+    defaultAutoArchiveDuration: number?, -- the default duration that the clients use (not the API) for newly created threads in the channel, in minutes, to automatically archive the thread after recent activity
     flags: number?, -- channel flags combined as a bitfield. Currently only REQUIRE_TAG (1 << 4) is supported by GUILD_FORUM and GUILD_MEDIA channels. HIDE_MEDIA_DOWNLOAD_OPTIONS (1 << 15) is supported only by GUILD_MEDIA channels
-    available_tags: { objects.ForumTagObject }?, -- the set of tags that can be used in a GUILD_FORUM or a GUILD_MEDIA channel; limited to 20
-    default_reaction_emoji: objects.DefaultReactionObject?, -- the emoji to show in the add reaction button on a thread in a GUILD_FORUM or a GUILD_MEDIA channel
-    default_thread_rate_limit_per_user: number?, -- the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update.
-    default_sort_order: objects.SortOrderType?, -- the default sort order type used to order posts in GUILD_FORUM and GUILD_MEDIA channels
-    default_forum_layout: objects.ForumLayoutType?, -- the default forum layout type used to display posts in GUILD_FORUM channels
+    availableTags: { objects.ForumTagObject }?, -- the set of tags that can be used in a GUILD_FORUM or a GUILD_MEDIA channel; limited to 20
+    defaultReactionEmoji: objects.DefaultReactionObject?, -- the emoji to show in the add reaction button on a thread in a GUILD_FORUM or a GUILD_MEDIA channel
+    defaultThreadRateLimitPerUser: number?, -- the initial rate_limit_per_user to set on newly created threads in a channel. this field is copied to the thread at creation time and does not live update.
+    defaultSortOrder: objects.SortOrderType?, -- the default sort order type used to order posts in GUILD_FORUM and GUILD_MEDIA channels
+    defaultForumLayout: objects.ForumLayoutType?, -- the default forum layout type used to display posts in GUILD_FORUM channels
 }>
 
 -- https://discord.com/developers/docs/resources/channel#create-message
@@ -333,6 +333,13 @@ export type CreateGuildChannelRequest = Request<
 >
 
 -- https://discord.com/developers/docs/resources/guild#modify-guild-channel-positions
+export type ModifyGuildChannelPositionRequest = Request<{
+    id: objects.Snowflake, -- channel id
+    position: number?, -- sorting position of the channel (channels with the same position are sorted by id)
+    lockPermissions: boolean?, -- syncs the permission overwrites with the new parent, if moving to a new category
+    parentId: objects.Snowflake?, -- the new parent ID for the channel that is moved
+}>
+
 export type ModifyGuildChannelPositionsRequest = Request<
     {
         {

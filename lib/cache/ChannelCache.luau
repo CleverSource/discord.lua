@@ -7,16 +7,16 @@ local Constants = require("../Constants")
 
 export type AnyChannel = BaseChannel.BaseChannel & TextChannel.TextChannel
 
-local ChannelManager = {}
-ChannelManager.__index = ChannelManager
+local ChannelCache = {}
+ChannelCache.__index = ChannelCache
 
-export type ChannelManager = typeof(setmetatable({} :: {
+export type ChannelCache = typeof(setmetatable({} :: {
     client: RestClient.RestClient,
     cache: { [string]: BaseChannel.BaseChannel }, -- NOTE: this type is wrong but we don't care
-}, ChannelManager))
+}, ChannelCache))
 
-function ChannelManager.new(client: RestClient.RestClient): ChannelManager
-    local self = setmetatable({}, ChannelManager) :: ChannelManager
+function ChannelCache.new(client: RestClient.RestClient): ChannelCache
+    local self = setmetatable({}, ChannelCache) :: ChannelCache
 
     self.client = client
     self.cache = {}
@@ -25,16 +25,16 @@ function ChannelManager.new(client: RestClient.RestClient): ChannelManager
 end
 
 -- Getters with proper typing; these are preferred over the generic get method
-function ChannelManager.getTextChannel(self: ChannelManager, id: string): TextChannel.TextChannel?
+function ChannelCache.getTextChannel(self: ChannelCache, id: string): TextChannel.TextChannel?
     return self:get(id)
 end
 
 -- Type hacks for better interfacing with the library
-function ChannelManager.get(self: ChannelManager, id: string): AnyChannel?
+function ChannelCache.get(self: ChannelCache, id: string): AnyChannel?
     return self.cache[id] :: any
 end
 
-function ChannelManager.add(self: ChannelManager, data: any)
+function ChannelCache.add(self: ChannelCache, data: any)
     local channel = self:get(data.id)
     if channel then
         channel:update(data)
@@ -50,8 +50,10 @@ function ChannelManager.add(self: ChannelManager, data: any)
     return channel
 end
 
-function ChannelManager.remove(self: ChannelManager, id: string)
+function ChannelCache.remove(self: ChannelCache, id: string)
+    local old = self.cache[id]
     self.cache[id] = nil
+    return old
 end
 
-return ChannelManager
+return ChannelCache

@@ -1,4 +1,4 @@
-local GuildChannel = require("GuildChannel")
-export type TextChannel = GuildChannel.GuildChannel
+local BaseGuildTextChannel = require("BaseGuildTextChannel")
+export type TextChannel = BaseGuildTextChannel.BaseGuildTextChannel
 
-return GuildChannel
+return BaseGuildTextChannel

@@ -37,7 +37,7 @@ end
 -- Typing is lost here, so you can use `typeof` to get the type of the event
 bot:on("channelCreate", function(channel)
     -- This is a channel object, so you can use the methods available on it
-    channel:sendMessage(`This channel named \`{channel.name}\` is cool!`)
+    -- TODO: add this back when the channel object is fixed
 end :: typeof(bot.events.channelCreate))
 
 bot:connect()

@@ -12,13 +12,15 @@ local datetime = require("@lune/datetime")
 local getApplicationIdFromToken = require("util/getApplicationIdFromToken")
 local camelize = require("util/snakeCaseToCamel")
 
-local ChannelManager = require("managers/ChannelManager")
-local GuildManager = require("managers/GuildManager")
+local ChannelCache = require("cache/ChannelCache")
+local GuildCache = require("cache/GuildCache")
 
 local Guild = require("structures/Guild")
+local Message = require("structures/Message")
 
 -- NOTE: Type hack to make the channel type good when used in events
-type AnyChannel = ChannelManager.AnyChannel & { guild: Guild.Guild }
+type AnyChannel = ChannelCache.AnyChannel & { guild: Guild.Guild }
+type Message = Message.Message & { guild: Guild.Guild } & { channel: AnyChannel }
 
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
@@ -115,7 +117,7 @@ export type Events = {
 
     channelCreate: ((AnyChannel) -> ())?,
     channelDelete: ((AnyChannel) -> ())?,
-    channelUpdate: ((ApiTypes.ChannelObject) -> ())?,
+    channelUpdate: ((AnyChannel) -> ())?,
     channelPinsUpdate: (({
         guildId: string,
         channelId: string,
@@ -223,18 +225,14 @@ export type Events = {
     guildMemberRemove: ((ApiTypes.UserObject) -> ())?,
     guildMemberUpdate: ((ApiTypes.GuildMemberObject) -> ())?,
 
-    messageCreate: ((ApiTypes.MessageObject) -> ())?,
-    messageDelete: (({
-        id: string,
-        channelId: string,
-        guildId: string?
-    }) -> ())?,
+    messageCreate: ((Message) -> ())?,
+    messageDelete: ((Message) -> ())?,
     messageDeleteBulk: ((
         ids: { string },
         channelId: string,
         guildId: string?
     ) -> ())?,
-    messageUpdate: ((ApiTypes.MessageObject) -> ())?,
+    messageUpdate: ((Message) -> ())?,
 
     reactionAdd: ((ApiTypes.ReactionObject) -> ())?,
     reactionRemove: ((ApiTypes.ReactionObject) -> ())?,
@@ -339,7 +337,9 @@ export type ClientOptions = {
 export type Client = typeof(setmetatable({} :: {
     Constants: typeof(Constants),
 
-    guilds: GuildManager.GuildManager,
+    guilds: GuildCache.GuildCache,
+
+    channelGuildMap: { [string]: string },
     
     token: string,
     logger: Logger,
@@ -407,9 +407,19 @@ function Client.new(options: ClientOptions): Client
 
     self.events = options.events or {}
 
-    self.guilds = GuildManager.new(self.rest)
+    self.guilds = GuildCache.new(self.rest)
 
     return self
+end
+
+function Client.getChannel(self: Client, channelId: string, _guildId: string?): AnyChannel?
+    local guildId = _guildId or self.guilds.channelGuildMap[channelId]
+    local guild = self.guilds:get(guildId)
+    if guild then
+        local channel = guild.channels:get(channelId)
+        return channel
+    end
+    return
 end
 
 function Client._callEvent(self: Client, event: Event, ...: any)
@@ -459,10 +469,15 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "CHANNEL_CREATE" then
         local guild = self.guilds:get(data.guild_id)
         if guild then
+            local alreadyExists = guild.channels:get(data.id)
+
             local channel = guild.channels:add(data)
             channel.guild = guild
+            self.guilds.channelGuildMap[channel.id] = guild.id
 
-            self:_callEvent("channelCreate", channel)
+            if not alreadyExists and channel then
+                self:_callEvent("channelCreate", channel)
+            end
         end
     elseif event == "CHANNEL_DELETE" then
         -- TODO: dm channels
@@ -471,6 +486,7 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
             if guild then
                 local channel = guild.channels:get(data.id)
                 if channel then
+                    self.guilds.channelGuildMap[channel.id] = nil
                     guild.channels:remove(data.id)
                     self:_callEvent("channelDelete", channel)
                     return
@@ -481,6 +497,16 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "CHANNEL_PINS_UPDATE" then
         self:_callEvent("channelPinsUpdate", data)
     elseif event == "CHANNEL_UPDATE" then
+        -- TODO
+        local guild = self.guilds:get(data.guild_id)
+        if guild then
+            local channel = guild.channels:add(data)
+            if not channel.guild then
+                channel.guild = guild
+            end
+
+            self:_callEvent("channelUpdate", channel)
+        end
         self:_callEvent("channelUpdate", data)
     elseif event == "STAGE_INSTANCE_CREATE" then
         self:_callEvent("stageInstanceCreate", data)
@@ -547,12 +573,7 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "GUILD_STICKERS_UPDATE" then
         self:_callEvent("guildStickersUpdate", data)
     elseif event == "GUILD_UPDATE" then
-        local guild = self.guilds:get(data.id)
-        if guild then
-            guild:update(data)
-        else
-            guild = self.guilds:add(data)
-        end
+        local guild = self.guilds:add(data)
         self:_callEvent("guildUpdate", guild)
     elseif event == "INTEGRATION_CREATE" then
         self:_callEvent("integrationCreate", data)
@@ -577,9 +598,30 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "GUILD_MEMBER_UPDATE" then
         self:_callEvent("guildMemberUpdate", data)
     elseif event == "MESSAGE_CREATE" then
-        self:_callEvent("messageCreate", data)
+        local channel = self:getChannel(data.channel_id, data.guild_id)
+        if channel then
+            if not channel:isTextBased() then return end
+
+            -- TODO: thread channels
+            local existing = channel.messages:get(data.id)
+            -- TODO: handle existing
+            local message = not existing and channel.messages:add(data)
+            channel.lastMessageId = data.id
+
+            self:_callEvent("messageCreate", message)
+        end
     elseif event == "MESSAGE_DELETE" then
-        self:_callEvent("messageDelete", data)
+        local channel = self:getChannel(data.channel_id, data.guild_id)
+        if channel then
+            if not channel:isTextBased() then return end
+
+            -- TODO: thread channels
+            local message = channel.messages:get(data.id)
+            if message then
+                channel.messages:remove(data.id)
+                self:_callEvent("messageDelete", message)
+            end
+        end
     elseif event == "MESSAGE_DELETE_BULK" then
         self:_callEvent("messageDeleteBulk", data)
     elseif event == "MESSAGE_REACTION_ADD" then
@@ -591,8 +633,16 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
     elseif event == "MESSAGE_REACTION_REMOVE_EMOJI" then
         self:_callEvent("reactionRemoveEmoji", data)
     elseif event == "MESSAGE_UPDATE" then
-        if not data.edited_timestamp then return end
-        self:_callEvent("messageUpdate", data)
+        local channel = self:getChannel(data.channel_id, data.guild_id)
+        if channel then
+            if not channel:isTextBased() then return end
+
+            local message = channel.messages:get(data.id)
+            if message then
+                message:update(data)
+                self:_callEvent("messageUpdate", message)
+            end
+        end
     elseif event == "MESSAGE_POLL_VOTE_ADD" then
         self:_callEvent("messagePollVoteAdd", data)
     elseif event == "MESSAGE_POLL_VOTE_REMOVE" then
