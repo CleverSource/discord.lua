@@ -1,11 +1,12 @@
 local RestClient = require("../rest/RestClient")
 
 local BaseChannel = require("../structures/BaseChannel")
+local GuildChannel = require("../structures/GuildChannel")
 local TextChannel = require("../structures/TextChannel")
 
 local Constants = require("../Constants")
 
-export type AnyChannel = BaseChannel.BaseChannel & TextChannel.TextChannel
+export type AnyChannel = BaseChannel.BaseChannel & GuildChannel.GuildChannel & TextChannel.TextChannel
 
 local ChannelCache = {}
 ChannelCache.__index = ChannelCache
@@ -41,9 +42,21 @@ function ChannelCache.add(self: ChannelCache, data: any)
     else
         if data.type == Constants.ChannelTypes.GuildText then
             channel = TextChannel.new(self.client, data)
-        else
-            channel = BaseChannel.new(self.client, data)
         end
+
+        if not channel and not data.guild_id then
+            self.client.logger:warn(`Unknown channel type: {data.type}`)
+            channel = BaseChannel.new(self.client, data)
+        elseif not channel and data.guild_id then
+            if data.last_message_id ~= nil then
+                self.client.logger:warn(`Unknown guild text channel type: {data.type}`)
+                channel = TextChannel.new(self.client, data)
+            else
+                self.client.logger:warn(`Unknown guild channel type: {data.type}`)
+                channel = GuildChannel.new(self.client, data)
+            end
+        end
+
         self.cache[data.id] = channel
     end
 

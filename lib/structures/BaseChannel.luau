@@ -31,7 +31,14 @@ function BaseChannel.new(client: RestClient.RestClient, data: any, instantUpdate
 end
 
 function BaseChannel.update(self: BaseChannel, data: any)
-    self.flags = data.flags
+    if data.flags then
+        self.flags = data.flags
+    end
+
+    if data.type then
+        self.type = data.type
+    end
+
     self.id = data.id
     self.createdTimestamp = snowflakeCreatedAt(self.id)
     self.createdAt = datetime.fromUnixTimestamp(self.createdTimestamp / 1000)

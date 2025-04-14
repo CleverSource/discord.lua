@@ -20,7 +20,7 @@ local Message = require("structures/Message")
 
 -- NOTE: Type hack to make the channel type good when used in events
 type AnyChannel = ChannelCache.AnyChannel & { guild: Guild.Guild }
-type Message = Message.Message & { guild: Guild.Guild } & { channel: AnyChannel }
+type Message = Message.Message & { channel: AnyChannel }
 
 local Logger = require("log/Logger")
 type Logger = Logger.Logger
@@ -471,8 +471,9 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
         if guild then
             local alreadyExists = guild.channels:get(data.id)
 
+            data.guild = guild
+            
             local channel = guild.channels:add(data)
-            channel.guild = guild
             self.guilds.channelGuildMap[channel.id] = guild.id
 
             if not alreadyExists and channel then
@@ -605,6 +606,8 @@ function Client.handleDispatch(self: Client, event: string, shard: Shard, packet
             -- TODO: thread channels
             local existing = channel.messages:get(data.id)
             -- TODO: handle existing
+            data.channel = channel
+
             local message = not existing and channel.messages:add(data)
             channel.lastMessageId = data.id
 

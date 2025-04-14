@@ -70,41 +70,129 @@ function Guild.update(self: Guild, data: any)
     AnonymousGuild.update(self, data)
 
     self.id = data.id
-    self.name = data.name
-    self.icon = data.icon
+
+    if data.name then
+        self.name = data.name
+    end
+
+    if data.icon then
+        self.icon = data.icon
+    end
+    
     if data.unavailable ~= nil then
         self.available = not data.unavailable
     elseif self.available == nil then
         self.available = true
     end
 
-    self.discoverySplash = data.discovery_splash
-    self.memberCount = data.member_count
-    self.large = data.large
-    self.premiumProgressBarEnabled = data.premium_progress_bar_enabled
-    self.applicationId = data.application_id
-    self.afkTimeout = data.afk_timeout
-    self.afkChannelId = data.afk_channel_id
-    self.systemChannelId = data.system_channel_id
-    self.premiumTier = data.premium_tier
-    self.widgetEnabled = data.widget_enabled
-    self.widgetChannelId = data.widget_channel_id
-    self.explicitContentFilter = data.explicit_content_filter
-    self.mfaLevel = data.mfa_level
-    self.joinedTimestamp = data.joined_at and datetime.fromIsoDate(data.joined_at)
-    self.defaultMessageNotifications = data.default_message_notifications
-    self.systemChannelFlags = data.system_channel_flags -- TODO
-    self.maximumMembers = data.max_members
-    self.maximumPresences = data.max_presences
-    self.maxVideoChannelUsers = data.max_video_channel_users
-    self.maxStageVideoChannelUsers = data.max_stage_video_channel_users
-    self.approximateMemberCount = data.approximate_member_count
-    self.approximatePresenceCount = data.approximate_presence_count
-    self.rulesChannelId = data.rules_channel_id
-    self.publicUpdatesChannelId = data.public_updates_channel_id
-    self.preferredLocale = data.preferred_locale
-    self.safetyAlertsChannelId = data.safety_alerts_channel_id
-    self.ownerId = data.owner_id
+    if data.discovery_splash then
+        self.discoverySplash = data.discovery_splash
+    end
+
+    if data.member_count then
+        self.memberCount = data.member_count
+    end
+
+    if data.large then
+        self.large = data.large
+    end
+
+    if data.premium_progress_bar_enabled then
+        self.premiumProgressBarEnabled = data.premium_progress_bar_enabled
+    end
+
+    
+    if data.application_id then
+        self.applicationId = data.application_id
+    end
+    
+    if data.afk_timeout then
+        self.afkTimeout = data.afk_timeout
+    end
+    
+    if data.afk_channel_id then
+        self.afkChannelId = data.afk_channel_id
+    end
+    
+    if data.system_channel_id then
+        self.systemChannelId = data.system_channel_id
+    end
+    
+    if data.premium_tier then
+        self.premiumTier = data.premium_tier
+    end
+    
+    if data.widget_enabled then
+        self.widgetEnabled = data.widget_enabled
+    end
+    
+    if data.widget_channel_id then
+        self.widgetChannelId = data.widget_channel_id
+    end
+    
+    if data.explicit_content_filter then
+        self.explicitContentFilter = data.explicit_content_filter
+    end
+    
+    if data.mfa_level then
+        self.mfaLevel = data.mfa_level
+    end
+    
+    if data.joined_at then
+        self.joinedTimestamp = datetime.fromIsoDate(data.joined_at)
+    end
+    
+    if data.default_message_notifications then
+        self.defaultMessageNotifications = data.default_message_notifications
+    end
+    
+    if data.system_channel_flags then
+        self.systemChannelFlags = data.system_channel_flags -- TODO
+    end
+    
+    if data.max_members then
+        self.maximumMembers = data.max_members
+    end
+    
+    if data.max_presences then
+        self.maximumPresences = data.max_presences
+    end
+    
+    if data.max_video_channel_users then
+        self.maxVideoChannelUsers = data.max_video_channel_users
+    end
+    
+    if data.max_stage_video_channel_users then
+        self.maxStageVideoChannelUsers = data.max_stage_video_channel_users
+    end
+    
+    if data.approximate_member_count then
+        self.approximateMemberCount = data.approximate_member_count
+    end
+    
+    if data.approximate_presence_count then
+        self.approximatePresenceCount = data.approximate_presence_count
+    end
+    
+    if data.rules_channel_id then
+        self.rulesChannelId = data.rules_channel_id
+    end
+    
+    if data.public_updates_channel_id then
+        self.publicUpdatesChannelId = data.public_updates_channel_id
+    end
+    
+    if data.preferred_locale then
+        self.preferredLocale = data.preferred_locale
+    end
+    
+    if data.safety_alerts_channel_id then
+        self.safetyAlertsChannelId = data.safety_alerts_channel_id
+    end
+    
+    if data.owner_id then
+        self.ownerId = data.owner_id
+    end
 
     if data.channels then
         for _, channelData in data.channels do

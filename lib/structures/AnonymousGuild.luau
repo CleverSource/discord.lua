@@ -26,14 +26,37 @@ function AnonymousGuild.new(client: RestClient.RestClient, data: any, instantUpd
 end
 
 function AnonymousGuild.update(self: AnonymousGuild, data: any)
-    self.features = data.features
-    self.splash = data.splash
-    self.banner = data.banner
-    self.description = data.description
-    self.verificationLevel = data.verification_level
-    self.vanityUrlCode = data.vanity_url_code
-    self.nsfwLevel = data.nsfw_level
-    self.premiumSubscriptionCount = data.premium_subscription_count
+    if data.features then
+        self.features = data.features
+    end
+    
+    if data.splash then
+        self.splash = data.splash
+    end
+
+    if data.banner then
+        self.banner = data.banner
+    end
+
+    if data.description then
+        self.description = data.description
+    end
+
+    if data.verification_level then
+        self.verificationLevel = data.verification_level
+    end
+
+    if data.vanity_url_code then
+        self.vanityUrlCode = data.vanity_url_code
+    end
+
+    if data.nsfw_level then
+        self.nsfwLevel = data.nsfw_level
+    end
+
+    if data.premium_subscription_count then
+        self.premiumSubscriptionCount = data.premium_subscription_count
+    end
 
     -- TODO: banner & splash url
 end
