@@ -61,7 +61,8 @@ export type ShardOptions = {
     logger: Logger?,
     id: number,
     connection: ShardConnection,
-    events: Events?
+    events: Events?,
+    shardIsReady: () -> ()
 }
 
 export type Shard = typeof(setmetatable({} :: {
@@ -87,6 +88,7 @@ export type Shard = typeof(setmetatable({} :: {
     reusableZlibBuffer: string | nil,
     state: "identifying" | "resuming" | "connecting" | "unidentified" | "connected" | "disconnected" | "offline",
     resolveAfterClose: (() -> ())?,
+    shardIsReady: () -> ()
 }, Shard))
 
 function Shard.new(options: ShardOptions): Shard
@@ -104,6 +106,8 @@ function Shard.new(options: ShardOptions): Shard
     }
     self.resolvers = {}
     self.offlineSendQueue = {}
+
+    self.shardIsReady = options.shardIsReady
 
     -- Functional events
     self.events = options.events or {}
@@ -361,7 +365,7 @@ end
 
 function Shard.forwardToClient(self: Shard, packet: GatewayTypes.Payload<any>)
     if self.events.message then
-        self.events.message(self, camelize(packet))
+        self.events.message(self, camelize(packet) :: any)
     end
 end
 
@@ -464,7 +468,7 @@ function Shard.startHeartbeating(self: Shard, interval: number)
     
         self.socket:send(net.jsonEncode({
             op = Constants.GatewayOpCodes.Heartbeat,
-            d = self.previousSequenceNumber
+            d = self.previousSequenceNumber or 0
         }))
 
         self.heart.acknowledged = false
@@ -555,6 +559,7 @@ function Shard.identify(self: Shard): Promise
             if self.events.identified then
                 self.events.identified(self)
             end
+            self.shardIsReady()
             resolve()
         end
         self.resolvers["INVALID_SESSION"] = function() 

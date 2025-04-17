@@ -1,4 +1,5 @@
 local process = require("@lune/process")
+local task = require("@lune/task")
 
 local Shard = require("Shard")
 type Shard = Shard.Shard
@@ -61,6 +62,7 @@ export type GatewayHandler = typeof(setmetatable({} :: {
     shards: { [string]: Shard },
     properties: ShardProperties,
     events: ShardEvents,
+    spawnShardDelay: number
 }, GatewayHandler))
 
 function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
@@ -98,6 +100,8 @@ function GatewayHandler.new(options: GatewayHandlerOptions): GatewayHandler
     self.firstShardId = options.firstShardId or 0
     self.totalWorkers = options.totalWorkers or 4
     self.shardsPerWorker = options.shardsPerWorker or 25
+
+    self.spawnShardDelay = 5300
 
     self.buckets = {}
     self.shards = {}
@@ -169,7 +173,7 @@ function GatewayHandler.prepareBuckets(self: GatewayHandler)
         local workerFound = false
         for _, worker in ipairs(bucket.workers) do
             if worker.id == workerId then
-                table.insert(worker.shards, shardId)
+                table.insert(worker.queue, shardId)
                 workerFound = true
                 break
             end
@@ -213,7 +217,17 @@ function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
                 totalShards = self.totalShards
             },
             events = self.events,
-            logger = self.logger
+            logger = self.logger,
+            shardIsReady = function()
+                self.logger:debug(`[Shard] Shard #{shardId} is ready`)
+                task.wait(self.spawnShardDelay / 1000)
+                local bucket = self.buckets[tostring(shardId % self.sessionStartLimit.maxConcurrency)]
+                local identifyRequest = table.remove(bucket.identifyRequests, 1)
+                if identifyRequest then
+                    self.logger:debug(`[Shard] Resolving shard identify request`)
+                    identifyRequest()
+                end
+            end
         })
 
         if self.preferSnakeCase then
@@ -228,9 +242,12 @@ function GatewayHandler.identify(self: GatewayHandler, shardId: number): Promise
     end
 
     local bucket = self.buckets[tostring(shardId % self.sessionStartLimit.maxConcurrency)]
-    table.insert(bucket.identifyRequests, shardId)
-    self.logger:debug(`[Gateway] Shard #{shardId} added to identify queue`)
-    return shard:identify()
+    
+    return Promise.new(function(resolve)
+        table.insert(bucket.identifyRequests, resolve)
+        self.logger:debug(`[Gateway] Shard #{shardId} added to identify queue`)
+        shard:identify():Await()
+    end)
 end
 
 function GatewayHandler.tellWorkerToIdentify(self: GatewayHandler, workerId: number, shardId: number, bucketId: string): Promise

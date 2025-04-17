@@ -1,19 +1,24 @@
 local RestClient = require("../rest/RestClient")
-local BaseGuildTextChannel = require("BaseGuildTextChannel")
+local GuildChannel = require("GuildChannel")
 
-local GuildChannelMixin = require("mixin/GuildChannelMixin")
-local BaseGuildTextChannelMixin = require("mixin/BaseGuildTextChannelMixin")
+local MessageCache = require("../cache/MessageCache")
 
 local TextChannel = {}
 TextChannel.__index = TextChannel
-setmetatable(TextChannel, { __index = BaseGuildTextChannel })
+setmetatable(TextChannel, { __index = GuildChannel })
 
 export type TextChannel = typeof(setmetatable({} :: {
-    rateLimitPerUser: number
-}, {} :: typeof({ __index = TextChannel }))) & BaseGuildTextChannel.BaseGuildTextChannel
+    messages: MessageCache.MessageCache,
+
+    client: RestClient.RestClient,
+}, {} :: typeof({ __index = TextChannel }))) & GuildChannel.GuildChannel
 
 function TextChannel.new(client: RestClient.RestClient, data: any): TextChannel
-    local self: TextChannel = setmetatable(BaseGuildTextChannel.new(client, data) :: any, TextChannel)
+    local self: TextChannel = setmetatable(GuildChannel.new(client, data) :: any, TextChannel)
+
+    self.messages = MessageCache.new(client, 100)
+
+    self.client = client
 
     self:update(data)
 
@@ -21,18 +26,7 @@ function TextChannel.new(client: RestClient.RestClient, data: any): TextChannel
 end
 
 function TextChannel.update(self: TextChannel, data: any)
-    BaseGuildTextChannel.update(self, data)
-
-    if data.rate_limit_per_user then
-        self.rateLimitPerUser = data.rate_limit_per_user
-    end
+    GuildChannel.update(self, data)
 end
-
-function TextChannel.setRateLimitPerUser<T>(self: T, rateLimitPerUser: number, reason: string?): T
-    return (self :: any):edit({ rateLimitPerUser = rateLimitPerUser, reason = reason })
-end
-
-GuildChannelMixin.mix(BaseGuildTextChannel)
-BaseGuildTextChannelMixin.mix(BaseGuildTextChannel)
 
 return TextChannel

@@ -25,12 +25,14 @@ bot.events.messageCreate = function(message)
         -- Directly interact with the rest client
         -- or choose to use the `message` object to send a message
         -- e.g. message:reply("Pong!")
-        bot.rest:sendMessage(message.channelId, {
-            content = "Pong!",
-            messageReference = {
-                messageId = message.id
-            }
-        })
+        local a = message:reply("Test")
+        a:reply("Replying to my own message!")
+        -- bot.rest:sendMessage(message.channelId, {
+        --     content = "Pong!",
+        --     messageReference = {
+        --         messageId = message.id
+        --     }
+        -- })
     end
 end
 

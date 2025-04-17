@@ -1,19 +1,19 @@
 local RestClient = require("../rest/RestClient")
 
-local BaseChannel = require("../structures/BaseChannel")
+local Channel = require("../structures/Channel")
 local GuildChannel = require("../structures/GuildChannel")
 local TextChannel = require("../structures/TextChannel")
 
 local Constants = require("../Constants")
 
-export type AnyChannel = BaseChannel.BaseChannel & GuildChannel.GuildChannel & TextChannel.TextChannel
+export type AnyChannel = Channel.Channel & GuildChannel.GuildChannel & TextChannel.TextChannel
 
 local ChannelCache = {}
 ChannelCache.__index = ChannelCache
 
 export type ChannelCache = typeof(setmetatable({} :: {
     client: RestClient.RestClient,
-    cache: { [string]: BaseChannel.BaseChannel }, -- NOTE: this type is wrong but we don't care
+    cache: { [string]: Channel.Channel }, -- NOTE: this type is wrong but we don't care
 }, ChannelCache))
 
 function ChannelCache.new(client: RestClient.RestClient): ChannelCache
@@ -46,7 +46,7 @@ function ChannelCache.add(self: ChannelCache, data: any)
 
         if not channel and not data.guild_id then
             self.client.logger:warn(`Unknown channel type: {data.type}`)
-            channel = BaseChannel.new(self.client, data)
+            channel = Channel.new(self.client, data)
         elseif not channel and data.guild_id then
             if data.last_message_id ~= nil then
                 self.client.logger:warn(`Unknown guild text channel type: {data.type}`)
