@@ -4,8 +4,10 @@ local function snakeCaseToCamelCase(str: string): string
     end)
 end
 
-local function camelize(body: { [string]: any }): { [string]: any }
-    if typeof(body) ~= "table" then
+local function camelize(body: { [string]: any } | string): { [string]: any } | string
+    if typeof(body) == "string" then
+        return snakeCaseToCamelCase(body)
+    elseif typeof(body) ~= "table" then
         return body
     end
     
